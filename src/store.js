@@ -8,7 +8,8 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state:{
-        //
+        
+        apiLink: "https://wsphrnze6b.execute-api.us-east-1.amazonaws.com/beta"
 
     },
     mutations: { //synchronous way to update data
@@ -19,6 +20,9 @@ export default new Vuex.Store({
     actions: {},
     modules: {},
     getters: {
+        getApiLink(state){
+            return state.apiLink;
+        }
         // getLogin(state){
         //     return state.login;
         // },
