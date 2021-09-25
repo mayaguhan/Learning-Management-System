@@ -32,7 +32,12 @@ const routes = [
     path: '/trainercourses',
     name: 'TrainerCourses',
     component: () =>import('../views/Trainer/TrainerCourses.vue')
-  }
+  },
+  {
+    path: '/singlecourse',
+    name: 'SingleCourse',
+    component: () =>import('../views/Learner/SingleCourse.vue')
+  },
 ]
 
 const router = new VueRouter({
