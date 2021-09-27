@@ -8,8 +8,8 @@
             End Date: {{ courseDetail.end_date }} <br>
             Enrolled Students: {{ courseDetail.current }} / {{ courseDetail.capacity }} <br>
             <router-link :to="{ name: 'EnrolledStudent', params: { course_id: course_id, trainer_id: trainer_id } }">
-                <v-btn depressed small color="#0062E4">
-                    <span style="color: white">View Enrolled Students</span> 
+                <v-btn class="primary">
+                    View Enrolled Students
                 </v-btn>
             </router-link>
         </p>
@@ -21,39 +21,29 @@
 
         <h2>Course Content
             <!-- Toggle: Edit sections -->
-            <v-btn icon @click="toggleEdit=!toggleEdit" v-show="toggleEdit == false">
+            <v-btn icon @click="toggleEdit=!toggleEdit, editAction('edit')" v-show="toggleEdit == false">
                 <v-icon>mdi-pencil</v-icon>
             </v-btn>
 
             <v-btn class="primary" @click="addSection(sections)" v-show="toggleEdit == true">
                 Add Section
             </v-btn>
-            <v-btn class="primary" @click="toggleEdit=!toggleEdit, editSection(sections)" v-show="toggleEdit == true">
+            <v-btn class="primary" @click="toggleEdit=!toggleEdit, saveEdit()" v-show="toggleEdit == true">
                 Save
             </v-btn>
-            <v-btn class="light"  @click="toggleEdit=!toggleEdit" v-show="toggleEdit == true">
+            <v-btn class="light"  @click="toggleEdit=!toggleEdit, editAction('cancel')" v-show="toggleEdit == true">
                 Cancel
             </v-btn>
         </h2>
 
         <template>
         <v-expansion-panels focusable :items="sections">
-            <v-expansion-panel v-for="section in sections" :key="section.course_id" @click="expandSection(section.section_id)">
+            <v-expansion-panel v-for="(section, indexS) in sections" :key="section.course_id" @click="expandSection(section.section_id)">
                 <v-expansion-panel-header>
                     {{ section.section_name }}
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <div>
-                        <b>Quiz Statistics: </b> 
-                        {{ section.pass_count }} / {{ courseDetail.current }} Learners have passed this quiz <br>
-                        <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }">
-                            <v-btn depressed small color="#0062E4">
-                                <span style="color: white">Manage Quiz</span> 
-                            </v-btn>
-                        </router-link>
-                    </div>
-                    <v-divider></v-divider>
-                    <!-- Checks a section has pre-requisite whether -->
+                    <!-- Checks a section has pre-requisite -->
                     <div v-if=" section.requisite_section_name != null">
                         <b>Pre-requisite Section: </b> {{ section.requisite_section_name }}
                         <v-btn icon v-show="toggleEdit == true">
@@ -69,25 +59,46 @@
                     <!-- TO DO: Method to update section's pre-requisite -->
                     <v-divider></v-divider>
 
-                    <!-- Upload slide decks -->
-                    <b>Topic's Slide Decks</b><br>
-                    <ul v-for="(material, index) in materials" v-bind:key="material.material_id">
-                        <li v-if="materials.length > 0" >
-                            <v-btn v-bind:href="material.link" target="_blank">
-                                <v-icon>mdi-pencil</v-icon> {{ material.material_name }}
+                    <!-- Quiz and Slide Decks can only if a section exists (i.e. has section_id).
+                    Newly added sections have to be Saved before quiz or materials can be added -->
+                    <div v-if=" section.section_id != null">
+                        <!-- Quiz Statistics -->
+                        <b>Quiz Statistics: </b> 
+                        {{ section.pass_count }} / {{ courseDetail.current }} Learners have passed this quiz <br>
+                        <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }">
+                            <v-btn class="primary">
+                                Manage Quiz
                             </v-btn>
-                            <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material, index)">
-                                <v-icon>mdi-trash-can</v-icon>
-                            </v-btn>
-                        </li>
-                        <li v-else>
-                            <b>This section has no materials</b>
-                        </li>
-                    </ul>
+                        </router-link>
+                        <v-divider></v-divider>
 
+                        <!-- Upload slide decks -->
+                        <b>Topic's Slide Decks</b><br>
+                        <ul v-for="(material, indexM) in materials" v-bind:key="material.material_id">
+                            <li v-if="materials.length > 0" >
+                                <v-btn v-bind:href="material.link" target="_blank">
+                                    <v-icon>mdi-pencil</v-icon> {{ material.material_name }}
+                                </v-btn>
+                                <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material, indexM)">
+                                    <v-icon>mdi-trash-can</v-icon>
+                                </v-btn>
+                            </li>
+                            <li v-else>
+                                <b>This section has no materials</b>
+                            </li>
+                        </ul>
+                        <v-file-input chips multiple label="Upload Material(s)" v-show="toggleEdit == true"></v-file-input>
+                        <!-- TO DO: Method to upload new materials -->
 
-                    <v-file-input chips multiple label="Upload Material(s)" v-show="toggleEdit == true"></v-file-input>
-                    <!-- TO DO: Method to upload new materials -->
+                    </div>
+                    <div v-else>
+                        <b>You have to save your edits before you create a new quiz or upload materials.</b>
+                    </div>
+                    <v-divider></v-divider>
+
+                    <v-btn class="primary" v-show="toggleEdit == true" @click="deleteSection(indexS)">
+                        Delete Section
+                    </v-btn>
                 </v-expansion-panel-content>
             </v-expansion-panel>
         </v-expansion-panels>
@@ -106,10 +117,11 @@ export default {
     data: () => ({
         courseDetail: {},
         sections: [],
+        sectionsCopy: [],
         requisiteCourses: [],
         materials: [],
         newSection: {},
-        toggleEdit: false
+        toggleEdit: false,
     }),
     methods: {
         getCourseDetail() {
@@ -183,25 +195,73 @@ export default {
             console.log("Requisite Courses: ", this.requisiteCourses);
         },
         addSection() {
-            for (let i=0; i<1; i++) {
-                // Add new Section
-                // Dummy JSON input, to be replaced with API call
-                this.sections.push({
-                    "section_id": 2,
-                    "section_name": "PQ101 - Section " + (this.sections.length+i+1),
-                    "quiz_duration": 600,
-                    "passing_grade": 80,
-                    "pass_count": 0,
-                    "section_requisite_id": (this.sections.length+i+1),
-                    "requisite_section_name": "PQ101 - Section " + (this.sections.length+i+1)
-                });
+            // Add new Section
+            // Dummy JSON input, to be replaced with API call
+            this.sections.push({
+                "section_name": "PQ101 - Section " + (this.sections.length+1),
+                "quiz_duration": 600,
+                "passing_grade": 80,
+                "pass_count": 0,
+                "section_requisite_id": (this.sections.length+1),
+                "requisite_section_name": null
+            });
+        },
+        deleteSection(indexS) {
+            this.sections.splice(indexS, 1);
+        },
+        editAction(action) {
+            if (action == "edit") {  
+                // Creates a copy of sections and stores it in sectionsCopy
+                this.sectionsCopy = JSON.parse(JSON.stringify(this.sections));
+            } else if (action == "cancel") {
+                // Reverts changes made to sections by using the data from sectionsCopy
+                this.sections = JSON.parse(JSON.stringify(this.sectionsCopy));
             }
         },
-        editSection(sections) {
-            // Edit section, change section name & section requirement
-            console.log("Editing in progress")
-            console.log(sections)
-            // TO DO: Edit Section
+        saveEdit() {
+            // Save edit section changes
+            let onlyInA = this.sections.filter(this.comparer(this.sectionsCopy));
+            let onlyInB = this.sectionsCopy.filter(this.comparer(this.sections));
+            let changes = onlyInA.concat(onlyInB);
+            console.log("Edited Section: ", this.sections);
+            console.log("Original Section: ", this.sectionsCopy);
+            console.log("Changes Made: ", changes);
+
+            // Check all the changes to determine whether to execute INSERT/UPDATE/DELETE
+            changes.forEach((change) => {
+                // console.log(change);
+                if (change.section_id == null) {
+                    console.log("INSERT");
+                    // INSERT into lms_section database
+
+
+                } else if (change.action == "update") {
+                    console.log("UPDATE", change.section_id);
+                    // UPDATE lms_section database
+
+                } else {
+                    console.log("DELETE: ", change.section_id);
+                    // DELETE FROM lms_section database
+
+                } 
+            });
+            // Calls getCourseSection to refresh changes made
+            // this.getCourseSections();
+        },
+        comparer(otherArray){
+            return function(current){
+                return otherArray.filter(function(other){
+                    return (
+                        other.section_id == current.section_id &&
+                        other.section_name == current.section_name &&
+                        other.quiz_duration == current.quiz_duration && 
+                        other.passing_grade == current.passing_grade && 
+                        other.pass_count == current.pass_count && 
+                        other.section_requisite_id == current.section_requisite_id && 
+                        other.requisite_section_name == current.requisite_section_name
+                    )
+                }).length == 0;
+            }
         },
         expandSection(section_id) {
             // console.log(section_id);
@@ -222,12 +282,18 @@ export default {
             this.materials = materialData;
 
         },
-        deleteMaterial(material, index) {
-            this.materials.splice(index, 1);
-            console.log("Deleting: " + material.material_id);
+        deleteMaterial(material, indexM) {
+            this.materials.splice(indexM, 1);
+            console.log("Deleting Material: " + material.material_id);
             // Execute Delete query
             // TO DO: Delete material
-        }
+
+
+        },
+        // TO DO: Section Requisite Logic Checker
+        sectionRequisiteChecker() {
+
+        },
     },
     created() {
         // Calls method to get course details
@@ -238,7 +304,6 @@ export default {
 
         // Calls method to get course requisite details
         this.getRequisiteCourses()
-
     }
 }
 </script>
