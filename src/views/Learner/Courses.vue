@@ -43,7 +43,7 @@
                             {{ row.item.end_date }}
                         </td>
                         <td>
-                           {{ row.item.capacity }} slots left
+                           {{ row.item.remaining }} slots left
                         </td>
                         <td width="10">
                             <v-btn
@@ -51,6 +51,7 @@
                                 small
                                 color="#0062E4"
                                 @click="enrollCourse(row.item)"
+                                v-if="row.item.remaining !== 0"
                             >
                                 <span style="color: white">Enroll</span> 
                             </v-btn>
@@ -216,27 +217,34 @@
             alert(title);
         }
     },
-
+    computed: {
+        apiLink(){
+            return this.$store.state.apiLink;
+        }
+    },
     created() {
             const axios = require('axios');
-            axios.post(`https://wsphrnze6b.execute-api.us-east-1.amazonaws.com/beta/getallcoursesauserhasnotenrolledin`, {"learnerId" : "6"})
+            var updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
+            axios.post(updatedApiWithEndpoint, {"learnerId" : "6"})
                 .then((response) => {
-                    console.log(response.data);
                     this.courses = response.data;
-
                     
+                    /* this.courses.push(
+                      {
+                        "course_id": 1,
+                        "course_code": "PQ101",
+                        "title": "Test Course I",
+                        "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a printing press and auxiliary equipment to produce quality printed products on papers and other materials as well as trouble shooting and maintenance of printing machines",
+                        "remaining": 1,
+                        "capacity": 10,
+                        "start_date": "2021-01-01T00:00:00.000Z",
+                        "end_date": "2021-12-31T00:00:00.000Z",
+                        "course_requirement": 0
+                    }
+                    )
+                    console.log(this.courses); */
                 })
-
-                .catch(function (error) {
-                    //error
-                    console.log(error);
-                })
-
-                .then(function () {
-                    // console.log(response);
-                    // console.log("GET Request complete")
-                });
-        },
+    },
   }
 </script>
 

@@ -34,13 +34,6 @@ const routes = [
     component: () =>import('../views/Learner/Courses.vue')
   },
   {
-    path: '/singlecourse',
-    name: 'SingleCourse',
-    component: () =>import('../views/Learner/SingleCourse.vue')
-  },
-
-
-  {
     path: '/trainerCourses',
     name: 'TrainerCourses',
     component: () =>import('../views/Trainer/TrainerCourses.vue')
