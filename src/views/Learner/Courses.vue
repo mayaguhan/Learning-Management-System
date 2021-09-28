@@ -77,6 +77,9 @@
                       <th class="text-left">
                         End Date
                       </th>
+                      <th class="text-left">
+                        
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -87,6 +90,13 @@
                       <td>{{ item.title }}</td>
                       <td>{{ item.start_date }}</td>
                       <td>{{ item.end_date }}</td>
+                      <td width="10">
+                          <router-link :to="{ name: 'CourseDetail', params: { course_id: 1, trainer_id: 1 }}">
+                              <v-btn depressed small color="#0062E4">
+                                  <span style="color: white">View Class</span> 
+                              </v-btn>
+                          </router-link>
+                      </td>
                     </tr>
                   </tbody>
                 </template>
