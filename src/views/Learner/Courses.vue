@@ -150,6 +150,7 @@
         myprogress: false,
         inProgress: false,
         completed: false,
+        learner_id: 6,
 
         search: '',
         headers: [
@@ -165,24 +166,7 @@
           { text: '', value: 'action' }
         ],
         courses: [
-          {
-            title: 'Ink Changing Course',
-            start_date: "12/3/2021",
-            end_date: "20/3/2021",
-            capacity: '12',
-          },
-          {
-            title: 'Voltage Recognition Course',
-            start_date: "15/3/2021",
-            end_date: "15/4/2021",
-            capacity: '11',
-          },
-          {
-            title: 'Customer Relations Course',
-            start_date: "12/1/2021",
-            end_date: "20/1/2021",
-            capacity: '16',
-          },
+          
         ],
         progressCourses: [
           {
@@ -231,7 +215,28 @@
             var title = item.title
             alert(title);
         }
-    }
+    },
+
+    created() {
+            const axios = require('axios');
+            axios.post(`https://wsphrnze6b.execute-api.us-east-1.amazonaws.com/beta/getallcoursesauserhasnotenrolledin`, {"learnerId" : "6"})
+                .then((response) => {
+                    console.log(response.data);
+                    this.courses = response.data;
+
+                    
+                })
+
+                .catch(function (error) {
+                    //error
+                    console.log(error);
+                })
+
+                .then(function () {
+                    // console.log(response);
+                    // console.log("GET Request complete")
+                });
+        },
   }
 </script>
 
