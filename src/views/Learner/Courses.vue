@@ -31,19 +31,13 @@
                             {{row.item.name}}
                         </td>
                         <td>
-                            {{ row.item.category }}
+                            {{ row.item.start_date }}
                         </td>
                         <td>
-                            {{ row.item.startdate }}
+                            {{ row.item.end_date }}
                         </td>
                         <td>
-                            {{ row.item.enddate }}
-                        </td>
-                        <td>
-                            {{ row.item.trainer }}
-                        </td>
-                        <td>
-                           {{ row.item.capacity }} 
+                           {{ row.item.capacity }} slots left
                         </td>
                         <td width="10">
                             <v-btn
@@ -80,42 +74,34 @@
         search: '',
         headers: [
           {
-            text: 'Course Name',
+            text: 'Title',
             align: 'start',
             sortable: false,
             value: 'name',
           },
-          { text: 'Category', value: 'category' },
-          { text: 'Start Date', value: 'startdate' },
-          { text: 'End Date', value: 'enddate' },
-          { text: 'Trainer', value: 'trainer' },
+          { text: 'Start Date', value: 'start_date' },
+          { text: 'End Date', value: 'end_date' },
           { text: 'Capacity', value: 'capacity' },
-          { text: '', value: 'actions' }
+          { text: '', value: 'action' }
         ],
         courses: [
           {
             name: 'Ink Changing Course',
-            category: "Ink",
-            startdate: "12/3/2021",
-            enddate: "20/3/2021",
-            trainer: "LeBron James",
-            capacity: '23/40',
+            start_date: "12/3/2021",
+            end_date: "20/3/2021",
+            capacity: '12',
           },
           {
             name: 'Voltage Recognition Course',
-            category: "Misc",
-            startdate: "15/3/2021",
-            enddate: "15/4/2021",
-            trainer: "Guhan James",
-            capacity: '23/40',
+            start_date: "15/3/2021",
+            end_date: "15/4/2021",
+            capacity: '11',
           },
           {
             name: 'Customer Relations Course',
-            category: "Misc",
-            startdate: "12/1/2021",
-            enddate: "20/1/2021",
-            trainer: "Yuquan Yeo",
-            capacity: '10/40',
+            start_date: "12/1/2021",
+            end_date: "20/1/2021",
+            capacity: '16',
           },
         ],
       }
