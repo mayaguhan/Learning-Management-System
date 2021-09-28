@@ -43,7 +43,6 @@
                         <ul v-for="material in materials" v-bind:key="material.material_id">
                             
                         </ul>
-                        <v-file-input chips multiple label="Upload Material(s)" v-show="toggleEdit == true"></v-file-input>
                         <!-- TO DO: Method to upload new materials -->
 
                     </div>
