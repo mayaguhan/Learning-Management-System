@@ -62,7 +62,7 @@ export default {
     name: "CourseDetail",
     props: {
         course_id: parseInt({ type: Number }), 
-        trainer_id: parseInt({ type: Number })
+        learner_id: parseInt({ type: Number })
     },
     data: () => ({
         courseDetail: {},

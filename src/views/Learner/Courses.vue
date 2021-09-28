@@ -91,7 +91,7 @@
                       <td>{{ item.start_date }}</td>
                       <td>{{ item.end_date }}</td>
                       <td width="10">
-                          <router-link :to="{ name: 'SingleCourse', params: { course_id: 1, trainer_id: 1 }}">
+                          <router-link :to="{ name: 'SingleCourse', params: { course_id: 1, learner_id: 1 }}">
                               <v-btn depressed small color="#0062E4">
                                   <span style="color: white">View Class</span> 
                               </v-btn>
