@@ -1,9 +1,15 @@
 <template>
     <div>
         <v-tabs>
-            <v-tab @click="allcourses = true; myprogress = false">All Courses</v-tab>
-            <v-tab @click="myprogress = true; allcourses = false">My Progress</v-tab>
+            <v-tab @click="allcourses = true; myprogress = false; inProgress = false; completed = false">All Courses</v-tab>
+            <v-tab @click="myprogress = true; allcourses = false; inProgress= true; completed = false">My Progress</v-tab>
         </v-tabs>
+
+        <v-tabs v-if="myprogress">
+            <v-tab @click="inProgress = true; completed = false">In Progress</v-tab>
+            <v-tab @click="completed = true; inProgress = false">Completed</v-tab>
+        </v-tabs>
+
         <div>
           <!-- All Courses Content -->
           <div v-if="allcourses">
@@ -28,7 +34,7 @@
                 <template v-slot:item="row">
                     <tr>
                         <td>
-                            {{row.item.name}}
+                            {{row.item.title}}
                         </td>
                         <td>
                             {{ row.item.start_date }}
@@ -56,9 +62,71 @@
           </div>
 
           <!-- My Progress Content -->
-          <div v-if="myprogress">
-            My Progress
+          <div v-if="inProgress">
+            <template>
+              <v-simple-table>
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th class="text-left">
+                        Title
+                      </th>
+                      <th class="text-left">
+                        Start Date
+                      </th>
+                      <th class="text-left">
+                        End Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="item in progressCourses"
+                      :key="item.title"
+                    >
+                      <td>{{ item.title }}</td>
+                      <td>{{ item.start_date }}</td>
+                      <td>{{ item.end_date }}</td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </template>
           </div>
+
+          <!-- Completed Content -->
+          <div v-if="completed">
+            <template>
+              <v-simple-table>
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th class="text-left">
+                        Title
+                      </th>
+                      <th class="text-left">
+                        Start Date
+                      </th>
+                      <th class="text-left">
+                        End Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="item in completedCourses"
+                      :key="item.title"
+                    >
+                      <td>{{ item.title }}</td>
+                      <td>{{ item.start_date }}</td>
+                      <td>{{ item.end_date }}</td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </template>
+          </div>
+
         </div>
     </div>
 </template>
@@ -70,6 +138,8 @@
       return {
         allcourses: true,
         myprogress: false,
+        inProgress: false,
+        completed: false,
 
         search: '',
         headers: [
@@ -77,7 +147,7 @@
             text: 'Title',
             align: 'start',
             sortable: false,
-            value: 'name',
+            value: 'title',
           },
           { text: 'Start Date', value: 'start_date' },
           { text: 'End Date', value: 'end_date' },
@@ -86,30 +156,70 @@
         ],
         courses: [
           {
-            name: 'Ink Changing Course',
+            title: 'Ink Changing Course',
             start_date: "12/3/2021",
             end_date: "20/3/2021",
             capacity: '12',
           },
           {
-            name: 'Voltage Recognition Course',
+            title: 'Voltage Recognition Course',
             start_date: "15/3/2021",
             end_date: "15/4/2021",
             capacity: '11',
           },
           {
-            name: 'Customer Relations Course',
+            title: 'Customer Relations Course',
             start_date: "12/1/2021",
             end_date: "20/1/2021",
             capacity: '16',
           },
         ],
+        progressCourses: [
+          {
+            title: 'Customer Support Course',
+            start_date: "12/2/2021",
+            end_date: "12/3/2021",
+            capacity: 10
+          },
+          {
+            title: 'Rotator Changing Course',
+            start_date: "12/2/2021",
+            end_date: "12/3/2021",
+            capacity: 10
+          },
+          {
+            title: 'Painting Course',
+            start_date: "12/2/2021",
+            end_date: "12/3/2021",
+            capacity: 10
+          },
+          {
+            title: 'Sales Course',
+            start_date: "12/2/2021",
+            end_date: "12/3/2021",
+            capacity: 10
+          },
+        ],
+        completedCourses: [
+          {
+            title: "Print Quality Control I",
+            start_date: "12/2/2020",
+            end_date: "12/3/2020",
+            capacity: 10
+          },
+          {
+            title: "Print Quality Control II",
+            start_date: "12/3/2020",
+            end_date: "12/4/2020",
+            capacity: 10
+          },
+        ]
       }
     },
     methods: {
         enrollCourse(item){
-            var name = item.name
-            alert(name);
+            var title = item.title
+            alert(title);
         }
     }
   }
