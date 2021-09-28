@@ -11,6 +11,11 @@ const routes = [
     component: Home
   },
   {
+    path: '/exampleapicall',
+    name: 'ExampleAPI',
+    component: () => import('../views/ExampleRetrieveData.vue')
+  },
+  {
     path: '/about',
     name: 'About',
     // route level code-splitting
@@ -29,7 +34,14 @@ const routes = [
     component: () =>import('../views/Learner/Courses.vue')
   },
   {
-    path: '/trainercourses',
+    path: '/singlecourse',
+    name: 'SingleCourse',
+    component: () =>import('../views/Learner/SingleCourse.vue')
+  },
+
+
+  {
+    path: '/trainerCourses',
     name: 'TrainerCourses',
     component: () =>import('../views/Trainer/TrainerCourses.vue')
   },
@@ -37,6 +49,23 @@ const routes = [
     path: '/singlecourse/:course_id/:learner_id',
     name: 'SingleCourse',
     component: () =>import('@/views/Learner/SingleCourse.vue'),
+  },
+  {
+    path: '/trainerCourseDetail/:course_id/:trainer_id',
+    name: 'CourseDetail',
+    component: () =>import('@/views/Trainer/CourseDetail.vue'),
+    props: true
+  },
+  {
+    path: '/trainerEnrolledStudent/:course_id/:trainer_id',
+    name: 'EnrolledStudent',
+    component: () =>import('../views/Trainer/EnrolledStudent.vue'),
+    props: true
+  },
+  {
+    path: '/trainerQuizDetail/:section_id',
+    name: 'QuizDetail',
+    component: () =>import('../views/Trainer/QuizDetail.vue'),
     props: true
   },
 ]
