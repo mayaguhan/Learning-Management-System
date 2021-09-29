@@ -166,26 +166,9 @@
           { text: 'Capacity', value: 'capacity' },
           { text: '', value: 'action' }
         ],
-        courses: [
-          
-        ],
-        progressCourses: [
-          
-        ],
-        completedCourses: [
-          {
-            title: "Print Quality Control I",
-            start_date: "12/2/2020",
-            end_date: "12/3/2020",
-            capacity: 10
-          },
-          {
-            title: "Print Quality Control II",
-            start_date: "12/3/2020",
-            end_date: "12/4/2020",
-            capacity: 10
-          },
-        ]
+        courses: [],
+        progressCourses: [],
+        completedCourses: []
       }
     },
     methods: {
@@ -202,6 +185,10 @@
     created() {
             // Simulate login
             var dataObj = {'learnerId' : "6" };
+            var dataObjForComplete = {
+                "learnerId" : 6,
+                "status" : "complete"
+            };
 
             const axios = require('axios');
             var updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
@@ -226,6 +213,18 @@
                       courseObj.end_date = courseObj.end_date.slice(0, -14);
                     }
                   this.progressCourses = response.data;
+                })
+
+            var updatedApiWithEndpoint3 = this.apiLink + "/getallcoursesauserhasbystatus";
+            axios.post(updatedApiWithEndpoint3, dataObjForComplete)
+                .then((response) => {
+                  let courseArray = response.data;
+                    for (let index = 0; index < courseArray.length; index++) {
+                      const courseObj = courseArray[index];
+                      courseObj.start_date = courseObj.start_date.slice(0, -14);
+                      courseObj.end_date = courseObj.end_date.slice(0, -14);
+                    }
+                  this.completedCourses = response.data;
                 })
             
     },
