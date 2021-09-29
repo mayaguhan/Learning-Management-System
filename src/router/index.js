@@ -31,7 +31,8 @@ const routes = [
   {
     path: '/learnercourses',
     name: 'LearnerCourses',
-    component: () =>import('../views/Learner/Courses.vue')
+    component: () =>import('../views/Learner/Courses.vue'),
+    props: true
   },
   {
     path: '/trainerCourses',
@@ -42,6 +43,13 @@ const routes = [
     path: '/singlecourse/:course_id/:learner_id',
     name: 'SingleCourse',
     component: () =>import('@/views/Learner/SingleCourse.vue'),
+    props: true
+  },
+  {
+    path: '/quiz/:section_id/:learner_id/:course_id/:trainer_id',
+    name: 'Quiz',
+    component: () =>import('@/views/Learner/Quiz.vue'),
+    props: true
   },
   {
     path: '/trainerCourseDetail/:course_id/:trainer_id',

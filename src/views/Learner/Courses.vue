@@ -166,15 +166,37 @@
           { text: 'Capacity', value: 'capacity' },
           { text: '', value: 'action' }
         ],
-        courses: [],
-        progressCourses: [],
-        completedCourses: []
+        courses: [
+          
+        ],
+        progressCourses: [
+          
+        ],
+        completedCourses: [
+          
+        ]
       }
     },
     methods: {
         enrollCourse(item){
-            var title = item.title
+            //console.log(item);
+            var title = item.title;
             alert(title);
+
+            /* // Insert API Call
+            var dataObjEnroll = {
+              'learnerId' : "7",
+              'courseId' : item.course_id,
+              'trainerId' : "3",
+              'status' : "Progress"
+            }
+            //console.log(dataObjEnroll);
+            const axios = require('axios');
+            var updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
+            axios.post(updatedApiWithEndpoint, dataObjEnroll)
+                .then((response) => {
+                  console.log(response.data);
+                }) */
         }
     },
     computed: {
@@ -184,16 +206,23 @@
     },
     created() {
             // Simulate login
-            var dataObj = {'learnerId' : "6" };
+            var dataObj = {
+              'learnerId' : "7"
+            };
+            var dataObjForProgress = {
+                'learnerId' : "7",
+                'status' : 'Progress'
+            };
             var dataObjForComplete = {
-                "learnerId" : 6,
-                "status" : "complete"
+                "learnerId" : 7,
+                "status" : "Complete"
             };
 
             const axios = require('axios');
             var updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
+                  //console.log(response.data);
                   let courseArray = response.data;
                   for (let index = 0; index < courseArray.length; index++) {
                     const courseObj = courseArray[index];
@@ -203,9 +232,10 @@
                   this.courses = response.data;
                 })
             
-            var updatedApiWithEndpoint2 = this.apiLink + "/getallcoursesauserhasenrolled";
-            axios.post(updatedApiWithEndpoint2, dataObj)
+            var updatedApiWithEndpoint2 = this.apiLink + "/getallcoursesauserhasbystatus";
+            axios.post(updatedApiWithEndpoint2, dataObjForProgress)
                 .then((response) => {
+                  //console.log(response.data);
                   let courseArray = response.data;
                     for (let index = 0; index < courseArray.length; index++) {
                       const courseObj = courseArray[index];
@@ -218,6 +248,7 @@
             var updatedApiWithEndpoint3 = this.apiLink + "/getallcoursesauserhasbystatus";
             axios.post(updatedApiWithEndpoint3, dataObjForComplete)
                 .then((response) => {
+                  //console.log(response.data);
                   let courseArray = response.data;
                     for (let index = 0; index < courseArray.length; index++) {
                       const courseObj = courseArray[index];

@@ -48,6 +48,18 @@
                     <div v-if="section.best_grade !== null">
                         <b>Best Grade: {{ section.best_grade }} / 100</b>
                     </div>
+                    <v-divider></v-divider>
+                    <div style="padding-top:5px">
+                        <router-link :to="{ name: 'Quiz', params: { section_id: section.section_id,
+                                                                            learner_id: 1,
+                                                                            course_id: 1,
+                                                                            trainer_id: 1,
+                                                                            }}">
+                              <v-btn depressed small color="#0062E4">
+                                  <span style="color: white">Attempt Quiz</span> 
+                              </v-btn>
+                          </router-link>
+                    </div>
 
                     
 
