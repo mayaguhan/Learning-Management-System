@@ -20,7 +20,7 @@
         <v-expansion-panels focusable :items="sections">
             <v-expansion-panel v-for="section in sections" :key="section.course_id" @click="expandSection(section.section_id)">
                 <v-expansion-panel-header>
-                    <b v-if="section.best_grade == 'No Attempt'">{{ section.section_name }}</b>
+                    <div v-if="ifUpdated(section.best_grade)"><b>{{ section.section_name }}</b></div>
                     <div v-else>{{ section.section_name }}</div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
@@ -45,7 +45,7 @@
                     </div>
                     <v-divider></v-divider>
 
-                    <div v-if="section.best_grade !== 'No Attempt'">
+                    <div v-if="section.best_grade !== null">
                         <b>Best Grade: {{ section.best_grade }} / 100</b>
                     </div>
 
@@ -75,8 +75,16 @@ export default {
         requisiteCourses: [],
         materials: [],
         newSection: {},
+        boldSection: false,
     }),
     methods: {
+        ifUpdated(grade) {
+            if ((grade == null) && this.boldSection == false) {
+                console.log("hello david");
+                this.boldSection = true;
+                return true;
+            }
+        },
         getCourseDetail() {
             this.courseDetail = {
                 "course_id": this.course_id,
@@ -141,7 +149,25 @@ export default {
             this.requisiteCourses = requisiteCourseData;
             // console.log("Requisite Courses: ", this.requisiteCourses);
         },
-        
+        expandSection(section_id) {
+            // console.log(section_id);
+            // Get all Materials by section_id
+            // Dummy JSON, to be replaced with API call
+            let materialData = [{
+                "material_id": 1, 
+                "material_name": "Section " + section_id + " Material 1",
+                "type": "pdf",
+                "link": "https://www.google.com.sg/"
+                },
+                {
+                "material_id": 2, 
+                "material_name": "Section " + section_id + " Material 2",
+                "type": "pdf",
+                "link": "https://www.google.com.sg/"
+            }];
+            this.materials = materialData;
+
+        },
         // TO DO: Section Requisite Logic Checker
         sectionRequisiteChecker() {
 
