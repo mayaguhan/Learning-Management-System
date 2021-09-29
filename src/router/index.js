@@ -11,6 +11,11 @@ const routes = [
     component: Home
   },
   {
+    path: '/exampleapicall',
+    name: 'ExampleAPI',
+    component: () => import('../views/ExampleRetrieveData.vue')
+  },
+  {
     path: '/about',
     name: 'About',
     // route level code-splitting
