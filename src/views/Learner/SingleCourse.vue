@@ -20,16 +20,13 @@
         <v-expansion-panels focusable :items="sections">
             <v-expansion-panel v-for="section in sections" :key="section.course_id" @click="expandSection(section.section_id)">
                 <v-expansion-panel-header>
-                    {{ section.section_name }}
+                    <b v-if="section.best_grade == 'No Attempt'">{{ section.section_name }}</b>
+                    <div v-else>{{ section.section_name }}</div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                     <!-- Checks a section has pre-requisite -->
-                    <div v-if=" section.requisite_section_name != null">
-                        <b>Pre-requisite Section: </b> {{ section.requisite_section_name }}
-                    </div>
-                    <div v-else>
-                        <b>This section has no pre-requisites</b>
-                    </div>
+                    <!-- Removed ^ -->
+
                     <!-- TO DO: Method to update section's pre-requisite -->
                     <v-divider></v-divider>
 
@@ -47,6 +44,14 @@
 
                     </div>
                     <v-divider></v-divider>
+
+                    <div v-if="section.best_grade !== 'No Attempt'">
+                        <b>Best Grade: {{ section.best_grade }} / 100</b>
+                    </div>
+
+                    
+
+                    
 
                 </v-expansion-panel-content>
             </v-expansion-panel>
@@ -93,27 +98,21 @@ export default {
                 "section_name": "PQ101 - Section 1",
                 "quiz_duration": 600,
                 "passing_grade": 80,
-                "pass_count": 2,
-                "section_requisite_id": null,
-                "requisite_section_name": null
+                "best_grade" : 100
             },
             {
                 "section_id": 2,
                 "section_name": "PQ101 - Section 2",
                 "quiz_duration": 1800,
                 "passing_grade": 80,
-                "pass_count": 1,
-                "section_requisite_id": 1,
-                "requisite_section_name": "PQ101 - Section 1"
+                "best_grade" : 100
             },
             {
                 "section_id": 3,
                 "section_name": "PQ101 - Section 3",
                 "quiz_duration": 1800,
                 "passing_grade": 80,
-                "pass_count": 0,
-                "section_requisite_id": 2,
-                "requisite_section_name": "PQ101 - Section 2"
+                "best_grade" : 100
             }];
             this.sections = courseSectionData;
             console.log("Sections", this.sections);
@@ -140,112 +139,38 @@ export default {
                 "end_date": "2021-12-31"
             }];
             this.requisiteCourses = requisiteCourseData;
-            console.log("Requisite Courses: ", this.requisiteCourses);
+            // console.log("Requisite Courses: ", this.requisiteCourses);
         },
-        addSection() {
-            // Add new Section
-            // Dummy JSON input, to be replaced with API call
-            this.sections.push({
-                "section_name": "PQ101 - Section " + (this.sections.length+1),
-                "quiz_duration": 600,
-                "passing_grade": 80,
-                "pass_count": 0,
-                "section_requisite_id": (this.sections.length+1),
-                "requisite_section_name": null
-            });
-        },
-        editAction(action) {
-            if (action == "edit") {  
-                // Creates a copy of sections and stores it in sectionsCopy
-                this.sectionsCopy = JSON.parse(JSON.stringify(this.sections));
-            } else if (action == "cancel") {
-                // Reverts changes made to sections by using the data from sectionsCopy
-                this.sections = JSON.parse(JSON.stringify(this.sectionsCopy));
-            }
-        },
-        saveEdit() {
-            // Save edit section changes
-            let onlyInA = this.sections.filter(this.comparer(this.sectionsCopy));
-            let onlyInB = this.sectionsCopy.filter(this.comparer(this.sections));
-            let changes = onlyInA.concat(onlyInB);
-            console.log("Edited Section: ", this.sections);
-            console.log("Original Section: ", this.sectionsCopy);
-            console.log("Changes Made: ", changes);
-
-            // Check all the changes to determine whether to execute INSERT/UPDATE/DELETE
-            changes.forEach((change) => {
-                // console.log(change);
-                if (change.section_id == null) {
-                    console.log("INSERT");
-                    // INSERT into lms_section database
-
-
-                } else if (change.action == "update") {
-                    console.log("UPDATE", change.section_id);
-                    // UPDATE lms_section database
-
-                } else {
-                    console.log("DELETE: ", change.section_id);
-                    // DELETE FROM lms_section database
-
-                } 
-            });
-            // Calls getCourseSection to refresh changes made
-            // this.getCourseSections();
-        },
-        comparer(otherArray){
-            return function(current){
-                return otherArray.filter(function(other){
-                    return (
-                        other.section_id == current.section_id &&
-                        other.section_name == current.section_name &&
-                        other.quiz_duration == current.quiz_duration && 
-                        other.passing_grade == current.passing_grade && 
-                        other.pass_count == current.pass_count && 
-                        other.section_requisite_id == current.section_requisite_id && 
-                        other.requisite_section_name == current.requisite_section_name
-                    )
-                }).length == 0;
-            }
-        },
-        expandSection(section_id) {
-            // console.log(section_id);
-            // Get all Materials by section_id
-            // Dummy JSON, to be replaced with API call
-            let materialData = [{
-                "material_id": 1, 
-                "material_name": "Section " + section_id + " Material 1",
-                "type": "pdf",
-                "link": "https://www.google.com.sg/"
-                },
-                {
-                "material_id": 2, 
-                "material_name": "Section " + section_id + " Material 2",
-                "type": "pdf",
-                "link": "https://www.google.com.sg/"
-            }];
-            this.materials = materialData;
-
-        },
-        deleteMaterial(material, indexM) {
-            this.materials.splice(indexM, 1);
-            console.log("Deleting Material: " + material.material_id);
-            // Execute Delete query
-            // TO DO: Delete material
-
-
-        },
+        
         // TO DO: Section Requisite Logic Checker
         sectionRequisiteChecker() {
 
         },
+    },
+    computed: {
+        apiLink(){
+            return this.$store.state.apiLink;
+        }
     },
     created() {
         // Calls method to get course details
         this.getCourseDetail();
 
         // Calls method to get section details
-        this.getCourseSections();
+        // this.getCourseSections();
+        var dataObj = {
+                        'learnerId' : '6',
+                        'trainerId' : '1',
+                        'courseId'  : '1'
+                        };
+
+        const axios = require('axios');
+        var updatedApiWithEndpoint = this.apiLink + "/getallsectionsbycourseidtraineriduserid";
+        axios.post(updatedApiWithEndpoint, dataObj)
+            .then((response) => {
+                console.log(response.data);
+                this.sections = response.data;
+            })
 
         // Calls method to get course requisite details
         this.getRequisiteCourses()

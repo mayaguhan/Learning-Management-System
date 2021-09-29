@@ -170,30 +170,7 @@
           
         ],
         progressCourses: [
-          {
-            title: 'Customer Support Course',
-            start_date: "12/2/2021",
-            end_date: "12/3/2021",
-            capacity: 10
-          },
-          {
-            title: 'Rotator Changing Course',
-            start_date: "12/2/2021",
-            end_date: "12/3/2021",
-            capacity: 10
-          },
-          {
-            title: 'Painting Course',
-            start_date: "12/2/2021",
-            end_date: "12/3/2021",
-            capacity: 10
-          },
-          {
-            title: 'Sales Course',
-            start_date: "12/2/2021",
-            end_date: "12/3/2021",
-            capacity: 10
-          },
+          
         ],
         completedCourses: [
           {
@@ -223,27 +200,34 @@
         }
     },
     created() {
+            // Simulate login
+            var dataObj = {'learnerId' : "6" };
+
             const axios = require('axios');
             var updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
-            axios.post(updatedApiWithEndpoint, {"learnerId" : "6"})
+            axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.courses = response.data;
-                    
-                    /* this.courses.push(
-                      {
-                        "course_id": 1,
-                        "course_code": "PQ101",
-                        "title": "Test Course I",
-                        "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a printing press and auxiliary equipment to produce quality printed products on papers and other materials as well as trouble shooting and maintenance of printing machines",
-                        "remaining": 1,
-                        "capacity": 10,
-                        "start_date": "2021-01-01T00:00:00.000Z",
-                        "end_date": "2021-12-31T00:00:00.000Z",
-                        "course_requirement": 0
-                    }
-                    )
-                    console.log(this.courses); */
+                  let courseArray = response.data;
+                  for (let index = 0; index < courseArray.length; index++) {
+                    const courseObj = courseArray[index];
+                    courseObj.start_date = courseObj.start_date.slice(0, -14);
+                    courseObj.end_date = courseObj.end_date.slice(0, -14);
+                  }
+                  this.courses = response.data;
                 })
+            
+            var updatedApiWithEndpoint2 = this.apiLink + "/getallcoursesauserhasenrolled";
+            axios.post(updatedApiWithEndpoint2, dataObj)
+                .then((response) => {
+                  let courseArray = response.data;
+                    for (let index = 0; index < courseArray.length; index++) {
+                      const courseObj = courseArray[index];
+                      courseObj.start_date = courseObj.start_date.slice(0, -14);
+                      courseObj.end_date = courseObj.end_date.slice(0, -14);
+                    }
+                  this.progressCourses = response.data;
+                })
+            
     },
   }
 </script>
