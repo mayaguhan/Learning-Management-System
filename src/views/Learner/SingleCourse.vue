@@ -79,11 +79,16 @@ export default {
     }),
     methods: {
         ifUpdated(grade) {
-            if ((grade == null) && this.boldSection == false) {
-                console.log("hello david");
+            if ((grade == null) && (this.boldSection == false)) {
+                console.log(this.boldSection);
                 this.boldSection = true;
+                console.log(this.boldSection);
                 return true;
             }
+            else {
+                return false;
+            }
+            
         },
         getCourseDetail() {
             this.courseDetail = {
