@@ -46,13 +46,13 @@ const routes = [
     component: () =>import('../views/Trainer/TrainerCourses.vue')
   },
   {
-    path: '/trainerCourseDetail/:course_id/:trainer_id',
+    path: '/trainerCourseDetail/:course_id',
     name: 'CourseDetail',
     component: () =>import('@/views/Trainer/CourseDetail.vue'),
     props: true
   },
   {
-    path: '/trainerEnrolledStudent/:course_id/:trainer_id',
+    path: '/trainerEnrolledStudent/:course_id',
     name: 'EnrolledStudent',
     component: () =>import('../views/Trainer/EnrolledStudent.vue'),
     props: true

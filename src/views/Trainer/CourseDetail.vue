@@ -7,7 +7,7 @@
             Start Date: {{ courseDetail.start_date }} <br>
             End Date: {{ courseDetail.end_date }} <br>
             Enrolled Students: {{ courseDetail.current }} / {{ courseDetail.capacity }} <br>
-            <router-link :to="{ name: 'EnrolledStudent', params: { course_id: course_id, trainer_id: trainer_id } }">
+            <router-link :to="{ name: 'EnrolledStudent', params: { course_id: course_id } }">
                 <v-btn class="primary">
                     View Enrolled Students
                 </v-btn>
@@ -24,13 +24,62 @@
             <v-btn icon @click="toggleEdit=!toggleEdit, editAction('edit')" v-show="toggleEdit == false">
                 <v-icon>mdi-pencil</v-icon>
             </v-btn>
+            <!-- Add New Section Dialog -->
+            <v-dialog v-model="dialog" persistent max-width="600px">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn color="primary" dark v-bind="attrs" v-on="on" v-show="toggleEdit == true">
+                        Add Section Dialog
+                    </v-btn>
+                </template>
+                <v-card>
+                    <v-card-title>
+                        <span class="text-h5">Add New Section</span>
+                    </v-card-title>
+                    <v-card-text>
+                    <v-form v-model="isFormValid">
+                        <v-row>
+                            <v-col>
+                                <v-text-field v-model="newSectionName" counter :rules="[rules.required, rules.counter]"
+                                label="Section Name"  maxlength="50" ></v-text-field>
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col>
+                                <v-text-field v-model="newQuizDuration" type="number" :rules="[rules.required, rules.durationMin, rules.durationMax]"
+                                label="Quiz Duration" hint="Duration of the quiz" suffix="minutes"></v-text-field>
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col>
+                                <v-text-field v-model="newQuizPassingGrade" type="number" :rules="[rules.required, rules.gradeMin, rules.gradeMax]"
+                                label="Passing Grade" hint="Grade % learner needs to get to clear this section" suffix="%"></v-text-field>
+                            </v-col>
+                        </v-row>
+                    </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="blue darken-1"  text  @click="dialog = false">
+                        Close
+                    </v-btn>
+                    <v-btn color="blue darken-1" text :disabled="!isFormValid" @click="dialog = false, addSection(sections)">
+                        Add
+                    </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
 
-            <v-btn class="primary" @click="addSection(sections)" v-show="toggleEdit == true">
-                Add Section
+            <!-- TO DO: Change Sequence of Sections -->
+            <v-btn class="primary" v-show="toggleEdit == true">
+                Section Sequence
             </v-btn>
+
+            <!-- Save Section Edits -->
             <v-btn class="primary" @click="toggleEdit=!toggleEdit, saveEdit()" v-show="toggleEdit == true">
                 Save
             </v-btn>
+
+            <!-- Cancel Section Edits -->
             <v-btn class="light"  @click="toggleEdit=!toggleEdit, editAction('cancel')" v-show="toggleEdit == true">
                 Cancel
             </v-btn>
@@ -44,7 +93,7 @@
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                     <!-- Checks a section has pre-requisite -->
-                    <div v-if=" section.requisite_section_name != null">
+                    <!-- <div v-if=" section.requisite_section_name != null">
                         <b>Pre-requisite Section: </b> {{ section.requisite_section_name }}
                         <v-btn icon v-show="toggleEdit == true">
                             <v-icon>mdi-pencil</v-icon>
@@ -55,7 +104,7 @@
                         <v-btn icon v-show="toggleEdit == true">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
-                    </div>
+                    </div> -->
                     <!-- TO DO: Method to update section's pre-requisite -->
                     <v-divider></v-divider>
 
@@ -108,23 +157,53 @@
 </template>
 
 <script>
+// import axios from 'axios';
+
 export default {
     name: "CourseDetail",
     props: {
-        course_id: parseInt({ type: Number }), 
-        trainer_id: parseInt({ type: Number })
+        course_id: parseInt({ type: Number })
     },
     data: () => ({
+        currentUserId: 1, // To be replaced with user_id of logged in user
+
         courseDetail: {},
         sections: [],
         sectionsCopy: [],
         requisiteCourses: [],
         materials: [],
         newSection: {},
+        newSectionName: "",
+        newQuizDuration: 10,
+        newQuizPassingGrade: 50,
         toggleEdit: false,
+        dialog: false,
+        isFormValid: false,
+        rules: {
+            required: value => !!value || 'Required.',
+            counter: value => value.length <= 50 || 'Max 50 characters',
+            durationMin: value => value >= 10 || 'Min duration is 10 minutes',
+            durationMax: value => value <= 120 || 'Max duration is 120 minutes',
+            gradeMin: value => value >= 50 || 'Min passing grade is 50%',
+            gradeMax: value => value <= 100 || 'Max passing grade is 100%',
+        },
     }),
+    computed: {
+        apiLink(){
+            return this.$store.state.apiLink;
+        }
+    },
     methods: {
-        getCourseDetail() {
+        getCourseDetail(course_id) {
+            // Get a Course information by course_id and trainer_id
+            // let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            let dataObj = { "courseId": course_id }
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            //     .then((response) => {
+            //         console.log(response);
+            //         this.courseDetail = response.data;
+            //     })
+            console.log(dataObj)
             this.courseDetail = {
                 "course_id": this.course_id,
                 "course_code": "PQ101",
@@ -134,45 +213,55 @@ export default {
                 "current": 2,
                 "start_date": "2021-01-01",
                 "end_date": "2021-12-31",
-                "trainer_id": 1
+                "course_requirement": 2,
+                "enrollment_count": 2
             };
+            if (this.courseDetail.course_requirement > 0) {
+                console.log("This course has Requisites");
+                this.getRequisiteCourses(this.course_id);
+            }
         },
         getCourseSections() {
-            // Get all Sections by course_id, trainer_id and user_id
+            // Get all Sections by course_id, trainer_id and user_id (Trainer)
             // Dummy JSON, to be replaced with API call
             let courseSectionData = [{
                 "section_id": 1,
-                "section_name": "PQ101 - Section 1",
+                "section_name": "Managing Printers",
                 "quiz_duration": 600,
                 "passing_grade": 80,
                 "pass_count": 2,
-                "section_requisite_id": null,
-                "requisite_section_name": null
+                "section_sequence": 1
             },
             {
                 "section_id": 2,
-                "section_name": "PQ101 - Section 2",
+                "section_name": "Managing Ink Catridges",
                 "quiz_duration": 1800,
                 "passing_grade": 80,
                 "pass_count": 1,
-                "section_requisite_id": 1,
-                "requisite_section_name": "PQ101 - Section 1"
+                "section_sequence": 2
             },
             {
                 "section_id": 3,
-                "section_name": "PQ101 - Section 3",
+                "section_name": "Ensuring Printing Accuracy",
                 "quiz_duration": 1800,
                 "passing_grade": 80,
                 "pass_count": 0,
-                "section_requisite_id": 2,
-                "requisite_section_name": "PQ101 - Section 2"
+                "section_sequence": 3
             }];
             this.sections = courseSectionData;
             console.log("Sections", this.sections);
         },
-        getRequisiteCourses() {
+        getRequisiteCourses(course_id) {
             // Get a Course's requisite(s)
-            // Dummy JSON, to be replaced with API call
+            // let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            let dataObj = { "courseId": course_id }
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            // .then((response) => {
+            //     console.log(response);
+            //     this.requisiteCourses = response.data;
+            // })
+            console.log(dataObj);
+
             let requisiteCourseData = [{
                 "course_requisite_id": 15, 
                 "course_code": "EX201",
@@ -192,18 +281,14 @@ export default {
                 "end_date": "2021-12-31"
             }];
             this.requisiteCourses = requisiteCourseData;
-            console.log("Requisite Courses: ", this.requisiteCourses);
         },
         addSection() {
             // Add new Section
             // Dummy JSON input, to be replaced with API call
             this.sections.push({
-                "section_name": "PQ101 - Section " + (this.sections.length+1),
-                "quiz_duration": 600,
-                "passing_grade": 80,
-                "pass_count": 0,
-                "section_requisite_id": (this.sections.length+1),
-                "requisite_section_name": null
+                "section_name": this.newSectionName,
+                "quiz_duration": this.newQuizDuration * 60,
+                "passing_grade": this.newQuizPassingGrade
             });
         },
         deleteSection(indexS) {
@@ -256,9 +341,7 @@ export default {
                         other.section_name == current.section_name &&
                         other.quiz_duration == current.quiz_duration && 
                         other.passing_grade == current.passing_grade && 
-                        other.pass_count == current.pass_count && 
-                        other.section_requisite_id == current.section_requisite_id && 
-                        other.requisite_section_name == current.requisite_section_name
+                        other.pass_count == current.pass_count
                     )
                 }).length == 0;
             }
@@ -297,13 +380,13 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCourseDetail();
+        this.getCourseDetail(this.course_id);
 
         // Calls method to get section details
         this.getCourseSections();
 
         // Calls method to get course requisite details
-        this.getRequisiteCourses()
+        // this.getRequisiteCourses()
     }
 }
 </script>
