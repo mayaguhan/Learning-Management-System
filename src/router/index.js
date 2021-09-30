@@ -31,22 +31,28 @@ const routes = [
   {
     path: '/learnercourses',
     name: 'LearnerCourses',
-    component: () =>import('../views/Learner/Courses.vue')
+    component: () =>import('../views/Learner/Courses.vue'),
+    props: true
   },
-  {
-    path: '/singlecourse',
-    name: 'SingleCourse',
-    component: () =>import('../views/Learner/SingleCourse.vue')
-  },
-
-
   {
     path: '/trainerCourses',
     name: 'TrainerCourses',
     component: () =>import('../views/Trainer/TrainerCourses.vue')
   },
   {
-    path: '/trainerCourseDetail/:course_id',
+    path: '/singlecourse/:course_id/:learner_id',
+    name: 'SingleCourse',
+    component: () =>import('@/views/Learner/SingleCourse.vue'),
+    props: true
+  },
+  {
+    path: '/quiz/:section_id/:learner_id/:course_id/:trainer_id',
+    name: 'Quiz',
+    component: () =>import('@/views/Learner/Quiz.vue'),
+    props: true
+  },
+  {
+    path: '/trainerCourseDetail/:course_id/:trainer_id',
     name: 'CourseDetail',
     component: () =>import('@/views/Trainer/CourseDetail.vue'),
     props: true
