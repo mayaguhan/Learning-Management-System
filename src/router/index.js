@@ -52,7 +52,7 @@ const routes = [
     props: true
   },
   {
-    path: '/trainerCourseDetail/:course_id/:trainer_id',
+    path: '/trainerCourseDetail/:course_id',
     name: 'CourseDetail',
     component: () =>import('@/views/Trainer/CourseDetail.vue'),
     props: true
