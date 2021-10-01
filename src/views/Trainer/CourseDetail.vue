@@ -19,6 +19,16 @@
             {{ courseDetail.outline }}
         </p>
 
+        <h2>Course Requisites</h2>
+        <p>
+            <ul v-if="requisiteCourses.length > 0">
+                <li v-for="requisite in requisiteCourses" v-bind:key="requisite.course_requisite_id">
+                    {{ requisite.course_code }} - {{ requisite.title }} 
+                </li>
+            </ul>
+            <b v-else>This course has no pre-requisites.</b>
+        </p>
+
         <h2>Course Content
             <!-- Toggle: Edit sections -->
             <v-btn icon @click="toggleEdit=!toggleEdit, editAction('edit')" v-show="toggleEdit == false">
@@ -40,7 +50,7 @@
                         <v-row>
                             <v-col>
                                 <v-text-field v-model="newSectionName" counter :rules="[rules.required, rules.counter]"
-                                label="Section Name"  maxlength="50" ></v-text-field>
+                                label="Section Name" maxlength="50" ></v-text-field>
                             </v-col>
                         </v-row>
                         <v-row>
@@ -92,21 +102,8 @@
                     {{ section.section_name }}
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <!-- Checks a section has pre-requisite -->
-                    <!-- <div v-if=" section.requisite_section_name != null">
-                        <b>Pre-requisite Section: </b> {{ section.requisite_section_name }}
-                        <v-btn icon v-show="toggleEdit == true">
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                    </div>
-                    <div v-else>
-                        <b>This section has no pre-requisites</b>
-                        <v-btn icon v-show="toggleEdit == true">
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                    </div> -->
-                    <!-- TO DO: Method to update section's pre-requisite -->
-                    <v-divider></v-divider>
+                    <v-text-field v-model="section.section_name" v-show="toggleEdit == true" 
+                    label="Section Name"  maxlength="50" ></v-text-field>
 
                     <!-- Quiz and Slide Decks can only if a section exists (i.e. has section_id).
                     Newly added sections have to be Saved before quiz or materials can be added -->
@@ -118,8 +115,7 @@
                             <v-btn class="primary">
                                 Manage Quiz
                             </v-btn>
-                        </router-link>
-                        <v-divider></v-divider>
+                        </router-link><br>
 
                         <!-- Upload slide decks -->
                         <b>Topic's Slide Decks</b><br>
@@ -145,7 +141,7 @@
                     </div>
                     <v-divider></v-divider>
 
-                    <v-btn class="primary" v-show="toggleEdit == true" @click="deleteSection(indexS)">
+                    <v-btn class="primary" v-show="toggleEdit == true" @click="deleteSection(section, indexS)">
                         Delete Section
                     </v-btn>
                 </v-expansion-panel-content>
@@ -177,6 +173,7 @@ export default {
         newQuizDuration: 10,
         newQuizPassingGrade: 50,
         toggleEdit: false,
+        deleteSectionId: [],
         dialog: false,
         isFormValid: false,
         rules: {
@@ -194,8 +191,8 @@ export default {
         }
     },
     methods: {
+        // Get a Course information by course_id and trainer_id
         getCourseDetail(course_id) {
-            // Get a Course information by course_id and trainer_id
             // let updatedApiWithEndpoint = this.apiLink + "/TBC";
             let dataObj = { "courseId": course_id }
             // axios.post(updatedApiWithEndpoint, dataObj)
@@ -221,8 +218,8 @@ export default {
                 this.getRequisiteCourses(this.course_id);
             }
         },
+        // Get all Sections by course_id, trainer_id and user_id (Trainer)
         getCourseSections() {
-            // Get all Sections by course_id, trainer_id and user_id (Trainer)
             // Dummy JSON, to be replaced with API call
             let courseSectionData = [{
                 "section_id": 1,
@@ -251,8 +248,8 @@ export default {
             this.sections = courseSectionData;
             console.log("Sections", this.sections);
         },
+        // Get a Course's requisite(s)
         getRequisiteCourses(course_id) {
-            // Get a Course's requisite(s)
             // let updatedApiWithEndpoint = this.apiLink + "/TBC";
             let dataObj = { "courseId": course_id }
             // axios.post(updatedApiWithEndpoint, dataObj)
@@ -291,8 +288,9 @@ export default {
                 "passing_grade": this.newQuizPassingGrade
             });
         },
-        deleteSection(indexS) {
+        deleteSection(section_id, indexS) {
             this.sections.splice(indexS, 1);
+            this.deleteSectionId.push(section_id);
         },
         editAction(action) {
             if (action == "edit") {  
@@ -305,33 +303,31 @@ export default {
         },
         saveEdit() {
             // Save edit section changes
-            let onlyInA = this.sections.filter(this.comparer(this.sectionsCopy));
-            let onlyInB = this.sectionsCopy.filter(this.comparer(this.sections));
-            let changes = onlyInA.concat(onlyInB);
-            console.log("Edited Section: ", this.sections);
-            console.log("Original Section: ", this.sectionsCopy);
-            console.log("Changes Made: ", changes);
+            let changes = this.sections.filter(this.comparer(this.sectionsCopy));
+            console.log("Edited: ", this.sections);
+            console.log("Original: ", this.sectionsCopy);
+            console.log("Changes: ", changes);
 
-            // Check all the changes to determine whether to execute INSERT/UPDATE/DELETE
-            changes.forEach((change) => {
-                // console.log(change);
+            changes.forEach(change => {
                 if (change.section_id == null) {
-                    console.log("INSERT");
-                    // INSERT into lms_section database
-
-
-                } else if (change.action == "update") {
-                    console.log("UPDATE", change.section_id);
-                    // UPDATE lms_section database
+                    console.log("INSERT: ", change);
+                    // Adds a new section (4 parameters)
 
                 } else {
-                    console.log("DELETE: ", change.section_id);
-                    // DELETE FROM lms_section database
+                    console.log("UPDATE: ", change);
+                    // TO DO: UPDATE lms_section ... SET ... WHERE lms_section_id = section_id
 
-                } 
+                }
             });
-            // Calls getCourseSection to refresh changes made
-            // this.getCourseSections();
+
+            this.deleteSectionId.forEach(section => {
+                if (section.section_id != null) {
+                    console.log("DELETE: ", section);
+                    // TO DO: DELETE FROM lms_section database WHERE section_id = section.section_id
+
+                }
+            });
+            this.deleteSectionId = [];
         },
         comparer(otherArray){
             return function(current){
@@ -373,10 +369,6 @@ export default {
 
 
         },
-        // TO DO: Section Requisite Logic Checker
-        sectionRequisiteChecker() {
-
-        },
     },
     created() {
         // Calls method to get course details
@@ -386,7 +378,7 @@ export default {
         this.getCourseSections();
 
         // Calls method to get course requisite details
-        // this.getRequisiteCourses()
+        this.getRequisiteCourses();
     }
 }
 </script>

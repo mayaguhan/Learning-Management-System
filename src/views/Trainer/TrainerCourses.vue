@@ -17,10 +17,10 @@
                     {{ row.item.current  }} / {{ row.item.capacity  }}
                 </td>
                 <td>
-                    {{ row.item.start_date }}
+                    {{ formatDate(row.item.start_date) }}
                 </td>
                 <td>
-                    {{ row.item.end_date }}
+                    {{ formatDate(row.item.end_date) }}
                 </td>
                 <td width="10">
                     <router-link :to="{ name: 'CourseDetail', params: { course_id: row.item.course_id }}">
@@ -38,6 +38,8 @@
 
 <script>
 import axios from 'axios';
+import moment from "moment";
+
 
 export default {
     name: 'TrainerCourses',
@@ -57,7 +59,8 @@ export default {
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
-        }
+        },
+        
     },
     methods: {
         getCoursesDetail() {
@@ -70,6 +73,9 @@ export default {
                 this.courses = response.data;
             })
         },
+        formatDate(date) {  
+            return moment(date).format('yyyy-MM-DD');
+        }
     },
     created() {
         // Calls method to get course details
