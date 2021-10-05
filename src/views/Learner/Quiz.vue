@@ -53,6 +53,7 @@
 </template>
 
 <script>
+/* import axios from "axios" */
 export default {
     name: "Quiz",
     props: {
@@ -71,10 +72,25 @@ export default {
         options: [],
 
         testOptions: [],
+
     }),
     methods: {
         // SELECT qq.quiz_question_id, qo.quiz_option_id, qq.question_name, qq.type, qo.option, qo.correct
         // Get all Quiz Question and Quiz Option by section_id
+        /* addQuizAttempt(section_id, learner_id, course_id, trainer_id){
+            let updatedApiWithEndpoint2 = this.apiLink + "/TBC";
+            let dataObj2 = {
+                "sectionId" : section_id,
+                "learnerId" : learner_id,
+                "courseId" : course_id,
+                "trainerId" : trainer_id
+
+            };
+            axios.post(updatedApiWithEndpoint2, dataObj2)
+                .then((response) => {
+                    console.log(response);
+                })
+        }, */
         getOptions(section_id) {
             let updatedApiWithEndpoint = this.apiLink + "/TBC";
             let dataObj = { "sectionId": section_id  }
