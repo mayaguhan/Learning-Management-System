@@ -6,7 +6,7 @@
         <p>
             Start Date: {{ courseDetail.start_date }} <br>
             End Date: {{ courseDetail.end_date }} <br>
-            Enrolled Students: {{ courseDetail.current }} / {{ courseDetail.capacity }} <br>
+            Enrolled Students: {{ courseDetail.enrollment_count }} / {{ courseDetail.capacity }} <br>
             <router-link :to="{ name: 'EnrolledStudent', params: { course_id: course_id } }">
                 <v-btn class="primary">
                     View Enrolled Students
@@ -110,7 +110,7 @@
                     <div v-if=" section.section_id != null">
                         <!-- Quiz Statistics -->
                         <b>Quiz Statistics: </b> 
-                        {{ section.pass_count }} / {{ courseDetail.current }} Learners have passed this quiz <br>
+                        {{ section.pass_count }} / {{ courseDetail.enrollment_count }} Learners have passed this quiz <br>
                         <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }">
                             <v-btn class="primary">
                                 Manage Quiz
@@ -207,7 +207,6 @@ export default {
                 "title": "Print Quality Control I",
                 "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a printing press and auxiliary equipment to produce quality printed products on papers and other materials as well as trouble shooting and maintenance of printing machines",
                 "capacity": 20,
-                "current": 2,
                 "start_date": "2021-01-01",
                 "end_date": "2021-12-31",
                 "course_requirement": 2,

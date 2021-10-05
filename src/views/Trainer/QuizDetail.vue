@@ -106,7 +106,7 @@
                             Edit Options
                         </v-btn>
 
-                        <v-btn class="primary" v-show="toggleEditOption == true" @click="addOption(indexQ)">
+                        <v-btn class="primary" v-show="toggleEditOption == true" @click="addOption(question.quiz_question_id, indexQ)">
                             Add Question Option
                         </v-btn>
 
@@ -134,7 +134,12 @@
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                     X/X students cleared this section <br>
+                    <!-- Get Quiz Attempt of each student who had taken the quiz by section_id -->
+                    Data Table
+                    <!-- Get Quiz Attempt of each student who had taken the quiz by section_id -->
+
                     % pass rate per quiz attempt<br>
+                    <!-- Get Quiz Attempt passing rate and attempt count by section_id -->
                 </v-expansion-panel-content>
             </v-expansion-panel>
 
@@ -144,7 +149,11 @@
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                     Total Quiz Attempts: 10 <br>
+                    <!-- Get Quiz Attempt passing rate and attempt count by section_id -->
                     Data Table
+                    <!-- Get all Quiz Attempt by section_id -->
+                        <!-- For each entry @click View Submission: -->
+                        <!-- Get Learner's Quiz Performance by quiz_attempt_id and section_id -->
                 </v-expansion-panel-content>
             </v-expansion-panel>
 
@@ -153,6 +162,7 @@
                     Question Breakdown
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
+                    <!-- Get Quiz's Question Performance by section_id -->
                     Quesiton Name<br>
                     <ol>
                         <li>Option A - 70%</li>
@@ -365,8 +375,8 @@ export default {
 
 
         // --- Question Option -- 
-        addOption(indexQ) {
-            this.testOptions[indexQ].push({ "option": "Option A", "correct": 0 });
+        addOption(quiz_question_id, indexQ) {
+            this.testOptions[indexQ].push({ "quiz_question_id": quiz_question_id, "option": "Option A", "correct": 0 });
         },
         deleteOption(quiz_option_id, indexQ, indexO) {
             console.log(quiz_option_id, indexQ, indexO);
