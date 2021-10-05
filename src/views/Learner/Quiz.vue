@@ -38,6 +38,9 @@
                                         {{questionOption.option}}
                                         <!-- {{question.quiz_question_id}} -->
                                         <!-- {{questionOption.quiz_option_id}} -->
+                                        <!-- <br>
+                                        {{ question }}
+                                        <br> -->
                                     </label>
                                 </v-col>
                             </v-row>
@@ -62,30 +65,12 @@ export default {
     },
     data: () => ({
         currentUserId: 1, // To be replaced with user_id of logged in user
-        toggleEditSection: false,
-        sectionDetail: {},
-        
-        toggleEditQuestion: false,
+
         questions: [],
-        questionsCopy: [],
-        deleteQuestionId: [],
-        questionCount: 0,
         
-        toggleEditOption: false,
         options: [],
-        optionsCopy: [],
-        deleteOptionId: [],
 
         testOptions: [],
-
-        rules: {
-            required: value => !!value || 'Required.',
-            counter: value => value.length <= 100 || 'Max 100 characters',
-            durationMin: value => value >= 10 || 'Min duration is 10 minutes',
-            durationMax: value => value <= 120 || 'Max duration is 120 minutes',
-            gradeMin: value => value >= 50 || 'Min passing grade is 50%',
-            gradeMax: value => value <= 100 || 'Max passing grade is 100%',
-        },
     }),
     methods: {
         // SELECT qq.quiz_question_id, qo.quiz_option_id, qq.question_name, qq.type, qo.option, qo.correct
