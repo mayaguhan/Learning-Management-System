@@ -69,6 +69,12 @@ const routes = [
     component: () =>import('../views/Trainer/QuizDetail.vue'),
     props: true
   },
+  {
+    path: '/quiztest',
+    name: 'QuizTest',
+    component: () =>import('../views/Trainer/QuizTest.vue'),
+    props: true
+  },
 ]
 
 const router = new VueRouter({

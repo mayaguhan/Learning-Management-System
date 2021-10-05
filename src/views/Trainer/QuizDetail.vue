@@ -73,8 +73,8 @@
                     <v-text-field v-model="question.question_name" :rules="[rules.required, rules.counter]"
                     v-show="toggleEditQuestion == true" label="Question Name"  maxlength="100" ></v-text-field>
 
-                    <ol type="A" v-if="testOptions[indexQ].length != 0">
-                        <li v-for="(questionOption, indexO) in testOptions[indexQ]" v-bind:key="questionOption.quiz_option_id"
+                    <ol type="A" v-if="editOptions[indexQ].length != 0">
+                        <li v-for="(questionOption, indexO) in editOptions[indexQ]" v-bind:key="questionOption.quiz_option_id"
                         :style="optionColour(questionOption.correct)" >
                             <span v-show="toggleEditOption == false">{{ questionOption.option }}</span>
                             <v-row>
@@ -205,7 +205,7 @@ export default {
         optionsCopy: [],
         deleteOptionId: [],
 
-        testOptions: [],
+        editOptions: [],
 
         rules: {
             required: value => !!value || 'Required.',
@@ -291,9 +291,9 @@ export default {
                 },{}
             ));
             questionArr.forEach(question => {
-                this.testOptions.push(question.question_options)
+                this.editOptions.push(question.question_options)
             });
-            console.log(this.testOptions);
+            console.log(this.editOptions);
             this.questions = questionArr;
             this.questionCount = this.questions.length;
             console.log(this.questions);
@@ -314,7 +314,7 @@ export default {
         // --- Question ---
         addQuestion() {
             this.questions.push({ "question_name": "New Question", "type": "MCQ" });
-            this.testOptions.push([]);
+            this.editOptions.push([]);
             this.questionCount = this.questions.length;
         },
         deleteQuestion(quiz_question_id, indexQ) {
@@ -376,27 +376,27 @@ export default {
 
         // --- Question Option -- 
         addOption(quiz_question_id, indexQ) {
-            this.testOptions[indexQ].push({ "quiz_question_id": quiz_question_id, "option": "Option A", "correct": 0 });
+            this.editOptions[indexQ].push({ "quiz_question_id": quiz_question_id, "option": "Option A", "correct": 0 });
         },
         deleteOption(quiz_option_id, indexQ, indexO) {
             console.log(quiz_option_id, indexQ, indexO);
-            this.testOptions[indexQ].splice(indexO, 1);
+            this.editOptions[indexQ].splice(indexO, 1);
             this.deleteOptionId.push(quiz_option_id);
         }, 
         editOption(action) {
             if (action == "edit") {  
                 console.log("Editing Options")
                 // Creates a copy of options and stores it in optionsCopy
-                this.optionsCopy = JSON.parse(JSON.stringify(this.testOptions));
+                this.optionsCopy = JSON.parse(JSON.stringify(this.editOptions));
             } else if (action == "cancel") {
                 // Reverts changes made to questions by using the data from sectionsCopy
-                this.testOptions = JSON.parse(JSON.stringify(this.optionsCopy));
+                this.editOptions = JSON.parse(JSON.stringify(this.optionsCopy));
             }
         },
         saveEditOption(indexQ) {
             console.log("Save");
-            let changes = this.testOptions[indexQ].filter(this.optionComparer(this.optionsCopy[indexQ]));
-            console.log("Edited:", this.testOptions[indexQ]);
+            let changes = this.editOptions[indexQ].filter(this.optionComparer(this.optionsCopy[indexQ]));
+            console.log("Edited:", this.editOptions[indexQ]);
             console.log("Original:", this.optionsCopy[indexQ]);
             console.log("Changes:", changes);
 
