@@ -30,10 +30,15 @@
                             <v-row>
                                 <v-col>
                                     <div>{{ question.question_name }}</div>
-                                    <!-- <v-checkbox v-for="optionObj in quizOptionsList" :key="optionObj.option"></v-checkbox> -->
-                                    <div v-for="(questionOption) in testOptions[indexQ]" :key="questionOption.quiz_option_id">
-                                        
-                                    </div>
+                                    <label :for="questionOption.quiz_option_id" v-for="questionOption in testOptions[indexQ]" :key="questionOption.quiz_option_id">
+                                        <input type="radio" 
+                                        :id="questionOption.quiz_option_id" 
+                                        :name="question.quiz_question_id"
+                                        :value="questionOption.quiz_option_id">
+                                        {{questionOption.option}}
+                                        <!-- {{question.quiz_question_id}} -->
+                                        <!-- {{questionOption.quiz_option_id}} -->
+                                    </label>
                                 </v-col>
                             </v-row>
                         </v-container>
