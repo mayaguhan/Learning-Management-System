@@ -1,7 +1,7 @@
 <template>
     <div>
         <h1>
-            Manage Quiz
+            Manage Quiz: {{ sectionDetail.section_name }}
         </h1>
 
         <h2>
@@ -76,17 +76,22 @@
                     <ol type="A" v-if="editOptions[indexQ].length != 0">
                         <li v-for="(questionOption, indexO) in editOptions[indexQ]" v-bind:key="questionOption.quiz_option_id"
                         :style="optionColour(questionOption.correct)" >
-                            <span v-show="toggleEditOption == false">{{ questionOption.option }}</span>
                             <v-row>
-                                <v-col cols="9">
+                                <v-col cols="7">
+                                    <span v-show="toggleEditOption == false">{{ questionOption.option }}</span>
                                     <v-text-field v-model="questionOption.option" :rules="[rules.required, rules.counter]"
                                     v-show="toggleEditOption == true" label="Question Option" maxlength="100" ></v-text-field>
+                                </v-col>
+                                <v-col cols="2">
+                                    <p>{{ questionOption.answer_count / quizStats.total_attempt * 100 }}% Chose this answer</p>
                                 </v-col>
                                 <v-col cols="2">
                                     <v-switch v-model="questionOption.correct" v-show="toggleEditOption == true" label="Correct"></v-switch>
                                 </v-col>
                                 <v-col cols="1">
-                                    <v-btn class="primary" v-show="toggleEditOption" @click="deleteOption(questionOption.quiz_option_id, indexQ, indexO)">Delete</v-btn>
+                                    <v-btn class="primary" v-show="toggleEditOption" @click="deleteOption(questionOption.quiz_option_id, indexQ, indexO)">
+                                        Delete
+                                    </v-btn>
                                 </v-col>
                             </v-row>
                             
@@ -133,13 +138,39 @@
                     Quiz Performance
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    X/X students cleared this section <br>
-                    <!-- Get Quiz Attempt of each student who had taken the quiz by section_id -->
-                    Data Table
-                    <!-- Get Quiz Attempt of each student who had taken the quiz by section_id -->
-
-                    % pass rate per quiz attempt<br>
-                    <!-- Get Quiz Attempt passing rate and attempt count by section_id -->
+                    
+                    {{ studentAttempts.length }}/{{ sectionDetail.enrollment_count }} Student<span v-if="studentAttempts.length > 0">s</span> passed this quiz.<br><br>
+                    <v-card>
+                    <v-card-title>
+                    <v-text-field v-model="searchStudentAttempts" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
+                    </v-card-title>
+                    <v-data-table :headers="headersStudentAttempts" :items="studentAttempts" :search="searchStudentAttempts">
+                    <template v-slot:item="row">
+                        <tr>
+                            <td>
+                                {{ row.item.name }} <br>
+                                {{ row.item.username }}
+                            </td>
+                            <td>
+                                {{ row.item.seniority_level }}
+                            </td>
+                            <td>
+                                {{ row.item.email }} <br>
+                                {{ row.item.contact }}
+                            </td>
+                            <td>
+                                {{ row.item.pass_attempt }}
+                            </td>
+                            <td>
+                                {{ row.item.quiz_attempt }}
+                            </td>
+                            <td>
+                                {{ row.item.best_grade }}
+                            </td>
+                        </tr>
+                    </template>
+                    </v-data-table>
+                    </v-card>
                 </v-expansion-panel-content>
             </v-expansion-panel>
 
@@ -148,28 +179,46 @@
                     Quiz Attempts
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    Total Quiz Attempts: 10 <br>
-                    <!-- Get Quiz Attempt passing rate and attempt count by section_id -->
-                    Data Table
-                    <!-- Get all Quiz Attempt by section_id -->
-                        <!-- For each entry @click View Submission: -->
-                        <!-- Get Learner's Quiz Performance by quiz_attempt_id and section_id -->
-                </v-expansion-panel-content>
-            </v-expansion-panel>
+                    Total Quiz Attempts: {{ quizStats.total_attempt }} <br>
+                    {{ quizStats.pass_rate * 100 }}% pass rate per quiz attempt<br><br>
 
-            <v-expansion-panel>
-                <v-expansion-panel-header>
-                    Question Breakdown
-                </v-expansion-panel-header>
-                <v-expansion-panel-content>
-                    <!-- Get Quiz's Question Performance by section_id -->
-                    Quesiton Name<br>
-                    <ol>
-                        <li>Option A - 70%</li>
-                        <li>Option A - 10%</li>
-                        <li>Option A - 10%</li>
-                        <li>Option A - 10%</li>
-                    </ol>
+                    <v-card>
+                    <v-card-title>
+                    <v-text-field v-model="searchQuizAttempts" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
+                    </v-card-title>
+                    <v-data-table :headers="headersQuizAttempts" :items="quizAttempts" :search="searchQuizAttempts">
+                    <template v-slot:item="row">
+                        <tr>
+                            <td>
+                                {{ row.item.name }} <br>
+                                {{ row.item.username }}
+                            </td>
+                            <td>
+                                {{ row.item.seniority_level }}
+                            </td>
+                            <td>
+                                {{ row.item.email }} <br>
+                                {{ row.item.contact }}
+                            </td>
+                            <td>
+                                {{ row.item.grade }}
+                            </td>
+                            <td>
+                                {{ row.item.result }}
+                            </td>
+                            <td>
+                                {{ row.item.attempt_date }}
+                            </td>
+                            <td>
+                                <!-- TO DO: Get Learner's Quiz Performance by quiz_attempt_id and section_id -->
+                                <v-btn depressed small color="#0062E4">
+                                    <span style="color: white">View Submission</span> 
+                                </v-btn>
+                            </td>
+                        </tr>
+                    </template>
+                    </v-data-table>
+                    </v-card>
                 </v-expansion-panel-content>
             </v-expansion-panel>
         </v-expansion-panels>
@@ -204,8 +253,33 @@ export default {
         options: [],
         optionsCopy: [],
         deleteOptionId: [],
-
         editOptions: [],
+
+        studentAttempts: [],
+        quizStats: {},
+        quizAttempts: [],
+        questionPerformance: [],
+
+        searchStudentAttempts: '',
+        headersStudentAttempts: [
+            { text: 'Student Name', value: 'name', align: 'start', sortable: true},
+            { text: 'Level', value: 'seniority_level', filterable: false, sortable: true},
+            { text: 'Contact Details', value: 'contact_details', filterable: false, sortable: false},
+            { text: 'Pass Attempts', value: 'pass_attempt', filterable: false, sortable: true},
+            { text: 'Quiz Attempts', value: 'quiz_attempt', filterable: false, sortable: true}, 
+            { text: 'Best Grade', value: 'best_grade', filterable: false, sortable: true}, 
+        ],
+
+        searchQuizAttempts: '',
+        headersQuizAttempts: [
+            { text: 'Student Name', value: 'name', align: 'start', sortable: true},
+            { text: 'Level', value: 'seniority_level', filterable: false, sortable: true},
+            { text: 'Contact Details', value: 'contact_details', filterable: false, sortable: false},
+            { text: 'Grade', value: 'grade', filterable: false, sortable: true},
+            { text: 'Result', value: 'result', filterable: false, sortable: true}, 
+            { text: 'Attempt Date', value: 'attempt_date', filterable: false, sortable: true}, 
+            { text: '', value: 'actions', filterable: false, sortable: false}
+        ],
 
         rules: {
             required: value => !!value || 'Required.',
@@ -231,7 +305,8 @@ export default {
             this.sectionDetail = {
                 "section_name": "PQ101 - Section 1",
                 "quiz_duration": 10, 
-                "passing_grade": 80
+                "passing_grade": 80,
+                "enrollment_count": 2
             }
             console.log(this.sectionDetail);
         },
@@ -249,44 +324,44 @@ export default {
 
             let questionOptions = [
                 { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", "type": "MCQ", 
-                "quiz_option_id": 1, "option": "Option A", "correct": 1 },
+                "quiz_option_id": 1, "option": "Option A", "correct": 1, "answer_count": 2 },
                 { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", "type": "MCQ", 
-                "quiz_option_id": 2, "option": "Option B", "correct": 0 },
+                "quiz_option_id": 2, "option": "Option B", "correct": 0, "answer_count": 1 },
                 { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", "type": "MCQ", 
-                "quiz_option_id": 3, "option": "Option C", "correct": 0 },
+                "quiz_option_id": 3, "option": "Option C", "correct": 0, "answer_count": 1 },
                 { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", "type": "MCQ", 
-                "quiz_option_id": 4, "option": "Option D", "correct": 0 },
+                "quiz_option_id": 4, "option": "Option D", "correct": 0, "answer_count": 0 },
                 { "quiz_question_id": 2, "question_name": "How to setup a printer?", "type": "T/F", 
-                "quiz_option_id": 5, "option": "True", "correct": 1 },
+                "quiz_option_id": 5, "option": "True", "correct": 1, "answer_count": 3 },
                 { "quiz_question_id": 2, "question_name": "How to setup a printer?", "type": "T/F", 
-                "quiz_option_id": 6, "option": "False", "correct": 0 },
+                "quiz_option_id": 6, "option": "False", "correct": 0, "answer_count": 1 },
                 { "quiz_question_id": 3, "question_name": "How to ensure printing quality?", "type": "T/F", 
-                "quiz_option_id": 7, "option": "True", "correct": 1 },
+                "quiz_option_id": 7, "option": "True", "correct": 1, "answer_count": 4 },
                 { "quiz_question_id": 3, "question_name": "How to ensure printing quality?", "type": "T/F", 
-                "quiz_option_id": 8, "option": "False", "correct": 0 },
+                "quiz_option_id": 8, "option": "False", "correct": 0, "answer_count": 0 },
                 { "quiz_question_id": 4, "question_name": "How to colour code?", "type": "MCQ",
-                "quiz_option_id": 9, "option": "Option A", "correct": 1 },
+                "quiz_option_id": 9, "option": "Option A", "correct": 1, "answer_count": 3 },
                 { "quiz_question_id": 4, "question_name": "How to colour code?", "type": "MCQ", 
-                "quiz_option_id": 10, "option": "Option B", "correct": 0 },
+                "quiz_option_id": 10, "option": "Option B", "correct": 0, "answer_count": 1 },
                 { "quiz_question_id": 4, "question_name": "How to colour code?", "type": "MCQ", 
-                "quiz_option_id": 11, "option": "Option C", "correct": 0 },
+                "quiz_option_id": 11, "option": "Option C", "correct": 0, "answer_count": 0 },
                 { "quiz_question_id": 4, "question_name": "How to colour code?", "type": "MCQ", 
-                "quiz_option_id": 12, "option": "Option D", "correct": 0 },
+                "quiz_option_id": 12, "option": "Option D", "correct": 0, "answer_count": 0 },
                 { "quiz_question_id": 5, "question_name": "What do you do with faulty machines?", "type": "T/F", 
-                "quiz_option_id": 13, "option": "True", "correct": 1 },
+                "quiz_option_id": 13, "option": "True", "correct": 1, "answer_count": 4 },
                 { "quiz_question_id": 5, "question_name": "What do you do with faulty machines?", "type": "T/F", 
-                "quiz_option_id": 14, "option": "True", "correct": 0 }
+                "quiz_option_id": 14, "option": "True", "correct": 0, "answer_count": 0 }
             ];
 
             // Groups question options into question groups by question_id
             let questionArr = Object.values(questionOptions.reduce((result, 
-            { quiz_question_id, question_name, type, quiz_option_id, option, correct }) => {
+            { quiz_question_id, question_name, type, quiz_option_id, option, correct, answer_count }) => {
                 // Create new question group
                 if (!result[quiz_question_id]) result[quiz_question_id] = {
                     quiz_question_id, question_name,  type, question_options: []
                 };
                 // Append question option to question group
-                result[quiz_question_id].question_options.push({ quiz_option_id,  option, correct });
+                result[quiz_question_id].question_options.push({ quiz_option_id,  option, correct, answer_count });
                 return result;
                 },{}
             ));
@@ -307,13 +382,15 @@ export default {
         // --- Section ---
         saveSectionEdit() {
             // TO DO: Save Section Edits
-            console.log("Save")
+            console.log("Save");
+            console.log("New Section Duration:", parseInt(this.sectionDetail.quiz_duration));
+            console.log("New Section Passing", parseInt(this.sectionDetail.passing_grade));
         },
 
 
         // --- Question ---
         addQuestion() {
-            this.questions.push({ "question_name": "New Question", "type": "MCQ" });
+            this.questions.push({ "question_name": "New Question", "type": "MCQ", "question_options": [] });
             this.editOptions.push([]);
             this.questionCount = this.questions.length;
         },
@@ -346,7 +423,7 @@ export default {
 
                 } else {
                     console.log("UPDATE: ", change);
-                    // UPDATE lms_quiz_question ... SET ... WHERE quiz_question_id = quiz_quesiton_id
+                    // UPDATE lms_quiz_question ... SET ... WHERE quiz_question_id = quiz_question_id
 
 
                 }
@@ -354,7 +431,7 @@ export default {
             this.deleteQuestionId.forEach(quiz_question_id => {
                 if (quiz_question_id != null) {
                     console.log("DELETE: ", quiz_question_id);
-                    // DELETE FROM lms_quiz_question database WHERE quiz_question_id = quiz_quesiton_id
+                    // DELETE FROM lms_quiz_question database WHERE quiz_question_id = quiz_question_id
 
 
                 }
@@ -376,7 +453,8 @@ export default {
 
         // --- Question Option -- 
         addOption(quiz_question_id, indexQ) {
-            this.editOptions[indexQ].push({ "quiz_question_id": quiz_question_id, "option": "Option A", "correct": 0 });
+            this.editOptions[indexQ].push({ "quiz_question_id": quiz_question_id, "option": "Option A", "correct": 0, "answer_count": 0 });
+            console.log(this.editOptions[indexQ])
         },
         deleteOption(quiz_option_id, indexQ, indexO) {
             console.log(quiz_option_id, indexQ, indexO);
@@ -394,7 +472,7 @@ export default {
             }
         },
         saveEditOption(indexQ) {
-            console.log("Save");
+            // Save Edit Option Changes
             let changes = this.editOptions[indexQ].filter(this.optionComparer(this.optionsCopy[indexQ]));
             console.log("Edited:", this.editOptions[indexQ]);
             console.log("Original:", this.optionsCopy[indexQ]);
@@ -422,6 +500,7 @@ export default {
                 }
             });
             this.deleteQuestionId = [];
+            console.log(this.questions);
         },
         optionComparer(otherArray){
             return function(current){
@@ -435,13 +514,80 @@ export default {
             }
         },
 
+
+        // --- Quiz Statistics ---
+        // Get Quiz Attempt of each student who had taken the quiz by section_id
+        getStudentAttempt(section_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            let dataObj = { "sectionId": section_id  }
+            console.log(updatedApiWithEndpoint, dataObj);
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            //     .then((response) => {
+            //         console.log(response);
+            //         this.studentAttempts = response.data;
+            //     })
+            let response = [
+                {"learner_id": 6, "username": "stevenlim", "name":"Steven Lim", "email":"stevenlim@lms.com", 
+                "seniority_level":"Engineer", "contact":90219324, "pass_attempt":2, "quiz_attempt":3, "best_grade":80 },
+                {"learner_id": 9, "username": "tanboonlee", "name":"Tan Boon Lee", "email":"tanboonlee@lms.com", 
+                "seniority_level":"Engineer", "contact":85548901, "pass_attempt":1, "quiz_attempt":1, "best_grade":80 }
+            ];
+            this.studentAttempts = response;
+            console.log(this.studentAttempts);
+        },
+        // Get Quiz Attempt passing rate and attempt count by section_id
+        getQuizStats(section_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            let dataObj = { "sectionId": section_id  }
+            console.log(updatedApiWithEndpoint, dataObj);
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            //     .then((response) => {
+            //         console.log(response);
+            //         this.quizStats = response.data;
+            //     })
+            this.quizStats = {"pass_count": 3, "total_attempt": 4, "pass_rate": 0.7500};
+            console.log(this.studentAttempts);
+        },
+        // Get all Quiz Attempt by section_id
+        getQuizAttempts(section_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            let dataObj = { "sectionId": section_id  }
+            console.log(updatedApiWithEndpoint, dataObj);
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            //     .then((response) => {
+            //         console.log(response);
+            //         this.quizAttempts = response.data;
+            //     })
+            let response = [
+                {"user_id": 6, "username": "stevenlim", "name":"Steven Lim", "email":"stevenlim@lms.com", 
+                "seniority_level":"Engineer", "contact":90219324, "quiz_attempt_id":1, "grade":40, "result":"Fail", "attempt_date":"2021-02-02" },
+                {"user_id": 6, "username": "stevenlim", "name":"Steven Lim", "email":"stevenlim@lms.com", 
+                "seniority_level":"Engineer", "contact":90219324, "quiz_attempt_id":2, "grade":40, "result":"Pass", "attempt_date":"2021-02-02" },
+                {"learner_id": 9, "username": "tanboonlee", "name":"Tan Boon Lee", "email":"tanboonlee@lms.com", 
+                "seniority_level":"Engineer", "contact":85548901, "quiz_attempt_id":4, "grade":80, "result":"Pass", "attempt_date":"2021-02-02" },
+                {"user_id": 6, "username": "stevenlim", "name":"Steven Lim", "email":"stevenlim@lms.com", 
+                "seniority_level":"Engineer", "contact":90219324, "quiz_attempt_id":5, "grade":40, "result":"Pass", "attempt_date":"2021-02-02" },
+            ];
+            this.quizAttempts = response;
+            console.log(this.quizAttempts);
+        },
+
     },
     created() {
         // Calls method to get section details
         this.getSectionDetail(this.section_id);
 
         // Calls method to get question options
-        this.getOptions(this.section_id)
+        this.getOptions(this.section_id);
+
+        // Calls method to get quiz attempt of each student who had taken the quiz
+        this.getStudentAttempt(this.section_id);
+
+        // Calls method to get quiz statistics
+        this.getQuizStats(this.section_id);
+
+        // Calls method to get all quiz attempts
+        this.getQuizAttempts(this.section_id);
     }
 }
 </script>
