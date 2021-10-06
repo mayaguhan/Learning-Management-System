@@ -75,6 +75,34 @@ const routes = [
     component: () =>import('../views/Trainer/QuizTest.vue'),
     props: true
   },
+  {
+    path: '/hrcourses',
+    name: 'HRCourses',
+    component: () =>import('../views/HR/HRCourses.vue'),
+    props: true
+  },
+
+  {
+    path: '/hrconduct/:course_id',
+    name: 'HRConduct',
+    component: () =>import('../views/HR/HRConduct.vue'),
+    props: true
+  },
+
+  {
+    path: '/hrcoursedetail/:course_id/:trainer_id',
+    name: 'HRCourseDetail',
+    component: () =>import('../views/HR/HRCourseDetail.vue'),
+    props: true
+  },
+
+  {
+    path: '/enrolstudent/:course_id/:trainer_id',
+    name: 'EnrolStudent',
+    component: () =>import('../views/HR/EnrolStudent.vue'),
+    props: true
+  },
+
 ]
 
 const router = new VueRouter({
