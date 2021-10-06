@@ -17,7 +17,11 @@
                             v-for="question in questions"
                             :key="question.question_id"
                             >
-                            <td>Question {{ question.quiz_question_id }}</td>
+                            <td>
+                                <a :href='question.hyperlink'>
+                                    Question {{ question.quiz_question_id }}
+                                </a>
+                            </td>
                             </tr>
                         </tbody>
                         </template>
@@ -29,12 +33,13 @@
                         <v-container>
                             <v-row>
                                 <v-col>
-                                    <div>{{ question.question_name }}</div>
+                                    <div :id="question.question_name">{{ question.question_name }}</div>
                                     <label :for="questionOption.quiz_option_id" v-for="questionOption in testOptions[indexQ]" :key="questionOption.quiz_option_id">
                                         <input type="radio" 
                                         :id="questionOption.quiz_option_id" 
                                         :name="question.quiz_question_id"
-                                        :value="questionOption.quiz_option_id">
+                                        :value="questionOption.quiz_option_id"
+                                        v-model="question.selectedAnswer">
                                         {{questionOption.option}}
                                         <!-- {{question.quiz_question_id}} -->
                                         <!-- {{questionOption.quiz_option_id}} -->
@@ -42,10 +47,18 @@
                                         {{ question }}
                                         <br> -->
                                     </label>
+                                    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
                                 </v-col>
                             </v-row>
                         </v-container>
                     </div>
+                </v-col>
+            </v-row>
+
+            <v-row>
+                <v-col cols="2"></v-col>
+                <v-col>
+                    <v-btn @click="submit()">Submit</v-btn>
                 </v-col>
             </v-row>
         </v-container>
@@ -145,14 +158,22 @@ export default {
                 },{}
             ));
             questionArr.forEach(question => {
-                this.testOptions.push(question.question_options)
-                console.log(question.question_options)
+                question["selectedAnswer"] = 0;
+                question["hyperlink"] = "#" + question.question_name;
+                this.testOptions.push(question.question_options);
+                console.log(question.question_options);
             });
             console.log(this.testOptions);
             this.questions = questionArr;
             this.questionCount = this.questions.length;
             console.log(this.questions);
         },
+        submit() {
+            // Check the answer
+            console.log("Submitted Options:");
+            console.log(this.questions);
+
+        }
     },
     computed: {
         apiLink(){
