@@ -35,7 +35,7 @@ const routes = [
     props: true
   },
   {
-    path: '/trainerCourses',
+    path: '/trainercourses',
     name: 'TrainerCourses',
     component: () =>import('../views/Trainer/TrainerCourses.vue')
   },
@@ -52,23 +52,23 @@ const routes = [
     props: true
   },
   {
-    path: '/trainerCourseDetail/:course_id/:trainer_id',
+    path: '/trainercoursedetail/:course_id',
     name: 'CourseDetail',
     component: () =>import('@/views/Trainer/CourseDetail.vue'),
     props: true
   },
   {
-    path: '/trainerEnrolledStudent/:course_id/:trainer_id',
+    path: '/trainerenrolledstudent/:course_id',
     name: 'EnrolledStudent',
     component: () =>import('../views/Trainer/EnrolledStudent.vue'),
     props: true
   },
   {
-    path: '/trainerQuizDetail/:section_id',
+    path: '/trainerquizdetail/:section_id',
     name: 'QuizDetail',
     component: () =>import('../views/Trainer/QuizDetail.vue'),
     props: true
-  },
+  }
 ]
 
 const router = new VueRouter({
