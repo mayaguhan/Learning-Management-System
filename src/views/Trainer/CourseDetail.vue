@@ -209,34 +209,13 @@ export default {
         },
         // Get all Sections by course_id, trainer_id (Trainer)
         getCourseSections(course_id, trainer_id) {
-            // Dummy JSON, to be replaced with API call
-            console.log(course_id, trainer_id)
-            let courseSectionData = [{
-                "section_id": 1,
-                "section_name": "Managing Printers",
-                "quiz_duration": 600,
-                "passing_grade": 80,
-                "pass_count": 2,
-                "section_sequence": 1
-            },
-            {
-                "section_id": 2,
-                "section_name": "Managing Ink Catridges",
-                "quiz_duration": 1800,
-                "passing_grade": 80,
-                "pass_count": 1,
-                "section_sequence": 2
-            },
-            {
-                "section_id": 3,
-                "section_name": "Ensuring Printing Accuracy",
-                "quiz_duration": 1800,
-                "passing_grade": 80,
-                "pass_count": 0,
-                "section_sequence": 3
-            }];
-            this.sections = courseSectionData;
-            console.log("Sections", this.sections);
+            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbycourseandtrainer";
+            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.sections = response.data;
+                    console.log("Sections", this.sections);
+                })
         },
         // Get a Course's requisite(s)
         getRequisiteCourses(course_id) {
