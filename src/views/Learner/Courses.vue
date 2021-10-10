@@ -46,15 +46,11 @@
                            {{ row.item.remaining }} slots left
                         </td>
                         <td width="10">
-                            <v-btn
-                                depressed
-                                small
-                                color="#0062E4"
-                                @click="enrollCourse(row.item)"
-                                v-if="row.item.remaining !== 0"
-                            >
-                                <span style="color: white">Enroll</span> 
-                            </v-btn>
+                            <router-link :to="{ name: 'SelfEnrol', params: { course_id: row.item.course_id }}">
+                              <v-btn depressed small color="#0062E4">
+                                  <span style="color: white">Enroll</span> 
+                              </v-btn>
+                            </router-link>
                         </td>
                     </tr>
                 </template>
@@ -145,6 +141,10 @@
 <script>
   export default {
     name:"Courses",
+    props: {
+        course_id: parseInt({ type: Number }),
+        learner_id: parseInt({ type: Number })
+    },
     data () {
       return {
         allcourses: true,
@@ -152,6 +152,9 @@
         inProgress: false,
         completed: false,
         currentUserId: 8,
+        selectedTrainerId: 100,
+        selectedCourseId: 0,
+        
 
         search: '',
         headers: [
@@ -187,7 +190,7 @@
             var dataObjEnroll = {
               "learnerId" : this.currentUserId,
               "courseId" : item.course_id,
-              "trainerId" : "100",
+              "trainerId" : this.selectedTrainerId,
               "status" : "Progress"
             }
             //console.log(dataObjEnroll);

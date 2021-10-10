@@ -69,6 +69,12 @@ const routes = [
     component: () =>import('../views/Trainer/QuizDetail.vue'),
     props: true
   },
+  {
+    path: '/selfenrol/:course_id',
+    name: 'SelfEnrol',
+    component: () =>import('../views/Learner/SelfEnrol.vue'),
+    props: true
+  },
 ]
 
 const router = new VueRouter({
