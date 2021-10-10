@@ -4,8 +4,8 @@
             {{ courseDetail.course_code }} - {{ courseDetail.title }}
         </h1>
         <p>
-            Start Date: {{ courseDetail.start_date }} <br>
-            End Date: {{ courseDetail.end_date }} <br>
+            Start Date: {{ formatDate(courseDetail.start_date) }} <br>
+            End Date: {{ formatDate(courseDetail.end_date) }} <br>
             Enrolled Students: {{ courseDetail.enrollment_count }} / {{ courseDetail.capacity }} <br>
             <router-link :to="{ name: 'EnrolledStudent', params: { course_id: course_id } }">
                 <v-btn class="primary">
@@ -38,7 +38,7 @@
             <v-dialog v-model="dialog" persistent max-width="600px">
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn color="primary" dark v-bind="attrs" v-on="on" v-show="toggleEdit == true">
-                        Add Section Dialog
+                        Add New Section
                     </v-btn>
                 </template>
                 <v-card>
@@ -72,7 +72,7 @@
                     <v-btn color="blue darken-1"  text  @click="dialog = false">
                         Close
                     </v-btn>
-                    <v-btn color="blue darken-1" text :disabled="!isFormValid" @click="dialog = false, addSection(sections)">
+                    <v-btn color="blue darken-1" text :disabled="!isFormValid" @click="dialog = false, addSection()">
                         Add
                     </v-btn>
                     </v-card-actions>
@@ -153,7 +153,8 @@
 </template>
 
 <script>
-// import axios from 'axios';
+import axios from 'axios';
+import moment from "moment";
 
 export default {
     name: "CourseDetail",
@@ -192,100 +193,56 @@ export default {
     },
     methods: {
         // Get a Course information by course_id and trainer_id
-        getCourseDetail(course_id) {
-            // let updatedApiWithEndpoint = this.apiLink + "/TBC";
-            let dataObj = { "courseId": course_id }
-            // axios.post(updatedApiWithEndpoint, dataObj)
-            //     .then((response) => {
-            //         console.log(response);
-            //         this.courseDetail = response.data;
-            //     })
-            console.log(dataObj)
-            this.courseDetail = {
-                "course_id": this.course_id,
-                "course_code": "PQ101",
-                "title": "Print Quality Control I",
-                "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a printing press and auxiliary equipment to produce quality printed products on papers and other materials as well as trouble shooting and maintenance of printing machines",
-                "capacity": 20,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31",
-                "course_requirement": 2,
-                "enrollment_count": 2
-            };
-            if (this.courseDetail.course_requirement > 0) {
-                console.log("This course has Requisites");
-                this.getRequisiteCourses(this.course_id);
-            }
+        getCourseDetail(course_id, trainer_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobytrainerandcourse";
+            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.courseDetail = response.data[0];
+
+                    // Check if course has pre-requisites
+                    if (this.courseDetail.course_requirement > 0) {
+                        this.getRequisiteCourses(course_id);
+                    }
+                })
+
         },
-        // Get all Sections by course_id, trainer_id and user_id (Trainer)
-        getCourseSections() {
-            // Dummy JSON, to be replaced with API call
-            let courseSectionData = [{
-                "section_id": 1,
-                "section_name": "Managing Printers",
-                "quiz_duration": 600,
-                "passing_grade": 80,
-                "pass_count": 2,
-                "section_sequence": 1
-            },
-            {
-                "section_id": 2,
-                "section_name": "Managing Ink Catridges",
-                "quiz_duration": 1800,
-                "passing_grade": 80,
-                "pass_count": 1,
-                "section_sequence": 2
-            },
-            {
-                "section_id": 3,
-                "section_name": "Ensuring Printing Accuracy",
-                "quiz_duration": 1800,
-                "passing_grade": 80,
-                "pass_count": 0,
-                "section_sequence": 3
-            }];
-            this.sections = courseSectionData;
-            console.log("Sections", this.sections);
+        // Get all Sections by course_id, trainer_id (Trainer)
+        getCourseSections(course_id, trainer_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbycourseandtrainer";
+            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.sections = response.data;
+                    console.log("Sections", this.sections);
+                })
         },
         // Get a Course's requisite(s)
         getRequisiteCourses(course_id) {
-            // let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            let updatedApiWithEndpoint = this.apiLink + "/getcourserequisites";
             let dataObj = { "courseId": course_id }
-            // axios.post(updatedApiWithEndpoint, dataObj)
-            // .then((response) => {
-            //     console.log(response);
-            //     this.requisiteCourses = response.data;
-            // })
-            console.log(dataObj);
-
-            let requisiteCourseData = [{
-                "course_requisite_id": 15, 
-                "course_code": "EX201",
-                "title": "Microsoft Excel: Formulas and Functions",
-                "outline": "Learn how to become a formula master who is proficient in reading and writing even the most complex formulas in Excel.",
-                "capacity": 20,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31"
-            },
-            {
-                "course_requisite_id": 16, 
-                "course_code": "EX202",
-                "title": "Microsoft Excel: Visualisation and Cleaning",
-                "outline": "You will learn Excel Formulas, Pivot Tables, Vlookup, Hlookup, Excel Charts, Sorting & Filtering data, Conditional formatting and many more tips and tricks in Excel",
-                "capacity": 20,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31"
-            }];
-            this.requisiteCourses = requisiteCourseData;
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.requisiteCourses = response.data;
+                })
+        },
+        formatDate(date) {  
+            return moment(date).format('yyyy-MM-DD');
         },
         addSection() {
             // Add new Section
-            // Dummy JSON input, to be replaced with API call
-            this.sections.push({
-                "section_name": this.newSectionName,
-                "quiz_duration": this.newQuizDuration * 60,
-                "passing_grade": this.newQuizPassingGrade
-            });
+            let updatedApiWithEndpoint = this.apiLink + "/addnewsection";
+            let dataObj = { "courseId": this.course_id, "trainerId": this.currentUserId, 
+                            "sectionName": this.newSectionName, "quizDuration": this.newQuizDuration, "passingGrade": this.newQuizPassingGrade };
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    console.log(response);
+                    this.sections.push({
+                        "section_name": this.newSectionName,
+                        "quiz_duration": this.newQuizDuration * 60,
+                        "passing_grade": this.newQuizPassingGrade
+                    });
+            })
         },
         deleteSection(section_id, indexS) {
             this.sections.splice(indexS, 1);
@@ -371,13 +328,10 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCourseDetail(this.course_id);
+        this.getCourseDetail(this.course_id, this.currentUserId);
 
         // Calls method to get section details
-        this.getCourseSections();
-
-        // Calls method to get course requisite details
-        this.getRequisiteCourses();
+        this.getCourseSections(this.course_id, this.currentUserId);
     }
 }
 </script>

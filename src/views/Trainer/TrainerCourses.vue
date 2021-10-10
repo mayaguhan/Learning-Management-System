@@ -63,10 +63,10 @@ export default {
         
     },
     methods: {
-        getCoursesDetail() {
-            // Get all Courses that are conducted by user_id
+        // Get all Courses that are conducted by user_id
+        getCoursesDetail(trainer_id) {
             let updatedApiWithEndpoint = this.apiLink + "/getallcoursesthatareconductedbyuser";
-            let dataObj = { "trainerId": this.currentUserId }
+            let dataObj = { "trainerId": trainer_id }
             axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
                 console.log(response);
@@ -79,7 +79,7 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCoursesDetail();
+        this.getCoursesDetail(this.currentUserId);
 
     }
 }
