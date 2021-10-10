@@ -7,7 +7,7 @@
                 </v-col>
             </v-row>
             <v-row>
-                <v-col cols="2">
+                <v-col cols="1">
                     <v-simple-table>
                         <template v-slot:default>
                         <thead>
@@ -19,7 +19,7 @@
                             >
                             <td>
                                 <a :href='question.hyperlink'>
-                                    Question {{ question.quiz_question_id }}
+                                    Q{{ question.quiz_question_id }}
                                 </a>
                             </td>
                             </tr>
@@ -56,7 +56,7 @@
             </v-row>
 
             <v-row>
-                <v-col cols="2"></v-col>
+                <v-col cols="1"></v-col>
                 <v-col>
                     <v-btn @click="submit()">Submit</v-btn>
                 </v-col>

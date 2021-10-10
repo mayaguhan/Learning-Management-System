@@ -151,7 +151,7 @@
         myprogress: false,
         inProgress: false,
         completed: false,
-        learner_id: 6,
+        currentUserId: 8,
 
         search: '',
         headers: [
@@ -181,22 +181,23 @@
         enrollCourse(item){
             //console.log(item);
             var title = item.title;
-            alert(title);
+            alert("You have successfully enrolled into " + title);
 
-            /* // Insert API Call
+            // Insert API Call
             var dataObjEnroll = {
-              'learnerId' : "7",
-              'courseId' : item.course_id,
-              'trainerId' : "3",
-              'status' : "Progress"
+              "learnerId" : this.currentUserId,
+              "courseId" : item.course_id,
+              "trainerId" : "100",
+              "status" : "Progress"
             }
             //console.log(dataObjEnroll);
             const axios = require('axios');
-            var updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
+            var updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
+            console.log(this.apiLink);
             axios.post(updatedApiWithEndpoint, dataObjEnroll)
                 .then((response) => {
                   console.log(response.data);
-                }) */
+                })
         }
     },
     computed: {
