@@ -198,26 +198,10 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCourseDetail();
+        this.getCourseDetail(this.course_id, this.currentUserId);
 
         // Calls method to get section details
-        // this.getCourseSections();
-        var dataObj = {
-                        'learnerId' : '6',
-                        'trainerId' : '1',
-                        'courseId'  : '1'
-                        };
-
-        const axios = require('axios');
-        var updatedApiWithEndpoint = this.apiLink + "/getallsectionsbycourseidtraineriduserid";
-        axios.post(updatedApiWithEndpoint, dataObj)
-            .then((response) => {
-                console.log(response.data);
-                this.sections = response.data;
-            })
-
-        // Calls method to get course requisite details
-        this.getRequisiteCourses()
+        this.getCourseSections(this.course_id, this.currentUserId);
     }
 }
 </script>
