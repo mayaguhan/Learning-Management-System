@@ -55,6 +55,9 @@
                     <div v-if="section.best_grade !== null">
                         <b>Best Grade: {{ section.best_grade }} / 100</b>
                     </div>
+                    <div v-else>
+                        <b>Quiz not attempted yet.</b>
+                    </div>
                     <v-divider></v-divider>
                     <div style="padding-top:5px">
                         <router-link :to="{ name: 'Quiz', params: { section_id: section.section_id,
