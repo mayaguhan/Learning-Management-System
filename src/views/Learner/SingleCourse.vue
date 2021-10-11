@@ -6,7 +6,7 @@
         <p>
             Start Date: {{ courseDetail.start_date }} <br>
             End Date: {{ courseDetail.end_date }} <br>
-            Enrolled Students: {{ courseDetail.current }} / {{ courseDetail.capacity }} <br>
+            Enrolled Students: {{ courseDetail.enrollment_count }} / {{ courseDetail.capacity }} <br>
         </p>
 
         <h2>Course Description</h2>
@@ -76,7 +76,7 @@
 <script>
 import axios from "axios";
 export default {
-    name: "CourseDetail",
+    name: "SingleCourse",
     props: {
         course_id: parseInt({ type: Number }), 
         trainer_id: parseInt({ type: Number })
@@ -110,6 +110,7 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.courseDetail = response.data[0];
+                    //console.log(response.data[0]);
 
                     // Check if course has pre-requisites
                     if (this.courseDetail.course_requirement > 0) {
@@ -118,9 +119,9 @@ export default {
                 })
 
         },
-        getCourseSections(course_id, trainer_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbycourseandtrainer";
-            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+        getCourseSections(course_id, trainer_id, currentUserId) {
+            let updatedApiWithEndpoint = this.apiLink + "/getallsectionsbycourseidtraineriduserid";
+            let dataObj = { "learnerId": currentUserId, "trainerId": trainer_id, "courseId": course_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.sections = response.data;
@@ -169,21 +170,7 @@ export default {
         this.getCourseDetail(this.course_id, this.trainer_id);
 
         // Calls method to get section details
-        // this.getCourseSections();
-        var dataObj = {
-                        'learnerId' : this.currentUserId,
-                        'trainerId' : this.trainer_id,
-                        'courseId'  : this.course_id
-                        };
-
-        const axios = require('axios');
-        var updatedApiWithEndpoint = this.apiLink + "/getallsectionsbycourseidtraineriduserid";
-        axios.post(updatedApiWithEndpoint, dataObj)
-            .then((response) => {
-                console.log(response.data);
-                this.sections = response.data;
-            })
-
+        this.getCourseSections(this.course_id, this.trainer_id, this.currentUserId)
         // Calls method to get course requisite details
         this.getRequisiteCourses(this.course_id)
     }
