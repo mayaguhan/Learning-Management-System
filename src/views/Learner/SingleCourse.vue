@@ -74,10 +74,12 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
     name: "CourseDetail",
     props: {
         course_id: parseInt({ type: Number }), 
+        trainer_id: parseInt({ type: Number })
     },
     data: () => ({
         courseDetail: {},
@@ -87,7 +89,6 @@ export default {
         materials: [],
         newSection: {},
         boldSection: false,
-        // replace with login user id eventually
         currentUserId: 6,
     }),
     methods: {
@@ -103,69 +104,36 @@ export default {
             }
             
         },
-        getCourseDetail() {
-            this.courseDetail = {
-                "course_id": this.course_id,
-                "course_code": "PQ101",
-                "title": "Print Quality Control I",
-                "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a printing press and auxiliary equipment to produce quality printed products on papers and other materials as well as trouble shooting and maintenance of printing machines",
-                "capacity": 20,
-                "current": 2,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31",
-                "trainer_id": 1
-            };
+        getCourseDetail(course_id, trainer_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobytrainerandcourse";
+            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.courseDetail = response.data[0];
+
+                    // Check if course has pre-requisites
+                    if (this.courseDetail.course_requirement > 0) {
+                        this.getRequisiteCourses(course_id);
+                    }
+                })
+
         },
-        getCourseSections() {
-            // Get all Sections by course_id, trainer_id and user_id
-            // Dummy JSON, to be replaced with API call
-            let courseSectionData = [{
-                "section_id": 1,
-                "section_name": "PQ101 - Section 1",
-                "quiz_duration": 600,
-                "passing_grade": 80,
-                "best_grade" : 100
-            },
-            {
-                "section_id": 2,
-                "section_name": "PQ101 - Section 2",
-                "quiz_duration": 1800,
-                "passing_grade": 80,
-                "best_grade" : 100
-            },
-            {
-                "section_id": 3,
-                "section_name": "PQ101 - Section 3",
-                "quiz_duration": 1800,
-                "passing_grade": 80,
-                "best_grade" : 100
-            }];
-            this.sections = courseSectionData;
-            console.log("Sections", this.sections);
+        getCourseSections(course_id, trainer_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbycourseandtrainer";
+            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.sections = response.data;
+                    console.log("Sections", this.sections);
+                })
         },
-        getRequisiteCourses() {
-            // Get a Course's requisite(s)
-            // Dummy JSON, to be replaced with API call
-            let requisiteCourseData = [{
-                "course_requisite_id": 15, 
-                "course_code": "EX201",
-                "title": "Microsoft Excel: Formulas and Functions",
-                "outline": "Learn how to become a formula master who is proficient in reading and writing even the most complex formulas in Excel.",
-                "capacity": 20,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31"
-            },
-            {
-                "course_requisite_id": 16, 
-                "course_code": "EX202",
-                "title": "Microsoft Excel: Visualisation and Cleaning",
-                "outline": "You will learn Excel Formulas, Pivot Tables, Vlookup, Hlookup, Excel Charts, Sorting & Filtering data, Conditional formatting and many more tips and tricks in Excel",
-                "capacity": 20,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31"
-            }];
-            this.requisiteCourses = requisiteCourseData;
-            // console.log("Requisite Courses: ", this.requisiteCourses);
+        getRequisiteCourses(course_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/getcourserequisites";
+            let dataObj = { "courseId": course_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.requisiteCourses = response.data;
+                })
         },
         expandSection(section_id) {
             // console.log(section_id);
@@ -198,10 +166,26 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCourseDetail(this.course_id, this.currentUserId);
+        this.getCourseDetail(this.course_id, this.trainer_id);
 
         // Calls method to get section details
-        this.getCourseSections(this.course_id, this.currentUserId);
+        // this.getCourseSections();
+        var dataObj = {
+                        'learnerId' : this.currentUserId,
+                        'trainerId' : this.trainer_id,
+                        'courseId'  : this.course_id
+                        };
+
+        const axios = require('axios');
+        var updatedApiWithEndpoint = this.apiLink + "/getallsectionsbycourseidtraineriduserid";
+        axios.post(updatedApiWithEndpoint, dataObj)
+            .then((response) => {
+                console.log(response.data);
+                this.sections = response.data;
+            })
+
+        // Calls method to get course requisite details
+        this.getRequisiteCourses(this.course_id)
     }
 }
 </script>
