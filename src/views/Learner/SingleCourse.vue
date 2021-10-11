@@ -38,7 +38,14 @@
                         <!-- Upload slide decks -->
                         <b>Topic's Slide Decks</b><br>
                         <ul v-for="material in materials" v-bind:key="material.material_id">
-                            
+                            <li v-if="materials.length > 0" >
+                                <v-btn v-bind:href="material.link" target="_blank">
+                                    {{ material.material_name }}
+                                </v-btn>
+                            </li>
+                            <li v-else>
+                                <b>This section has no materials</b>
+                            </li>
                         </ul>
                         <!-- TO DO: Method to upload new materials -->
 
@@ -51,9 +58,9 @@
                     <v-divider></v-divider>
                     <div style="padding-top:5px">
                         <router-link :to="{ name: 'Quiz', params: { section_id: section.section_id,
-                                                                            learner_id: 1,
-                                                                            course_id: 1,
-                                                                            trainer_id: 1,
+                                                                            learner_id: currentUserId,
+                                                                            course_id: course_id,
+                                                                            trainer_id: trainer_id,
                                                                             }}">
                               <v-btn depressed small color="#0062E4">
                                   <span style="color: white">Attempt Quiz</span> 
@@ -110,7 +117,7 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.courseDetail = response.data[0];
-                    //console.log(response.data[0]);
+                    console.log("courseDetail", response.data[0]);
 
                     // Check if course has pre-requisites
                     if (this.courseDetail.course_requirement > 0) {
