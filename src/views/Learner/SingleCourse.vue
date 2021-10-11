@@ -4,8 +4,8 @@
             {{ courseDetail.course_code }} - {{ courseDetail.title }}
         </h1>
         <p>
-            Start Date: {{ courseDetail.start_date }} <br>
-            End Date: {{ courseDetail.end_date }} <br>
+            Start Date: {{ formatDate(courseDetail.start_date) }} <br>
+            End Date: {{ formatDate(courseDetail.end_date) }} <br>
             Enrolled Students: {{ courseDetail.enrollment_count }} / {{ courseDetail.capacity }} <br>
         </p>
 
@@ -82,6 +82,7 @@
 
 <script>
 import axios from "axios";
+import moment from "moment";
 export default {
     name: "SingleCourse",
     props: {
@@ -99,6 +100,9 @@ export default {
         currentUserId: 6,
     }),
     methods: {
+        formatDate(date) {  
+            return moment(date).format('yyyy-MM-DD');
+        },
         ifUpdated(grade) {
             if ((grade == null) && (this.boldSection == false)) {
                 console.log(this.boldSection);
