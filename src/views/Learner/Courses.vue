@@ -87,8 +87,9 @@
                       <td>{{ item.title }}</td>
                       <td>{{ item.start_date }}</td>
                       <td>{{ item.end_date }}</td>
+                      <!-- <td>{{ item.course_id }}</td> -->
                       <td width="10">
-                          <router-link :to="{ name: 'SingleCourse', params: { course_id: 1, learner_id: 1 }}">
+                          <router-link :to="{ name: 'SingleCourse', params: { course_id: item.course_id }}">
                               <v-btn depressed small color="#0062E4">
                                   <span style="color: white">View Class</span> 
                               </v-btn>
@@ -151,7 +152,7 @@
         myprogress: false,
         inProgress: false,
         completed: false,
-        currentUserId: 8,
+        currentUserId: 6,
         selectedTrainerId: 100,
         selectedCourseId: 0,
         
@@ -211,14 +212,14 @@
     created() {
             // Simulate login
             var dataObj = {
-              'learnerId' : "7"
+              'learnerId' : this.currentUserId
             };
             var dataObjForProgress = {
-                'learnerId' : "7",
+                'learnerId' : this.currentUserId,
                 'status' : 'Progress'
             };
             var dataObjForComplete = {
-                "learnerId" : 7,
+                "learnerId" : this.currentUserId,
                 "status" : "Complete"
             };
 

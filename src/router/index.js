@@ -40,7 +40,7 @@ const routes = [
     component: () =>import('../views/Trainer/TrainerCourses.vue')
   },
   {
-    path: '/singlecourse/:course_id/:learner_id',
+    path: '/singlecourse/:course_id/',
     name: 'SingleCourse',
     component: () =>import('@/views/Learner/SingleCourse.vue'),
     props: true

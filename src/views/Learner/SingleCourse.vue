@@ -78,7 +78,6 @@ export default {
     name: "CourseDetail",
     props: {
         course_id: parseInt({ type: Number }), 
-        learner_id: parseInt({ type: Number })
     },
     data: () => ({
         courseDetail: {},
@@ -88,6 +87,8 @@ export default {
         materials: [],
         newSection: {},
         boldSection: false,
+        // replace with login user id eventually
+        currentUserId: 6,
     }),
     methods: {
         ifUpdated(grade) {
