@@ -4,6 +4,8 @@
             <v-row>
                 <v-col>
                     <h1>Section {{section_id}} Quiz</h1>
+                    <!-- Timer -->
+                    <h1>{{ formatedCountdown || 'countdown over' }}</h1>
                 </v-col>
             </v-row>
             <v-row>
@@ -67,6 +69,10 @@
 
 <script>
 /* import axios from "axios" */
+
+/* Timer */
+import  moment from 'moment'
+import 'moment-duration-format'
 export default {
     name: "Quiz",
     props: {
@@ -85,6 +91,9 @@ export default {
         options: [],
 
         testOptions: [],
+        
+        // Timer
+        countdown: 300
 
     }),
     methods: {
@@ -178,13 +187,25 @@ export default {
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
-        }
+        },
+        // Timer
+        formatedCountdown() {
+            return moment.duration(this.countdown, 'seconds').format('m:ss')
+        },
     },
     created() {
         // Calls method to get quiz details
         // this.getQuizDetail();
         this.getOptions();
-    }
+    },
+    // Timer
+    mounted() {
+        const stopCountdown = setInterval(() => {
+        console.log('current countdown', this.countdown)
+        this.countdown -= 1
+        if (!this.countdown) clearInterval(stopCountdown)
+        }, 1000)
+    },
 }
 </script>
 
