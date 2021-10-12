@@ -20,7 +20,7 @@
         <v-expansion-panels focusable :items="sections">
             <v-expansion-panel v-for="section in sections" :key="section.course_id" @click="expandSection(section.section_id)">
                 <v-expansion-panel-header>
-                    <div v-if="ifUpdated(section.best_grade)"><b>{{ section.section_name }}</b></div>
+                    <div v-if="section['attempted'] === 0"><b>{{ section.section_name }}</b></div>
                     <div v-else>{{ section.section_name }}</div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
@@ -106,18 +106,6 @@ export default {
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD');
         },
-        ifUpdated(grade) {
-            if ((grade == null) && (this.boldSection == false)) {
-                console.log(this.boldSection);
-                this.boldSection = true;
-                console.log(this.boldSection);
-                return true;
-            }
-            else {
-                return false;
-            }
-            
-        },
         getCourseDetail(course_id, trainer_id) {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobytrainerandcourse";
             let dataObj = { "courseId": course_id, "trainerId": trainer_id }
@@ -140,6 +128,16 @@ export default {
                 .then((response) => {
                     this.sections = response.data;
                     console.log("Sections", this.sections);
+                    for (let i = 0; i < this.sections.length; i++) {
+                        const section = this.sections[i];
+                        if (section["best_grade"] !== null) {
+                            section["attempted"] = 1;
+                        }
+                        else {
+                            section["attempted"] = 0;
+                            break;
+                        }   
+                    }
                 })
         },
         getRequisiteCourses(course_id) {
