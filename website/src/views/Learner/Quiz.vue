@@ -49,7 +49,7 @@
                                         {{ question }}
                                         <br> -->
                                     </label>
-                                    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                                    
                                 </v-col>
                             </v-row>
                         </v-container>

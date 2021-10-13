@@ -152,7 +152,7 @@
         myprogress: false,
         inProgress: false,
         completed: false,
-        currentUserId: 6,
+        currentUserId: 4,
         selectedTrainerId: 100,
         selectedCourseId: 0,
         
@@ -240,7 +240,7 @@
             var updatedApiWithEndpoint2 = this.apiLink + "/getallcoursesauserhasbystatus";
             axios.post(updatedApiWithEndpoint2, dataObjForProgress)
                 .then((response) => {
-                  //console.log(response.data);
+                  console.log(response.data);
                   let courseArray = response.data;
                     for (let index = 0; index < courseArray.length; index++) {
                       const courseObj = courseArray[index];
