@@ -40,7 +40,7 @@ const routes = [
     component: () =>import('../views/Trainer/TrainerCourses.vue')
   },
   {
-    path: '/singlecourse/:course_id/:learner_id',
+    path: '/singlecourse/:course_id/:trainer_id',
     name: 'SingleCourse',
     component: () =>import('@/views/Learner/SingleCourse.vue'),
     props: true
@@ -68,7 +68,13 @@ const routes = [
     name: 'QuizDetail',
     component: () =>import('../views/Trainer/QuizDetail.vue'),
     props: true
-  }
+  },
+  {
+    path: '/selfenrol/:course_id',
+    name: 'SelfEnrol',
+    component: () =>import('../views/Learner/SelfEnrol.vue'),
+    props: true
+  },
 ]
 
 const router = new VueRouter({

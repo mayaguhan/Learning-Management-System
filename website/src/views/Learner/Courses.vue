@@ -46,15 +46,11 @@
                            {{ row.item.remaining }} slots left
                         </td>
                         <td width="10">
-                            <v-btn
-                                depressed
-                                small
-                                color="#0062E4"
-                                @click="enrollCourse(row.item)"
-                                v-if="row.item.remaining !== 0"
-                            >
-                                <span style="color: white">Enroll</span> 
-                            </v-btn>
+                            <router-link :to="{ name: 'SelfEnrol', params: { course_id: row.item.course_id }}">
+                              <v-btn depressed small color="#0062E4">
+                                  <span style="color: white">Enroll</span> 
+                              </v-btn>
+                            </router-link>
                         </td>
                     </tr>
                 </template>
@@ -91,8 +87,9 @@
                       <td>{{ item.title }}</td>
                       <td>{{ item.start_date }}</td>
                       <td>{{ item.end_date }}</td>
+                      <!-- <td>{{ item.trainer_id }}</td> -->
                       <td width="10">
-                          <router-link :to="{ name: 'SingleCourse', params: { course_id: 1, learner_id: 1 }}">
+                          <router-link :to="{ name: 'SingleCourse', params: { course_id: item.course_id, trainer_id: item.trainer_id }}">
                               <v-btn depressed small color="#0062E4">
                                   <span style="color: white">View Class</span> 
                               </v-btn>
@@ -145,13 +142,20 @@
 <script>
   export default {
     name:"Courses",
+    props: {
+        course_id: parseInt({ type: Number }),
+        learner_id: parseInt({ type: Number })
+    },
     data () {
       return {
         allcourses: true,
         myprogress: false,
         inProgress: false,
         completed: false,
-        learner_id: 6,
+        currentUserId: 4,
+        selectedTrainerId: 100,
+        selectedCourseId: 0,
+        
 
         search: '',
         headers: [
@@ -181,22 +185,23 @@
         enrollCourse(item){
             //console.log(item);
             var title = item.title;
-            alert(title);
+            alert("You have successfully enrolled into " + title);
 
-            /* // Insert API Call
+            // Insert API Call
             var dataObjEnroll = {
-              'learnerId' : "7",
-              'courseId' : item.course_id,
-              'trainerId' : "3",
-              'status' : "Progress"
+              "learnerId" : this.currentUserId,
+              "courseId" : item.course_id,
+              "trainerId" : this.selectedTrainerId,
+              "status" : "Progress"
             }
             //console.log(dataObjEnroll);
             const axios = require('axios');
-            var updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
+            var updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
+            console.log(this.apiLink);
             axios.post(updatedApiWithEndpoint, dataObjEnroll)
                 .then((response) => {
                   console.log(response.data);
-                }) */
+                })
         }
     },
     computed: {
@@ -207,14 +212,14 @@
     created() {
             // Simulate login
             var dataObj = {
-              'learnerId' : "7"
+              'learnerId' : this.currentUserId
             };
             var dataObjForProgress = {
-                'learnerId' : "7",
+                'learnerId' : this.currentUserId,
                 'status' : 'Progress'
             };
             var dataObjForComplete = {
-                "learnerId" : 7,
+                "learnerId" : this.currentUserId,
                 "status" : "Complete"
             };
 
@@ -235,7 +240,7 @@
             var updatedApiWithEndpoint2 = this.apiLink + "/getallcoursesauserhasbystatus";
             axios.post(updatedApiWithEndpoint2, dataObjForProgress)
                 .then((response) => {
-                  //console.log(response.data);
+                  console.log(response.data);
                   let courseArray = response.data;
                     for (let index = 0; index < courseArray.length; index++) {
                       const courseObj = courseArray[index];
