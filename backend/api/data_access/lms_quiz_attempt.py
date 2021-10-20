@@ -7,10 +7,8 @@ CORS(app)
 class Course(db.Model):
     __tablename__ = "lms_quiz_attempt"
     quiz_attempt_id = db.Column(db.Integer, primary_key=True)
-    section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))
     learner_id = db.Column(db.Integer,db.ForeignKey('lms_user.id'))
-    course_id = db.Column(db.Integer,db.ForeignKey('lms_course.id'))
-    trainer_id = db.Column(db.Integer,db.ForeignKey('lms_user.id'))
+    section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))
     attempt_date = db.Column(db.DateTime)
     grade = db.Column(db.Integer)
     

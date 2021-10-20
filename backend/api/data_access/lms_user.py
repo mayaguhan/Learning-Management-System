@@ -7,7 +7,6 @@ CORS(app)
 class LMSUser(db.Model):
     __tablename__ = "lms_user"
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.VARCHAR(50))
     name = db.Column(db.VARCHAR(50))
     email = db.Column(db.VARCHAR(50))
     seniority_level = db.Column(db.VARCHAR(20))

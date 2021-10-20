@@ -6,7 +6,7 @@ CORS(app)
 
 class QuizPerformance(db.Model):
     __tablename__ = "lms_quiz_performance"
-    quiz_attempt_id = db.Column(db.Integer, primary_key=True)
+    quiz_attempt_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_attempt.id'), primary_key=True)
     quiz_question_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_question.id'),primary_key=True)
     quiz_option_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_option.id'),primary_key=True)
     

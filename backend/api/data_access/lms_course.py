@@ -7,12 +7,12 @@ CORS(app)
 class Course(db.Model):
     __tablename__ = "lms_course"
     course_id = db.Column(db.Integer, primary_key=True)
+    course_requisite_id = db.Column(db.Integer)
     course_code = db.Column(db.VARCHAR(10))
-    title = db.Column(db.VARCHAR(50))
+    title = db.Column(db.VARCHAR(100))
     outline = db.Column(db.VARCHAR(500))
-    capacity = db.Column(db.Integer)
-    start_date = db.Column(db.DateTime)
-    end_date = db.Column(db.DateTime)
+    badge = db.Column(db.VARCHAR(200))
+    active = db.Column(db.SmallInteger(1))
     
 
     # Getter and setter methods
@@ -59,15 +59,7 @@ class Course(db.Model):
     def getStartDate(self):
         return self.start_date
     
-    # need research on how datetime is stored in python
-    # need additional validators
-    # 1. new_start not earlier than current date time
-    # 2. new_start not later than end date
-    def setStartDate(self,new_start):
-        self.start_date = new_start
     
-    def getEndDate(self):
-        return self.end_date
     
     # need research on how datetime is stored in python
     # need additional validators

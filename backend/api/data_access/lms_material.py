@@ -8,8 +8,7 @@ class Material(db.Model):
     __tablename__ = "lms_material"
     material_id = db.Column(db.Integer, primary_key=True)
     section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))
-    material_name = db.Column(db.VARCHAR(100))
-    type = db.Column(db.VARCHAR(20))
+    file_name = db.Column(db.VARCHAR(100))
     link = db.Column(db.VARCHAR(200))
     
     # as of 9 October, all methods are local and update operations have not been made yet

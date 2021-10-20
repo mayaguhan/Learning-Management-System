@@ -4,22 +4,14 @@ from flask_cors import CORS
 db = SQLAlchemy(app)
 CORS(app)
 
-class LMSEnrolment(db.Model):
-    __tablename__ = "lms_enrolment"
-    learner_id = db.Column(db.Integer, db.ForeignKey('lms_user.id'),primary_key=True)
-    conduct_id = db.Column(db.Integer,db.ForeignKey('lms_conduct.id'), primary_key=True)
-    self_enrolment = db.Column(db.SmallInteger(1))
-    status = db.Column(db.VARCHAR(10))
+class MaterialVisit(db.Model):
+    __tablename__ = "lms_material_visit"
+    material_id = db.Column(db.Integer,db.ForeignKey('lms_material.id'), primary_key=True)
+    learner_id = db.Column(db.Integer,db.ForeignKey('lms_user.id'),primary_key=True)
     
-
+    # as of 9 October, all methods are local and update operations have not been made yet
     # Getter and setter methods
 
-    def getStatus(self):
-        return self.status
-
-    def setStatus(self,new_status):
-        if new_status!="" and len(new_status)<=10:
-            self.username = new_status
     
     # 2 way translation
     def to_dict(self):

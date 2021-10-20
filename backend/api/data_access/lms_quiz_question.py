@@ -9,7 +9,6 @@ class QuizQuestion(db.Model):
     quiz_question_id = db.Column(db.Integer, primary_key=True)
     section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))#,primary_key=True)
     question_name = db.Column(db.VARCHAR(200))
-    type = db.Column(db.VARCHAR(20))
     
     # as of 9 October, all methods are local and update operations have not been made yet
     # Getter and setter methods
