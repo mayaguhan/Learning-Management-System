@@ -36,15 +36,15 @@
                             <v-row>
                                 <v-col>
                                     <div :id="question.question_name">{{ question.question_name }}</div>
-                                    <label :for="questionOption.quiz_option_id" v-for="questionOption in testOptions[indexQ]" :key="questionOption.quiz_option_id">
+                                    <label :for="questionchoice.quiz_choice_id" v-for="questionchoice in testchoices[indexQ]" :key="questionchoice.quiz_choice_id">
                                         <input type="radio" 
-                                        :id="questionOption.quiz_option_id" 
+                                        :id="questionchoice.quiz_choice_id" 
                                         :name="question.quiz_question_id"
-                                        :value="questionOption.quiz_option_id"
+                                        :value="questionchoice.quiz_choice_id"
                                         v-model="question.selectedAnswer">
-                                        {{questionOption.option}}
+                                        {{questionchoice.choice}}
                                         <!-- {{question.quiz_question_id}} -->
-                                        <!-- {{questionOption.quiz_option_id}} -->
+                                        <!-- {{questionchoice.quiz_choice_id}} -->
                                         <!-- <br>
                                         {{ question }}
                                         <br> -->
@@ -88,17 +88,17 @@ export default {
 
         questions: [],
         
-        options: [],
+        choices: [],
 
-        testOptions: [],
+        testchoices: [],
         
         // Timer
         countdown: 300
 
     }),
     methods: {
-        // SELECT qq.quiz_question_id, qo.quiz_option_id, qq.question_name, qq.type, qo.option, qo.correct
-        // Get all Quiz Question and Quiz Option by section_id
+        // SELECT qq.quiz_question_id, qo.quiz_choice_id, qq.question_name, qq.type, qo.choice, qo.correct
+        // Get all Quiz Question and Quiz choice by section_id
         /* addQuizAttempt(section_id, learner_id, course_id, trainer_id){
             let updatedApiWithEndpoint2 = this.apiLink + "/TBC";
             let dataObj2 = {
@@ -113,7 +113,7 @@ export default {
                     console.log(response);
                 })
         }, */
-        getOptions(section_id) {
+        getchoices(section_id) {
             let updatedApiWithEndpoint = this.apiLink + "/TBC";
             let dataObj = { "sectionId": section_id  }
             console.log(updatedApiWithEndpoint, dataObj);
@@ -123,63 +123,63 @@ export default {
             //         this.questions = response.data;
             //     })
 
-            let questionOptions = [
-                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", "type": "MCQ", 
-                "quiz_option_id": 1, "option": "Option A", "correct": 1 },
-                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", "type": "MCQ", 
-                "quiz_option_id": 2, "option": "Option B", "correct": 0 },
-                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", "type": "MCQ", 
-                "quiz_option_id": 3, "option": "Option C", "correct": 0 },
-                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", "type": "MCQ", 
-                "quiz_option_id": 4, "option": "Option D", "correct": 0 },
-                { "quiz_question_id": 2, "question_name": "How to setup a printer?", "type": "T/F", 
-                "quiz_option_id": 5, "option": "True", "correct": 1 },
-                { "quiz_question_id": 2, "question_name": "How to setup a printer?", "type": "T/F", 
-                "quiz_option_id": 6, "option": "False", "correct": 0 },
-                { "quiz_question_id": 3, "question_name": "How to ensure printing quality?", "type": "T/F", 
-                "quiz_option_id": 7, "option": "True", "correct": 1 },
-                { "quiz_question_id": 3, "question_name": "How to ensure printing quality?", "type": "T/F", 
-                "quiz_option_id": 8, "option": "False", "correct": 0 },
-                { "quiz_question_id": 4, "question_name": "How to colour code?", "type": "MCQ",
-                "quiz_option_id": 9, "option": "Option A", "correct": 1 },
-                { "quiz_question_id": 4, "question_name": "How to colour code?", "type": "MCQ", 
-                "quiz_option_id": 10, "option": "Option B", "correct": 0 },
-                { "quiz_question_id": 4, "question_name": "How to colour code?", "type": "MCQ", 
-                "quiz_option_id": 11, "option": "Option C", "correct": 0 },
-                { "quiz_question_id": 4, "question_name": "How to colour code?", "type": "MCQ", 
-                "quiz_option_id": 12, "option": "Option D", "correct": 0 },
-                { "quiz_question_id": 5, "question_name": "What do you do with faulty machines?", "type": "T/F", 
-                "quiz_option_id": 13, "option": "True", "correct": 1 },
-                { "quiz_question_id": 5, "question_name": "What do you do with faulty machines?", "type": "T/F", 
-                "quiz_option_id": 14, "option": "True", "correct": 0 }
+            let questionchoices = [
+                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", 
+                "quiz_choice_id": 1, "choice": "choice A", "correct": 1 },
+                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?",
+                "quiz_choice_id": 2, "choice": "choice B", "correct": 0 },
+                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", 
+                "quiz_choice_id": 3, "choice": "choice C", "correct": 0 },
+                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?",
+                "quiz_choice_id": 4, "choice": "choice D", "correct": 0 },
+                { "quiz_question_id": 2, "question_name": "How to setup a printer?", 
+                "quiz_choice_id": 5, "choice": "True", "correct": 1 },
+                { "quiz_question_id": 2, "question_name": "How to setup a printer?",
+                "quiz_choice_id": 6, "choice": "False", "correct": 0 },
+                { "quiz_question_id": 3, "question_name": "How to ensure printing quality?", 
+                "quiz_choice_id": 7, "choice": "True", "correct": 1 },
+                { "quiz_question_id": 3, "question_name": "How to ensure printing quality?",
+                "quiz_choice_id": 8, "choice": "False", "correct": 0 },
+                { "quiz_question_id": 4, "question_name": "How to colour code?",
+                "quiz_choice_id": 9, "choice": "choice A", "correct": 1 },
+                { "quiz_question_id": 4, "question_name": "How to colour code?",
+                "quiz_choice_id": 10, "choice": "choice B", "correct": 0 },
+                { "quiz_question_id": 4, "question_name": "How to colour code?", 
+                "quiz_choice_id": 11, "choice": "choice C", "correct": 0 },
+                { "quiz_question_id": 4, "question_name": "How to colour code?",
+                "quiz_choice_id": 12, "choice": "choice D", "correct": 0 },
+                { "quiz_question_id": 5, "question_name": "What do you do with faulty machines?",
+                "quiz_choice_id": 13, "choice": "True", "correct": 1 },
+                { "quiz_question_id": 5, "question_name": "What do you do with faulty machines?",
+                "quiz_choice_id": 14, "choice": "True", "correct": 0 }
             ];
 
-            // Groups question options into question groups by question_id
-            let questionArr = Object.values(questionOptions.reduce((result, 
-            { quiz_question_id, question_name, type, quiz_option_id, option, correct }) => {
+            // Groups question choices into question groups by question_id
+            let questionArr = Object.values(questionchoices.reduce((result, 
+            { quiz_question_id, question_name, type, quiz_choice_id, choice, correct }) => {
                 // Create new question group
                 if (!result[quiz_question_id]) result[quiz_question_id] = {
-                    quiz_question_id, question_name,  type, question_options: []
+                    quiz_question_id, question_name,  type, question_choices: []
                 };
-                // Append question option to question group
-                result[quiz_question_id].question_options.push({ quiz_option_id,  option, correct });
+                // Append question choice to question group
+                result[quiz_question_id].question_choices.push({ quiz_choice_id,  choice, correct });
                 return result;
                 },{}
             ));
             questionArr.forEach(question => {
                 question["selectedAnswer"] = 0;
                 question["hyperlink"] = "#" + question.question_name;
-                this.testOptions.push(question.question_options);
-                console.log(question.question_options);
+                this.testchoices.push(question.question_choices);
+                console.log(question.question_choices);
             });
-            console.log(this.testOptions);
+            console.log(this.testchoices);
             this.questions = questionArr;
             this.questionCount = this.questions.length;
             console.log(this.questions);
         },
         submit() {
             // Check the answer
-            console.log("Submitted Options:");
+            console.log("Submitted choices:");
             console.log(this.questions);
 
         }
@@ -196,7 +196,7 @@ export default {
     created() {
         // Calls method to get quiz details
         // this.getQuizDetail();
-        this.getOptions();
+        this.getchoices();
     },
     // Timer
     mounted() {
