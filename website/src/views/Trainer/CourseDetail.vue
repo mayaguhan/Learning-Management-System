@@ -6,8 +6,10 @@
         <p>
             Start Date: {{ formatDate(courseDetail.start_date) }} <br>
             End Date: {{ formatDate(courseDetail.end_date) }} <br>
-            Enrolled Students: {{ courseDetail.enrollment_count }} / {{ courseDetail.capacity }} <br>
-            <router-link :to="{ name: 'EnrolledStudent', params: { course_id: course_id } }">
+            Registration Start Date: {{ formatDate(courseDetail.start_register) }} <br>
+            Registration End Date: {{ formatDate(courseDetail.end_register) }} <br>
+            Enrolled Students: {{ courseDetail.enrolments }} / {{ courseDetail.capacity }} <br>
+            <router-link :to="{ name: 'EnrolledStudent', params: { conduct_id: conduct_id } }">
                 <v-btn class="primary">
                     View Enrolled Students
                 </v-btn>
@@ -20,14 +22,10 @@
         </p>
 
         <h2>Course Requisites</h2>
-        <p>
-            <ul v-if="requisiteCourses.length > 0">
-                <li v-for="requisite in requisiteCourses" v-bind:key="requisite.course_requisite_id">
-                    {{ requisite.course_code }} - {{ requisite.title }} 
-                </li>
-            </ul>
-            <b v-else>This course has no pre-requisites.</b>
-        </p>
+        <span v-if="courseDetail.course_requisite_id > 0">
+            {{ courseDetail.cr_course_code }} - {{ courseDetail.cr_title }}
+        </span>
+        <span v-else>This course has no pre-requisites.</span>
 
         <h2>Course Content
             <!-- Toggle: Edit sections -->
@@ -72,7 +70,7 @@
                     <v-btn color="blue darken-1"  text  @click="dialog = false">
                         Close
                     </v-btn>
-                    <v-btn color="blue darken-1" text :disabled="!isFormValid" @click="dialog = false, addSection()">
+                    <v-btn color="blue darken-1" text :disabled="!isFormValid" @click="dialog = false, addSectionForm()">
                         Add
                     </v-btn>
                     </v-card-actions>
@@ -110,7 +108,7 @@
                     <div v-if=" section.section_id != null">
                         <!-- Quiz Statistics -->
                         <b>Quiz Statistics: </b> 
-                        {{ section.pass_count }} / {{ courseDetail.enrollment_count }} Learners have passed this quiz <br>
+                        {{ section.pass_count }} / {{ section.learner_count }} Learners have passed this quiz <br>
                         <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }">
                             <v-btn class="primary">
                                 Manage Quiz
@@ -159,10 +157,10 @@ import moment from "moment";
 export default {
     name: "CourseDetail",
     props: {
-        course_id: parseInt({ type: Number })
+        conduct_id: parseInt({ type: Number })
     },
     data: () => ({
-        currentUserId: 1, // To be replaced with user_id of logged in user
+        currentUserId: 2, // To be replaced with user_id of logged in user
 
         courseDetail: {},
         sections: [],
@@ -192,57 +190,35 @@ export default {
         }
     },
     methods: {
-        // Get a Course information by course_id and trainer_id
-        getCourseDetail(course_id, trainer_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobytrainerandcourse";
-            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+        // Get a Course Conducted information by conduct_id
+        getCourseDetail() {
+            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
+            let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.courseDetail = response.data[0];
-
-                    // Check if course has pre-requisites
-                    if (this.courseDetail.course_requirement > 0) {
-                        this.getRequisiteCourses(course_id);
-                    }
                 })
-
         },
-        // Get all Sections by course_id, trainer_id (Trainer)
-        getCourseSections(course_id, trainer_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbycourseandtrainer";
-            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+        // Get all Sections by conduct_id (Trainer)
+        getCourseSections() {
+            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid";
+            let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.sections = response.data;
-                    console.log("Sections", this.sections);
-                })
-        },
-        // Get a Course's requisite(s)
-        getRequisiteCourses(course_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/getcourserequisites";
-            let dataObj = { "courseId": course_id }
-            axios.post(updatedApiWithEndpoint, dataObj)
-                .then((response) => {
-                    this.requisiteCourses = response.data;
                 })
         },
         formatDate(date) {  
-            return moment(date).format('yyyy-MM-DD');
+            return moment(date).format('yyyy-MM-DD hh:mm');
         },
-        addSection() {
-            // Add new Section
-            let updatedApiWithEndpoint = this.apiLink + "/addnewsection";
-            let dataObj = { "courseId": this.course_id, "trainerId": this.currentUserId, 
-                            "sectionName": this.newSectionName, "quizDuration": this.newQuizDuration, "passingGrade": this.newQuizPassingGrade };
-            axios.post(updatedApiWithEndpoint, dataObj)
-                .then((response) => {
-                    console.log(response);
-                    this.sections.push({
-                        "section_name": this.newSectionName,
-                        "quiz_duration": this.newQuizDuration * 60,
-                        "passing_grade": this.newQuizPassingGrade
-                    });
-            })
+        addSectionForm() {
+            this.sections.push({
+                "conduct_id": this.conduct_id, 
+                "sequence": this.sections.length+1,
+                "section_name": this.newSectionName,
+                "quiz_duration": this.newQuizDuration * 60,
+                "passing_grade": this.newQuizPassingGrade
+            });
         },
         deleteSection(section_id, indexS) {
             this.sections.splice(indexS, 1);
@@ -267,7 +243,15 @@ export default {
             changes.forEach(change => {
                 if (change.section_id == null) {
                     console.log("INSERT: ", change);
-                    // Adds a new section (4 parameters)
+                    // Add new Section
+                    let updatedApiWithEndpoint = this.apiLink + "/addnewsection";
+                    let dataObj = { "conductId": change.conduct_id, "sequence": this.sections.length+1, 
+                                    "sectionName": change.section_name, "quizDuration": change.quiz_duration, "passingGrade": change.passing_grade };                  
+                    axios.post(updatedApiWithEndpoint, dataObj)
+                        .then((response) => {
+                            console.log(response);
+                            this.getCourseSections();
+                    })
 
                 } else {
                     console.log("UPDATE: ", change);
@@ -328,10 +312,10 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCourseDetail(this.course_id, this.currentUserId);
+        this.getCourseDetail(this.conduct_id);
 
         // Calls method to get section details
-        this.getCourseSections(this.course_id, this.currentUserId);
+        this.getCourseSections();
     }
 }
 </script>

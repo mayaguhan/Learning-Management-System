@@ -1,9 +1,9 @@
 <template>
-    <div class="mt-5" style="text-align: center">
+    <div class="mt-5">
         <v-container fluid>
             <v-row>
                 <v-col>
-                    <h1>Section {{section_id}} Quiz</h1>
+                    <h1></h1>
                 </v-col>
             </v-row>
             <v-row>
@@ -13,11 +13,8 @@
                         <thead>
                         </thead>
                         <tbody>
-                            <tr
-                            v-for="question in questions"
-                            :key="question.question_id"
-                            >
-                            <td>Question {{ question.quiz_question_id }}</td>
+                            <tr v-for="question in questions" :key="question.question_id">
+                                <td>Question {{ question.quiz_question_id }}</td>
                             </tr>
                         </tbody>
                         </template>
@@ -25,84 +22,110 @@
                 </v-col>
 
                 <v-col>
-                    <div v-for="question in questions" :key="question.question_id">
+                    <div v-for="question in questions" v-bind:key="question.quiz_question_id">
                         <v-container>
                             <v-row>
                                 <v-col>
                                     <div>{{ question.question_name }}</div>
-                                    <!-- <v-checkbox v-for="optionObj in quizOptionsList" :key="optionObj.option"></v-checkbox> -->
-                                    <div>
-                                        <input type="radio" id="html" name="fav_language" value="HTML" v-for="item in options" :key="item.option">
+                                    
+                                    <div v-for="questionChoice in question.question_choices" v-bind:key="questionChoice.quiz_choice_id">
+                                        <input type="radio" :name="question.quiz_question_id" v-bind:value="questionChoice.quiz_choice_id" v-model="question.selectedAnswer">
+                                        {{ questionChoice.choice }}
                                     </div>
                                 </v-col>
                             </v-row>
                         </v-container>
                     </div>
+                    <v-btn @click="submit()">Submit</v-btn>
                 </v-col>
-            </v-row>
+            </v-row> 
         </v-container>
+        
     </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
     name: "Quiz",
     props: {
-        course_id: parseInt({ type: Number }), 
-        learner_id: parseInt({ type: Number }),
-        section_id: parseInt({ type: Number }),
+        section_id: parseInt({ type: Number })
     },
     components: {
         //
     },
     data: () => ({
+        currentUserId: 12, // To be replaced with user_id of logged in user
+        quizAttemptId: 0,
+        
         questions: [],
         options: [],
     }),
     methods: {
-        // SELECT qq.quiz_question_id, qo.quiz_option_id, qq.question_name, qq.type, qo.option, qo.correct
-        // Get all Quiz Question and Quiz Option by section_id
-        getQuizQuestions() {
-            let quizQuestions = [
-                {
-                    'quiz_question_id': 1,
-                    'question_name': "This is question 1",
-                    'type' : "MCQ",
-                },
-                {
-                    'quiz_question_id': 2,
-                    'question_name': "This is question 2",
-                    'type' : "MCQ",
-                },
-                {
-                    'quiz_question_id': 3,
-                    'question_name': "This is question 3",
-                    'type' : "MCQ",
-                },
-            ];
-            this.questions = quizQuestions;
+        // Get Section information by section_id
+        getSectionDetail() {
+            // let updatedApiWithEndpoint = this.apiLink + "/getsectioninfobysectionandtrainer";
+            // let dataObj = { "sectionId": this.section_id }
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            //     .then((response) => {
+            //         this.sectionDetail = response.data[0];
+            //     })
         },
-        getQuizOptions() {
-            let quizOptions = [
-                {
-                    'quiz_question_id': 1,
-                    'quiz_option_id': 1,
-                    'question_name': 'Lorem ipsum dolor sit amet, consectetur adipiscing...',
-                    'type': 'MCQ',
-                    'option': 'True',
-                    'correct': 1,
-                },
-                {
-                    'quiz_question_id': 1,
-                    'quiz_option_id': 2,
-                    'question_name': 'Lorem ipsum dolor sit amet, consectetur adipiscing...',
-                    'type': 'MCQ',
-                    'option': 'False',
-                    'correct': 0,
-                },
-            ];
-            this.options = quizOptions;
+        // Add new Quiz attempt
+        addQuizAttempt() {
+            let updatedApiWithEndpoint = this.apiLink + "/addnewquizattempt ";
+            let dataObj = { "sectionId": this.section_id, "learnerId": this.currentUserId }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    console.log(response.data.insertId);
+                    this.quizAttemptId = response.data.insertId;
+                })
         },
+        // Get Quiz's Question Performance by section_id
+        getQuestionChoices() {
+            let updatedApiWithEndpoint = this.apiLink + "/getquizquestionperformancebysection ";
+            let dataObj = { "sectionId": this.section_id  }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    // Groups question choices into question groups by question_id
+                    let questionArr = Object.values(response.data.reduce((result, 
+                    { quiz_question_id, question_name, quiz_choice_id, choice, correct, answer_count }) => {
+                        // Create new question group
+                        if (!result[quiz_question_id]) result[quiz_question_id] = {
+                            quiz_question_id, question_name, question_choices: []
+                        };
+                        // Append question choice to question group
+                        result[quiz_question_id].question_choices.push({ quiz_choice_id,  choice, correct, answer_count });
+                        return result;
+                        },{}
+                    ));
+                    this.questions = questionArr;
+                    console.log(questionArr);
+                })
+        },
+        submit() {
+            // Check the answer
+            let updatedApiWithEndpoint = this.apiLink + "/addnewquizperformance ";
+            this.questions.forEach(answer => {
+                let dataObj = { "quizAttemptId": this.quizAttemptId, "questionId": answer.quiz_question_id, "quizChoiceId": answer.selectedAnswer }
+                console.log(dataObj);
+                axios.post(updatedApiWithEndpoint, dataObj)
+                    .then((response) => {
+                        console.log(response);
+                    })
+            });
+            // Get Quiz Performance by quiz_attempt_id
+            // let quizPerformanceEndPoint = this.apiLink + "/getquizperformancebyattemptid";
+            // let quizPerformanceObj = {}
+
+
+            // Update Quiz attempt with grade
+            // let quizAttemptEndPoint = this.apiLink + "/updatequizattemptwithgrade ";
+            // let quizAttemptObj = {}
+
+            
+        }
     },
     computed: {
         apiLink(){
@@ -110,11 +133,14 @@ export default {
         }
     },
     created() {
-        // Calls method to get quiz details
-        // this.getQuizDetail();
-        this.getQuizOptions();
-        this.getQuizQuestions();
-        
+        // Calls method to retrieve section details
+        this.getSectionDetail();
+
+        // Calls method to get question choices
+        this.getQuestionChoices();
+
+        // Calls method to add a new quiz attempt
+        this.addQuizAttempt();
     }
 }
 </script>

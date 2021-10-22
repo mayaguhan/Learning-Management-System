@@ -58,11 +58,10 @@
             </v-btn>
 
             <v-btn class="primary" v-show="toggleEditQuestion == true" 
-            @click="addQuestion()" :disabled="questionCount >= 20">
+            @click="addQuestion()">
                 Add Question
             </v-btn>
         </h2>
-        <b v-if="questionCount >= 20">You can only have up to 20 questions for a quiz</b>
 
         <v-expansion-panels focusable :items="questions">
             <v-expansion-panel v-for="(question, indexQ) in questions" :key="question.quiz_question_id" :disabled="toggleEditChoice">
@@ -207,7 +206,7 @@
                                 {{ row.item.result }}
                             </td>
                             <td>
-                                {{ row.item.attempt_date }}
+                                {{ formatDate(row.item.attempt_date) }}
                             </td>
                             <td>
                                 <!-- TO DO: Get Learner's Quiz Performance by quiz_attempt_id and section_id -->
@@ -227,6 +226,7 @@
 
 <script>
 import axios from 'axios';
+import moment from "moment";
 
 export default {
     name: "QuizDetail",
@@ -247,7 +247,6 @@ export default {
         questions: [],
         questionsCopy: [],
         deleteQuestionId: [],
-        questionCount: 0,
         
         toggleEditChoice: false,
         choices: [],
@@ -291,20 +290,21 @@ export default {
         },
     }),
     methods: {
-        // Get Section information
-        getSectionDetail(section_id, trainer_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectioninfobysectionandtrainer";
-            let dataObj = { "sectionId": section_id, "trainerId": trainer_id }
-            axios.post(updatedApiWithEndpoint, dataObj)
-                .then((response) => {
-                    this.sectionDetail = response.data[0];
-                })
+        // Get Section information by section_id
+        getSectionDetail() {
+            // let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            // let dataObj = { "sectionId": this.section_id }
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            //     .then((response) => {
+            //         this.sectionDetail = response.data[0];
+            //     })
+
         },
 
         // Get Quiz's Question Performance by section_id
-        getChoices(section_id) {
+        getQuestionChoices() {
             let updatedApiWithEndpoint = this.apiLink + "/getquizquestionperformancebysection";
-            let dataObj = { "sectionId": section_id  }
+            let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     // Groups question choices into question groups by question_id
@@ -323,7 +323,6 @@ export default {
                         this.editChoices.push(question.question_choices)
                     });
                     this.questions = questionArr;
-                    this.questionCount = this.questions.length;
                 })
         },
         choiceColour: function (correct) {
@@ -346,12 +345,10 @@ export default {
         addQuestion() {
             this.questions.push({ "question_name": "New Question", "type": "MCQ", "question_choices": [] });
             this.editChoices.push([]);
-            this.questionCount = this.questions.length;
         },
         deleteQuestion(quiz_question_id, indexQ) {
             this.questions.splice(indexQ, 1);
             this.deleteQuestionId.push(quiz_question_id);
-            this.questionCount = this.questions.length;
         },
         editAction(action) {
             if (action == "edit") {  
@@ -477,48 +474,51 @@ export default {
 
         // --- Quiz Statistics ---
         // Get Quiz Attempt of each student who had taken the quiz by section_id
-        getStudentAttempt(section_id) {
+        getStudentAttempt() {
             let updatedApiWithEndpoint = this.apiLink + "/quizattemptofstudentbysection";
-            let dataObj = { "sectionId": section_id  }
+            let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.studentAttempts = response.data;
                 })
         },
         // Get Quiz Attempt passing rate and attempt count by section_id
-        getQuizStats(section_id) {
+        getQuizStats() {
             let updatedApiWithEndpoint = this.apiLink + "/getquizpassingrateandattemptcountbysection";
-            let dataObj = { "sectionId": section_id  }
+            let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.quizStats = response.data[0];
                 })
         },
         // Get all Quiz Attempt by section_id
-        getQuizAttempts(section_id) {
+        getQuizAttempts() {
             let updatedApiWithEndpoint = this.apiLink + "/getallquizattemptbysection";
-            let dataObj = { "sectionId": section_id  }
+            let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.quizAttempts = response.data;
                 })
         },
+        formatDate(date) {  
+            return moment(date).format('yyyy-MM-DD HH:mm');
+        },
     },
     created() {
         // Calls method to get section details
-        this.getSectionDetail(this.section_id, this.currentUserId);
+        this.getSectionDetail();
 
         // Calls method to get question choices
-        this.getChoices(this.section_id);
+        this.getQuestionChoices();
 
         // Calls method to get quiz attempt of each student who had taken the quiz
-        this.getStudentAttempt(this.section_id);
+        this.getStudentAttempt();
 
         // Calls method to get quiz statistics
-        this.getQuizStats(this.section_id);
+        this.getQuizStats();
 
         // Calls method to get all quiz attempts
-        this.getQuizAttempts(this.section_id);
+        this.getQuizAttempts();
     }
 }
 </script>
