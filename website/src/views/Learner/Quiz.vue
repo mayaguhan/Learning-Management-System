@@ -1,29 +1,20 @@
 <template>
-    <div class="mt-5" style="text-align: center">
+    <div class="mt-5">
         <v-container fluid>
             <v-row>
                 <v-col>
-                    <h1>Section {{section_id}} Quiz</h1>
-                    <!-- Timer -->
-                    <h1>{{ formatedCountdown || 'countdown over' }}</h1>
+                    <h1></h1>
                 </v-col>
             </v-row>
             <v-row>
-                <v-col cols="1">
+                <v-col cols="2">
                     <v-simple-table>
                         <template v-slot:default>
                         <thead>
                         </thead>
                         <tbody>
-                            <tr
-                            v-for="question in questions"
-                            :key="question.question_id"
-                            >
-                            <td>
-                                <a :href='question.hyperlink'>
-                                    Q{{ question.quiz_question_id }}
-                                </a>
-                            </td>
+                            <tr v-for="question in questions" :key="question.question_id">
+                                <td>Question {{ question.quiz_question_id }}</td>
                             </tr>
                         </tbody>
                         </template>
@@ -31,181 +22,142 @@
                 </v-col>
 
                 <v-col>
-                    <div v-for="(question, indexQ) in questions" :key="question.question_id">
+                    <div v-for="question in questions" v-bind:key="question.quiz_question_id">
                         <v-container>
                             <v-row>
                                 <v-col>
-                                    <div :id="question.question_name">{{ question.question_name }}</div>
-                                    <label :for="questionchoice.quiz_choice_id" v-for="questionchoice in testchoices[indexQ]" :key="questionchoice.quiz_choice_id">
-                                        <input type="radio" 
-                                        :id="questionchoice.quiz_choice_id" 
-                                        :name="question.quiz_question_id"
-                                        :value="questionchoice.quiz_choice_id"
-                                        v-model="question.selectedAnswer">
-                                        {{questionchoice.choice}}
-                                        <!-- {{question.quiz_question_id}} -->
-                                        <!-- {{questionchoice.quiz_choice_id}} -->
-                                        <!-- <br>
-                                        {{ question }}
-                                        <br> -->
-                                    </label>
+                                    <div>{{ question.question_name }}</div>
                                     
+                                    <div v-for="questionChoice in question.question_choices" v-bind:key="questionChoice.quiz_choice_id">
+                                        <input type="radio" :name="question.quiz_question_id" v-bind:value="questionChoice.quiz_choice_id" v-model="question.selectedAnswer">
+                                        {{ questionChoice.choice }}
+                                    </div>
                                 </v-col>
                             </v-row>
                         </v-container>
                     </div>
-                </v-col>
-            </v-row>
-
-            <v-row>
-                <v-col cols="1"></v-col>
-                <v-col>
                     <v-btn @click="submit()">Submit</v-btn>
                 </v-col>
-            </v-row>
+            </v-row> 
         </v-container>
+        
     </div>
 </template>
 
 <script>
-/* import axios from "axios" */
+import axios from 'axios';
 
-/* Timer */
-import  moment from 'moment'
-import 'moment-duration-format'
 export default {
     name: "Quiz",
     props: {
-        course_id: parseInt({ type: Number }), 
-        learner_id: parseInt({ type: Number }),
-        section_id: parseInt({ type: Number }),
+        section_id: parseInt({ type: Number })
     },
     components: {
         //
     },
     data: () => ({
-        currentUserId: 1, // To be replaced with user_id of logged in user
-
+        currentUserId: 14, // To be replaced with user_id of logged in user
+        quizAttemptId: 0,
+        
         questions: [],
-        
-        choices: [],
-
-        testchoices: [],
-        
-        // Timer
-        countdown: 300
-
+        options: [],
+        quizResult: 0,
     }),
     methods: {
-        // SELECT qq.quiz_question_id, qo.quiz_choice_id, qq.question_name, qq.type, qo.choice, qo.correct
-        // Get all Quiz Question and Quiz choice by section_id
-        /* addQuizAttempt(section_id, learner_id, course_id, trainer_id){
-            let updatedApiWithEndpoint2 = this.apiLink + "/TBC";
-            let dataObj2 = {
-                "sectionId" : section_id,
-                "learnerId" : learner_id,
-                "courseId" : course_id,
-                "trainerId" : trainer_id
-
-            };
-            axios.post(updatedApiWithEndpoint2, dataObj2)
-                .then((response) => {
-                    console.log(response);
-                })
-        }, */
-        getchoices(section_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/TBC";
-            let dataObj = { "sectionId": section_id  }
-            console.log(updatedApiWithEndpoint, dataObj);
+        // Get Section information by section_id
+        getSectionDetail() {
+            // let updatedApiWithEndpoint = this.apiLink + "/getsectioninfobysectionandtrainer";
+            // let dataObj = { "sectionId": this.section_id }
             // axios.post(updatedApiWithEndpoint, dataObj)
             //     .then((response) => {
-            //         console.log(response);
-            //         this.questions = response.data;
+            //         this.sectionDetail = response.data[0];
             //     })
-
-            let questionchoices = [
-                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", 
-                "quiz_choice_id": 1, "choice": "choice A", "correct": 1 },
-                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?",
-                "quiz_choice_id": 2, "choice": "choice B", "correct": 0 },
-                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?", 
-                "quiz_choice_id": 3, "choice": "choice C", "correct": 0 },
-                { "quiz_question_id": 1, "question_name": "What are the steps to replace a printer catridge?",
-                "quiz_choice_id": 4, "choice": "choice D", "correct": 0 },
-                { "quiz_question_id": 2, "question_name": "How to setup a printer?", 
-                "quiz_choice_id": 5, "choice": "True", "correct": 1 },
-                { "quiz_question_id": 2, "question_name": "How to setup a printer?",
-                "quiz_choice_id": 6, "choice": "False", "correct": 0 },
-                { "quiz_question_id": 3, "question_name": "How to ensure printing quality?", 
-                "quiz_choice_id": 7, "choice": "True", "correct": 1 },
-                { "quiz_question_id": 3, "question_name": "How to ensure printing quality?",
-                "quiz_choice_id": 8, "choice": "False", "correct": 0 },
-                { "quiz_question_id": 4, "question_name": "How to colour code?",
-                "quiz_choice_id": 9, "choice": "choice A", "correct": 1 },
-                { "quiz_question_id": 4, "question_name": "How to colour code?",
-                "quiz_choice_id": 10, "choice": "choice B", "correct": 0 },
-                { "quiz_question_id": 4, "question_name": "How to colour code?", 
-                "quiz_choice_id": 11, "choice": "choice C", "correct": 0 },
-                { "quiz_question_id": 4, "question_name": "How to colour code?",
-                "quiz_choice_id": 12, "choice": "choice D", "correct": 0 },
-                { "quiz_question_id": 5, "question_name": "What do you do with faulty machines?",
-                "quiz_choice_id": 13, "choice": "True", "correct": 1 },
-                { "quiz_question_id": 5, "question_name": "What do you do with faulty machines?",
-                "quiz_choice_id": 14, "choice": "True", "correct": 0 }
-            ];
-
-            // Groups question choices into question groups by question_id
-            let questionArr = Object.values(questionchoices.reduce((result, 
-            { quiz_question_id, question_name, type, quiz_choice_id, choice, correct }) => {
-                // Create new question group
-                if (!result[quiz_question_id]) result[quiz_question_id] = {
-                    quiz_question_id, question_name,  type, question_choices: []
-                };
-                // Append question choice to question group
-                result[quiz_question_id].question_choices.push({ quiz_choice_id,  choice, correct });
-                return result;
-                },{}
-            ));
-            questionArr.forEach(question => {
-                question["selectedAnswer"] = 0;
-                question["hyperlink"] = "#" + question.question_name;
-                this.testchoices.push(question.question_choices);
-                console.log(question.question_choices);
-            });
-            console.log(this.testchoices);
-            this.questions = questionArr;
-            this.questionCount = this.questions.length;
-            console.log(this.questions);
+        },
+        // Add new Quiz attempt
+        addQuizAttempt() {
+            let updatedApiWithEndpoint = this.apiLink + "/addnewquizattempt ";
+            let dataObj = { "sectionId": this.section_id, "learnerId": this.currentUserId }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    console.log(response.data.insertId);
+                    this.quizAttemptId = response.data.insertId;
+                })
+        },
+        // Get Quiz's Question Performance by section_id
+        getQuestionChoices() {
+            let updatedApiWithEndpoint = this.apiLink + "/getquizquestionperformancebysection ";
+            let dataObj = { "sectionId": this.section_id  }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    // Groups question choices into question groups by question_id
+                    let questionArr = Object.values(response.data.reduce((result, 
+                    { quiz_question_id, question_name, quiz_choice_id, choice, correct, answer_count }) => {
+                        // Create new question group
+                        if (!result[quiz_question_id]) result[quiz_question_id] = {
+                            quiz_question_id, question_name, question_choices: []
+                        };
+                        // Append question choice to question group
+                        result[quiz_question_id].question_choices.push({ quiz_choice_id,  choice, correct, answer_count });
+                        return result;
+                        },{}
+                    ));
+                    this.questions = questionArr;
+                    console.log(questionArr);
+                })
         },
         submit() {
             // Check the answer
-            console.log("Submitted choices:");
-            console.log(this.questions);
+            let updatedApiWithEndpoint = this.apiLink + "/addnewquizperformance ";
+            this.questions.forEach(answer => {
+                let dataObj = { "quizAttemptId": this.quizAttemptId, "questionId": answer.quiz_question_id, "quizChoiceId": answer.selectedAnswer }
+                console.log(dataObj);
+                axios.post(updatedApiWithEndpoint, dataObj)
+                    .then((response) => {
+                        console.log(response);
+                    })
+            });
+            // Get Quiz Performance by quiz_attempt_id
+            let quizPerformanceEndPoint = this.apiLink + "/getresultofquizbyquizattempt";
+            let quizPerformanceObj = {
+                "attemptId" : this.quizAttemptId
+            }
+            axios.post(quizPerformanceEndPoint, quizPerformanceObj)
+                .then((response) => {
+                    console.log(response.data);
+                    console.log(this.quizResult);
+                    this.quizResult = response.data[0]["result"]; 
+                    console.log(this.quizResult);
+                })
+            // Update Quiz attempt with grade
+            let quizAttemptEndPoint = this.apiLink + "/updatequizattemptwithgrade ";
+            let quizAttemptObj = {
+                "grade" : this.quizResult,
+                "attemptId" : this.quizAttemptId
+            }
+            axios.post(quizAttemptEndPoint, quizAttemptObj)
+                .then((response) => {
+                    console.log(this.quizResult)
+                    console.log("quiz grade:", response)
+                })
 
+            
         }
     },
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
-        },
-        // Timer
-        formatedCountdown() {
-            return moment.duration(this.countdown, 'seconds').format('m:ss')
-        },
+        }
     },
     created() {
-        // Calls method to get quiz details
-        // this.getQuizDetail();
-        this.getchoices();
-    },
-    // Timer
-    mounted() {
-        const stopCountdown = setInterval(() => {
-        console.log('current countdown', this.countdown)
-        this.countdown -= 1
-        if (!this.countdown) clearInterval(stopCountdown)
-        }, 1000)
-    },
+        // Calls method to retrieve section details
+        this.getSectionDetail();
+
+        // Calls method to get question choices
+        this.getQuestionChoices();
+
+        // Calls method to add a new quiz attempt
+        this.addQuizAttempt();
+    }
 }
 </script>
 

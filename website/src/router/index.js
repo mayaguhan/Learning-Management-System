@@ -46,7 +46,7 @@ const routes = [
     props: true
   },
   {
-    path: '/quiz/:section_id/:learner_id/:course_id/:trainer_id',
+    path: '/quiz/:section_id',
     name: 'Quiz',
     component: () =>import('@/views/Learner/Quiz.vue'),
     props: true
