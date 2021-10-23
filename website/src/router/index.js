@@ -40,25 +40,25 @@ const routes = [
     component: () =>import('../views/Trainer/TrainerCourses.vue')
   },
   {
-    path: '/singlecourse/:course_id/:trainer_id',
+    path: '/singlecourse/:conduct_id',
     name: 'SingleCourse',
     component: () =>import('@/views/Learner/SingleCourse.vue'),
     props: true
   },
   {
-    path: '/quiz/:section_id/:learner_id/:course_id/:trainer_id',
+    path: '/quiz/:section_id',
     name: 'Quiz',
     component: () =>import('@/views/Learner/Quiz.vue'),
     props: true
   },
   {
-    path: '/trainercoursedetail/:course_id',
+    path: '/trainercoursedetail/:conduct_id',
     name: 'CourseDetail',
     component: () =>import('@/views/Trainer/CourseDetail.vue'),
     props: true
   },
   {
-    path: '/trainerenrolledstudent/:course_id',
+    path: '/trainerenrolledstudent/:conduct_id',
     name: 'EnrolledStudent',
     component: () =>import('../views/Trainer/EnrolledStudent.vue'),
     props: true

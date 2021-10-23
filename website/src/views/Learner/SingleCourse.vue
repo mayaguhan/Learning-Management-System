@@ -4,9 +4,8 @@
             {{ courseDetail.course_code }} - {{ courseDetail.title }}
         </h1>
         <p>
-            Start Date: {{ courseDetail.start_date }} <br>
-            End Date: {{ courseDetail.end_date }} <br>
-            Enrolled Students: {{ courseDetail.current }} / {{ courseDetail.capacity }} <br>
+            Start Date: {{ formatDate(courseDetail.start_date) }} <br>
+            End Date: {{ formatDate(courseDetail.end_date) }} <br>
         </p>
 
         <h2>Course Description</h2>
@@ -19,19 +18,11 @@
         <template>
         <v-expansion-panels focusable :items="sections">
             <v-expansion-panel v-for="section in sections" :key="section.course_id" @click="expandSection(section.section_id)">
-                <v-expansion-panel-header>
-                    <div v-if="ifUpdated(section.best_grade)"><b>{{ section.section_name }}</b></div>
-                    <div v-else>{{ section.section_name }}</div>
+                <v-expansion-panel-header :disabled="section.disabled">
+                    <span v-if="section.boldSection==true"><b>{{ section.section_name }}</b></span>
+                    <span v-else>{{ section.section_name }}</span>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <!-- Checks a section has pre-requisite -->
-                    <!-- Removed ^ -->
-
-                    <!-- TO DO: Method to update section's pre-requisite -->
-                    <v-divider></v-divider>
-
-                    <!-- Quiz and Slide Decks can only if a section exists (i.e. has section_id).
-                    Newly added sections have to be Saved before quiz or materials can be added -->
                     <div v-if=" section.section_id != null">
                         
 
@@ -50,21 +41,12 @@
                     </div>
                     <v-divider></v-divider>
                     <div style="padding-top:5px">
-                        <router-link :to="{ name: 'Quiz', params: { section_id: section.section_id,
-                                                                            learner_id: 1,
-                                                                            course_id: 1,
-                                                                            trainer_id: 1,
-                                                                            }}">
-                              <v-btn depressed small color="#0062E4">
-                                  <span style="color: white">Attempt Quiz</span> 
-                              </v-btn>
-                          </router-link>
+                        <router-link :to="{ name: 'Quiz', params: { section_id: section.section_id }}">
+                            <v-btn depressed small color="#0062E4">
+                                <span style="color: white">Attempt Quiz</span> 
+                            </v-btn>
+                        </router-link>
                     </div>
-
-                    
-
-                    
-
                 </v-expansion-panel-content>
             </v-expansion-panel>
         </v-expansion-panels>
@@ -74,97 +56,53 @@
 </template>
 
 <script>
+import axios from 'axios';
+import moment from "moment";
+
 export default {
     name: "CourseDetail",
     props: {
-        course_id: parseInt({ type: Number }), 
-        learner_id: parseInt({ type: Number })
+        conduct_id: parseInt({ type: Number })
     },
     data: () => ({
+        currentUserId: 12, // To be replaced with user_id of logged in user
+
         courseDetail: {},
         sections: [],
-        sectionsCopy: [],
-        requisiteCourses: [],
         materials: [],
-        newSection: {},
-        boldSection: false,
     }),
     methods: {
-        ifUpdated(grade) {
-            if ((grade == null) && (this.boldSection == false)) {
-                console.log(this.boldSection);
-                this.boldSection = true;
-                console.log(this.boldSection);
-                return true;
-            }
-            else {
-                return false;
-            }
-            
-        },
+        // Get a Course Conducted information by conduct_id
         getCourseDetail() {
-            this.courseDetail = {
-                "course_id": this.course_id,
-                "course_code": "PQ101",
-                "title": "Print Quality Control I",
-                "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a printing press and auxiliary equipment to produce quality printed products on papers and other materials as well as trouble shooting and maintenance of printing machines",
-                "capacity": 20,
-                "current": 2,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31",
-                "trainer_id": 1
-            };
+            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
+            let dataObj = { "conductId": this.conduct_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.courseDetail = response.data[0];
+                })
         },
+        // Get all Sections by conduct_id and user_id (Learner)
         getCourseSections() {
-            // Get all Sections by course_id, trainer_id and user_id
-            // Dummy JSON, to be replaced with API call
-            let courseSectionData = [{
-                "section_id": 1,
-                "section_name": "PQ101 - Section 1",
-                "quiz_duration": 600,
-                "passing_grade": 80,
-                "best_grade" : 100
-            },
-            {
-                "section_id": 2,
-                "section_name": "PQ101 - Section 2",
-                "quiz_duration": 1800,
-                "passing_grade": 80,
-                "best_grade" : 100
-            },
-            {
-                "section_id": 3,
-                "section_name": "PQ101 - Section 3",
-                "quiz_duration": 1800,
-                "passing_grade": 80,
-                "best_grade" : 100
-            }];
-            this.sections = courseSectionData;
-            console.log("Sections", this.sections);
+            let updatedApiWithEndpoint = this.apiLink + "/getallsectionsbyconductanduserid";
+            let dataObj = { "conductId": this.conduct_id, "learnerId": this.currentUserId } 
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    let sections = response.data;
+                    let boldSection = false;
+                    sections.forEach(section => {
+                        if (section.result == "No Attempt" && boldSection == false) {
+                            section["boldSection"] = true
+                            boldSection = true;
+                        } else if (section.result == "No Attempt" && boldSection == true) {
+                            section["disabled"] = true
+                        }
+                    });
+                    console.log(sections);
+                    this.sections = sections;
+                })
         },
-        getRequisiteCourses() {
-            // Get a Course's requisite(s)
-            // Dummy JSON, to be replaced with API call
-            let requisiteCourseData = [{
-                "course_requisite_id": 15, 
-                "course_code": "EX201",
-                "title": "Microsoft Excel: Formulas and Functions",
-                "outline": "Learn how to become a formula master who is proficient in reading and writing even the most complex formulas in Excel.",
-                "capacity": 20,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31"
-            },
-            {
-                "course_requisite_id": 16, 
-                "course_code": "EX202",
-                "title": "Microsoft Excel: Visualisation and Cleaning",
-                "outline": "You will learn Excel Formulas, Pivot Tables, Vlookup, Hlookup, Excel Charts, Sorting & Filtering data, Conditional formatting and many more tips and tricks in Excel",
-                "capacity": 20,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31"
-            }];
-            this.requisiteCourses = requisiteCourseData;
-            // console.log("Requisite Courses: ", this.requisiteCourses);
+        formatDate(date) {  
+            return moment(date).format('yyyy-MM-DD hh:mm');
         },
         expandSection(section_id) {
             // console.log(section_id);
@@ -183,11 +121,6 @@ export default {
                 "link": "https://www.google.com.sg/"
             }];
             this.materials = materialData;
-
-        },
-        // TO DO: Section Requisite Logic Checker
-        sectionRequisiteChecker() {
-
         },
     },
     computed: {
@@ -200,23 +133,7 @@ export default {
         this.getCourseDetail();
 
         // Calls method to get section details
-        // this.getCourseSections();
-        var dataObj = {
-                        'learnerId' : '6',
-                        'trainerId' : '1',
-                        'courseId'  : '1'
-                        };
-
-        const axios = require('axios');
-        var updatedApiWithEndpoint = this.apiLink + "/getallsectionsbycourseidtraineriduserid";
-        axios.post(updatedApiWithEndpoint, dataObj)
-            .then((response) => {
-                console.log(response.data);
-                this.sections = response.data;
-            })
-
-        // Calls method to get course requisite details
-        this.getRequisiteCourses()
+        this.getCourseSections();
     }
 }
 </script>

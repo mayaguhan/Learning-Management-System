@@ -6,8 +6,10 @@
         <p>
             Start Date: {{ formatDate(courseDetail.start_date) }} <br>
             End Date: {{ formatDate(courseDetail.end_date) }} <br>
-            Enrolled Students: {{ courseDetail.enrollment_count }} / {{ courseDetail.capacity }} <br>
-            <router-link :to="{ name: 'EnrolledStudent', params: { course_id: course_id } }">
+            Registration Start Date: {{ formatDate(courseDetail.start_register) }} <br>
+            Registration End Date: {{ formatDate(courseDetail.end_register) }} <br>
+            Enrolled Students: {{ courseDetail.enrolments }} / {{ courseDetail.capacity }} <br>
+            <router-link :to="{ name: 'EnrolledStudent', params: { conduct_id: conduct_id } }">
                 <v-btn class="primary">
                     View Enrolled Students
                 </v-btn>
@@ -20,18 +22,14 @@
         </p>
 
         <h2>Course Requisites</h2>
-        <p>
-            <ul v-if="requisiteCourses.length > 0">
-                <li v-for="requisite in requisiteCourses" v-bind:key="requisite.course_requisite_id">
-                    {{ requisite.course_code }} - {{ requisite.title }} 
-                </li>
-            </ul>
-            <b v-else>This course has no pre-requisites.</b>
-        </p>
+        <span v-if="courseDetail.course_requisite_id > 0">
+            {{ courseDetail.cr_course_code }} - {{ courseDetail.cr_title }}
+        </span>
+        <span v-else>This course has no pre-requisites.</span>
 
         <h2>Course Content
             <!-- Toggle: Edit sections -->
-            <v-btn icon @click="toggleEdit=!toggleEdit, editAction('edit')" v-show="toggleEdit == false">
+            <v-btn icon @click="toggleEdit=!toggleEdit, editAction('edit')" v-show="toggleEdit == false && formatDate(currentDate) < courseDetail.start_date">
                 <v-icon>mdi-pencil</v-icon>
             </v-btn>
             <!-- Add New Section Dialog -->
@@ -72,17 +70,12 @@
                     <v-btn color="blue darken-1"  text  @click="dialog = false">
                         Close
                     </v-btn>
-                    <v-btn color="blue darken-1" text :disabled="!isFormValid" @click="dialog = false, addSection()">
+                    <v-btn color="blue darken-1" text :disabled="!isFormValid" @click="dialog = false, addSectionForm()">
                         Add
                     </v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
-
-            <!-- TO DO: Change Sequence of Sections -->
-            <v-btn class="primary" v-show="toggleEdit == true">
-                Section Sequence
-            </v-btn>
 
             <!-- Save Section Edits -->
             <v-btn class="primary" @click="toggleEdit=!toggleEdit, saveEdit()" v-show="toggleEdit == true">
@@ -102,16 +95,23 @@
                     {{ section.section_name }}
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <v-text-field v-model="section.section_name" v-show="toggleEdit == true" 
-                    label="Section Name"  maxlength="50" ></v-text-field>
+                    <v-row v-show="toggleEdit == true">
+                        <v-col cols=10>
+                            <v-text-field v-model="section.section_name" label="Section Name"  maxlength="50" ></v-text-field>
+                        </v-col>
+                        <v-col cols=2>
+                            <v-text-field v-model="section.sequence" label="Section Sequence" type="number" min=1 :max="sections.length"></v-text-field>
+                            <span> {{ sequenceChecker(section.sequence) }}</span>
+                        </v-col>
+                    </v-row>
 
                     <!-- Quiz and Slide Decks can only if a section exists (i.e. has section_id).
                     Newly added sections have to be Saved before quiz or materials can be added -->
                     <div v-if=" section.section_id != null">
                         <!-- Quiz Statistics -->
                         <b>Quiz Statistics: </b> 
-                        {{ section.pass_count }} / {{ courseDetail.enrollment_count }} Learners have passed this quiz <br>
-                        <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }">
+                        {{ section.pass_count }} / {{ section.learner_count }} Learners have passed this quiz <br>
+                        <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }" v-show="formatDate(currentDate) < courseDetail.start_date">
                             <v-btn class="primary">
                                 Manage Quiz
                             </v-btn>
@@ -135,6 +135,7 @@
                         <v-file-input chips multiple label="Upload Material(s)" v-show="toggleEdit == true"></v-file-input>
                         <!-- TO DO: Method to upload new materials -->
 
+                        
                     </div>
                     <div v-else>
                         <b>You have to save your edits before you create a new quiz or upload materials.</b>
@@ -159,10 +160,10 @@ import moment from "moment";
 export default {
     name: "CourseDetail",
     props: {
-        course_id: parseInt({ type: Number })
+        conduct_id: parseInt({ type: Number })
     },
     data: () => ({
-        currentUserId: 1, // To be replaced with user_id of logged in user
+        currentUserId: 2, // To be replaced with user_id of logged in user
 
         courseDetail: {},
         sections: [],
@@ -172,18 +173,20 @@ export default {
         newSection: {},
         newSectionName: "",
         newQuizDuration: 10,
-        newQuizPassingGrade: 50,
+        newQuizPassingGrade: 0,
+        currentDate: new Date(),
         toggleEdit: false,
         deleteSectionId: [],
         dialog: false,
         isFormValid: false,
+
         rules: {
             required: value => !!value || 'Required.',
             counter: value => value.length <= 50 || 'Max 50 characters',
             durationMin: value => value >= 10 || 'Min duration is 10 minutes',
             durationMax: value => value <= 120 || 'Max duration is 120 minutes',
-            gradeMin: value => value >= 50 || 'Min passing grade is 50%',
-            gradeMax: value => value <= 100 || 'Max passing grade is 100%',
+            gradeMin: value => value >= 0 || 'Min passing grade is 0%',
+            gradeMax: value => value <= 100 || 'Max passing grade is 100%'
         },
     }),
     computed: {
@@ -192,57 +195,48 @@ export default {
         }
     },
     methods: {
-        // Get a Course information by course_id and trainer_id
-        getCourseDetail(course_id, trainer_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobytrainerandcourse";
-            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+        // Get a Course Conducted information by conduct_id
+        getCourseDetail() {
+            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
+            let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.courseDetail = response.data[0];
-
-                    // Check if course has pre-requisites
-                    if (this.courseDetail.course_requirement > 0) {
-                        this.getRequisiteCourses(course_id);
-                    }
+                    // To be removed
+                    this.courseDetail.start_date = "2021-10-31 12:00";
                 })
-
         },
-        // Get all Sections by course_id, trainer_id (Trainer)
-        getCourseSections(course_id, trainer_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbycourseandtrainer";
-            let dataObj = { "courseId": course_id, "trainerId": trainer_id }
+        // Get all Sections by conduct_id (Trainer)
+        getCourseSections() {
+            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid";
+            let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.sections = response.data;
-                    console.log("Sections", this.sections);
-                })
-        },
-        // Get a Course's requisite(s)
-        getRequisiteCourses(course_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/getcourserequisites";
-            let dataObj = { "courseId": course_id }
-            axios.post(updatedApiWithEndpoint, dataObj)
-                .then((response) => {
-                    this.requisiteCourses = response.data;
                 })
         },
         formatDate(date) {  
-            return moment(date).format('yyyy-MM-DD');
+            return moment(date).format('yyyy-MM-DD hh:mm');
         },
-        addSection() {
-            // Add new Section
-            let updatedApiWithEndpoint = this.apiLink + "/addnewsection";
-            let dataObj = { "courseId": this.course_id, "trainerId": this.currentUserId, 
-                            "sectionName": this.newSectionName, "quizDuration": this.newQuizDuration, "passingGrade": this.newQuizPassingGrade };
-            axios.post(updatedApiWithEndpoint, dataObj)
-                .then((response) => {
-                    console.log(response);
-                    this.sections.push({
-                        "section_name": this.newSectionName,
-                        "quiz_duration": this.newQuizDuration * 60,
-                        "passing_grade": this.newQuizPassingGrade
-                    });
+        sequenceChecker(sequence) {
+            let sequenceCount = 0;
+            this.sections.forEach(section => {
+                if (sequence == section.sequence) {
+                    sequenceCount++;
+                }
             })
+            if (sequenceCount > 1) {
+                return "Duplicated Sequence"
+            }
+        },
+        addSectionForm() {
+            this.sections.push({
+                "conduct_id": this.conduct_id, 
+                "sequence": this.sections.length+1,
+                "section_name": this.newSectionName,
+                "quiz_duration": this.newQuizDuration * 60,
+                "passing_grade": this.newQuizPassingGrade
+            });
         },
         deleteSection(section_id, indexS) {
             this.sections.splice(indexS, 1);
@@ -263,27 +257,68 @@ export default {
             console.log("Edited: ", this.sections);
             console.log("Original: ", this.sectionsCopy);
             console.log("Changes: ", changes);
-
-            changes.forEach(change => {
-                if (change.section_id == null) {
-                    console.log("INSERT: ", change);
-                    // Adds a new section (4 parameters)
-
-                } else {
-                    console.log("UPDATE: ", change);
-                    // TO DO: UPDATE lms_section ... SET ... WHERE lms_section_id = section_id
-
-                }
-            });
-
+            if (changes.length > 0) {
+                changes.forEach(change => {
+                    if (change.section_id == null) {
+                        console.log("INSERT: ", change);
+                        // Add new Section
+                        let updatedApiWithEndpoint = this.apiLink + "/addnewsection";
+                        let dataObj = { "conductId": change.conduct_id, "sequence": this.sections.length+1, 
+                                        "sectionName": change.section_name, "quizDuration": change.quiz_duration, "passingGrade": change.passing_grade };                  
+                        axios.post(updatedApiWithEndpoint, dataObj)
+                            .then((response) => {
+                                console.log(response);
+                        })
+                    } else {
+                        console.log("UPDATE: ", change);
+                        // Update Section by section_id
+                        let updatedApiWithEndpoint = this.apiLink + "/TBC";
+                        let dataObj = { "sectionId" : change.section_id, "section_name": change.section_name, "sequence": change.sequence,
+                                        "quiz_duration": change.quiz_duration, "passing_grade": change.passing_grade};
+                        console.log(updatedApiWithEndpoint, dataObj);
+                        // axios.post(updatedApiWithEndpoint, dataObj)
+                        //     .then((response) => {
+                        //         console.log(response);
+                        //     })
+                    }
+                });
+            }
+            console.log(this.deleteSectionId);
             this.deleteSectionId.forEach(section => {
                 if (section.section_id != null) {
                     console.log("DELETE: ", section);
-                    // TO DO: DELETE FROM lms_section database WHERE section_id = section.section_id
+                    // Delete all question related to the section
+                    // Get all Quiz Question by section_id
+                    let updatedApiWithEndpoint = this.apiLink + "/getallquizquestionbysectionid";
+                    let dataObj = { "sectionId": section.section_id  }
+                    axios.post(updatedApiWithEndpoint, dataObj)
+                        .then((response) => {
+                            // Delete Quiz Question by quiz_question_id
+                            let sectionQuestions = response.data
+                            sectionQuestions.forEach(question => {
+                                let updatedApiWithEndpoint = this.apiLink + "/deletequizquestionbyquestionid";
+                                let dataObj = { "questionId" : question.quiz_question_id };
+                                axios.delete(updatedApiWithEndpoint, { data: dataObj })
+                                    .then((response) => {
+                                        console.log(response);
+                                    })
+                            });
+                        })
+                    // TO DO: Delete all materials related to the section
 
+
+
+                    // Delete Section by section_id
+                    // let updatedApiWithEndpoint = this.apiLink + "/TBC";
+                    // let dataObj = { "sectionId" : section.section_id };
+                    // axios.delete(updatedApiWithEndpoint, { data: dataObj })
+                    //     .then((response) => {
+                    //         console.log(response);
+                    //     })
                 }
             });
             this.deleteSectionId = [];
+            this.getCourseSections();
         },
         comparer(otherArray){
             return function(current){
@@ -293,7 +328,7 @@ export default {
                         other.section_name == current.section_name &&
                         other.quiz_duration == current.quiz_duration && 
                         other.passing_grade == current.passing_grade && 
-                        other.pass_count == current.pass_count
+                        other.sequence == current.sequence
                     )
                 }).length == 0;
             }
@@ -328,10 +363,10 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCourseDetail(this.course_id, this.currentUserId);
+        this.getCourseDetail(this.conduct_id);
 
         // Calls method to get section details
-        this.getCourseSections(this.course_id, this.currentUserId);
+        this.getCourseSections();
     }
 }
 </script>

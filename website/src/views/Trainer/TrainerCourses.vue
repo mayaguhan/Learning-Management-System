@@ -14,7 +14,7 @@
                     {{row.item.course_code}} - {{row.item.title}} 
                 </td>
                 <td>
-                    {{ row.item.current  }} / {{ row.item.capacity  }}
+                    {{ row.item.enrolment  }} / {{ row.item.capacity  }}
                 </td>
                 <td>
                     {{ formatDate(row.item.start_date) }}
@@ -22,8 +22,14 @@
                 <td>
                     {{ formatDate(row.item.end_date) }}
                 </td>
+                <td>
+                    {{ formatDate(row.item.start_register) }}
+                </td>
+                <td>
+                    {{ formatDate(row.item.end_register) }}
+                </td>
                 <td width="10">
-                    <router-link :to="{ name: 'CourseDetail', params: { course_id: row.item.course_id }}">
+                    <router-link :to="{ name: 'CourseDetail', params: { conduct_id: row.item.conduct_id }}">
                         <v-btn depressed small color="#0062E4">
                             <span style="color: white">View Class</span> 
                         </v-btn>
@@ -40,19 +46,20 @@
 import axios from 'axios';
 import moment from "moment";
 
-
 export default {
     name: 'TrainerCourses',
     data: () => ({
-        currentUserId: 1, // To be replaced with user_id of logged in user
+        currentUserId: 2, // To be replaced with user_id of logged in user
 
         courses: [],
         search: '',
         headers: [
-            { text: 'Course Name', value: 'title', align: 'start', sortable: true},
+            { text: 'Course', value: 'course_code', align: 'start', sortable: true},
             { text: 'Capacity', value: 'current', filterable: false, sortable: true},
             { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
             { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
+            { text: 'Register Start Date', value: 'start_register', filterable: false, sortable: true},
+            { text: 'Register End Date', value: 'end_register', filterable: false, sortable: true},
             { text: '', value: 'actions', filterable: false, sortable: false}
         ],
     }),
@@ -63,18 +70,18 @@ export default {
         
     },
     methods: {
-        // Get all Courses that are conducted by user_id
+        // Get all Courses that are conducted by trainer_id
         getCoursesDetail(trainer_id) {
             let updatedApiWithEndpoint = this.apiLink + "/getallcoursesthatareconductedbyuser";
             let dataObj = { "trainerId": trainer_id }
             axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
-                console.log(response);
+                console.log(response.data)
                 this.courses = response.data;
             })
         },
         formatDate(date) {  
-            return moment(date).format('yyyy-MM-DD');
+            return moment(date).format('yyyy-MM-DD HH:mm');
         }
     },
     created() {
