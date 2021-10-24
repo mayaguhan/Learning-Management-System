@@ -6,6 +6,10 @@
                     <h1></h1>
                 </v-col>
             </v-row>
+            <v-row align="center">
+                <v-col></v-col>
+                <v-col><h1>{{ formatedCountdown || 'countdown over' }}</h1></v-col>
+            </v-row>
             <v-row>
                 <v-col cols="2">
                     <v-simple-table>
@@ -45,6 +49,9 @@
 </template>
 
 <script>
+/* Timer */
+import  moment from 'moment'
+import 'moment-duration-format'
 import axios from 'axios';
 
 export default {
@@ -58,20 +65,26 @@ export default {
     data: () => ({
         currentUserId: 14, // To be replaced with user_id of logged in user
         quizAttemptId: 0,
+        conductId: 46,
         
         questions: [],
         options: [],
         quizResult: 0,
+        // Timer
+        countdown: 300,
+        quizDuration: 0,
     }),
     methods: {
         // Get Section information by section_id
         getSectionDetail() {
-            // let updatedApiWithEndpoint = this.apiLink + "/getsectioninfobysectionandtrainer";
-            // let dataObj = { "sectionId": this.section_id }
-            // axios.post(updatedApiWithEndpoint, dataObj)
-            //     .then((response) => {
-            //         this.sectionDetail = response.data[0];
-            //     })
+            let updatedApiWithEndpoint = this.apiLink + "/getsectioninfobysectionid";
+            let dataObj = { 
+                "sectionId": this.section_id
+            }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                 .then((response) => {
+                     this.countdown = response.data[0]["quiz_duration"] * 60;                     
+                 }) 
         },
         // Add new Quiz attempt
         addQuizAttempt() {
@@ -107,46 +120,47 @@ export default {
         },
         submit() {
             // Check the answer
+            var totalScore = 0;
+            var correctAnswer = 0;
             let updatedApiWithEndpoint = this.apiLink + "/addnewquizperformance ";
             this.questions.forEach(answer => {
-                let dataObj = { "quizAttemptId": this.quizAttemptId, "questionId": answer.quiz_question_id, "quizChoiceId": answer.selectedAnswer }
+                var dataObj = { "quizAttemptId": this.quizAttemptId, "questionId": answer.quiz_question_id, "quizChoiceId": answer.selectedAnswer };
+                answer.question_choices.forEach(choice => {
+                    if (choice.correct == 1){
+                        correctAnswer = choice.quiz_choice_id;
+                    }
+                });
+                if (answer["selectedAnswer"] == correctAnswer) {
+                    totalScore += 100 / (this.questions.length);
+                }
                 console.log(dataObj);
-                axios.post(updatedApiWithEndpoint, dataObj)
-                    .then((response) => {
-                        console.log(response);
-                    })
+                console.log(updatedApiWithEndpoint);
+                console.log(totalScore);      
             });
-            // Get Quiz Performance by quiz_attempt_id
-            let quizPerformanceEndPoint = this.apiLink + "/getresultofquizbyquizattempt";
-            let quizPerformanceObj = {
-                "attemptId" : this.quizAttemptId
-            }
-            axios.post(quizPerformanceEndPoint, quizPerformanceObj)
-                .then((response) => {
-                    console.log(response.data);
-                    console.log(this.quizResult);
-                    this.quizResult = response.data[0]["result"]; 
-                    console.log(this.quizResult);
-                })
+            this.updateGrade(totalScore);
+        },
+        updateGrade(studentScore){
             // Update Quiz attempt with grade
             let quizAttemptEndPoint = this.apiLink + "/updatequizattemptwithgrade ";
             let quizAttemptObj = {
-                "grade" : this.quizResult,
+                "grade" : studentScore,
                 "attemptId" : this.quizAttemptId
             }
             axios.post(quizAttemptEndPoint, quizAttemptObj)
                 .then((response) => {
-                    console.log(this.quizResult)
-                    console.log("quiz grade:", response)
+                    console.log(studentScore);
+                    console.log(response);
                 })
-
-            
         }
     },
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
-        }
+        },
+        // Timer
+        formatedCountdown() {
+            return moment.duration(this.countdown, 'seconds').format('m:ss')
+        },
     },
     created() {
         // Calls method to retrieve section details
@@ -157,7 +171,15 @@ export default {
 
         // Calls method to add a new quiz attempt
         this.addQuizAttempt();
-    }
+    },
+    // Timer
+    mounted() {
+        const stopCountdown = setInterval(() => {
+        console.log('current countdown', this.countdown)
+        this.countdown -= 1
+        if (!this.countdown) clearInterval(stopCountdown)
+        }, 1000)
+    },
 }
 </script>
 
