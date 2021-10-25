@@ -65,14 +65,12 @@ export default {
     data: () => ({
         currentUserId: 14, // To be replaced with user_id of logged in user
         quizAttemptId: 0,
-        conductId: 46,
         
         questions: [],
         options: [],
         quizResult: 0,
         // Timer
-        countdown: 300,
-        quizDuration: 0,
+        countdown: 0,
     }),
     methods: {
         // Get Section information by section_id
