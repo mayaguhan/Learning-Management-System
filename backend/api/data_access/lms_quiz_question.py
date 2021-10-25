@@ -28,13 +28,6 @@ class QuizQuestion(db.Model):
     def setQuestionName(self,new_name):
         if new_name!="" and len(new_name)<=200:
             self.question_name = new_name
-
-    def getType(self):
-        return self.type
-
-    def setType(self,new_type):
-        if new_type!="" and len(new_type)<=20:
-            self.section_name = new_type
     
     # 2 way translation
     def to_dict(self):

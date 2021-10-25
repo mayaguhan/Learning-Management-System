@@ -14,31 +14,26 @@ class QuizOption(db.Model):
     # as of 9 October, all methods are local and update operations have not been made yet
     # Getter and setter methods
 
-    def getOptionID(self):
-        return self.quiz_option_id
+    def getChoiceID(self):
+        return self.quiz_choice_id
     
-    def setOptionID(self,newID):
-        self.quiz_option_id = newID
+    def setChoiceID(self,newID):
+        self.quiz_choice_id = newID
 
     def getQuestionID(self):
         return self.quiz_question_id
 
-    def getOption(self):
-        return self.option
+    def getChoice(self):
+        return self.choice
 
-    def setOption(self,new_option):
-        if new_option!="" and len(new_option)<=45:
-            self.option = new_option
-
+    def setChoice(self,newChoice):
+        if len(newChoice)>50 or len(newChoice)==0:
+            raise Exception("Choice invalid")
+        else:
+            self.choice = newChoice
+    
     def getResult(self):
         return self.correct
-
-    def setResult(self,new_result):
-        if new_result in [0,1]:
-            self.section_name = new_result
-        else:
-            raise Exception("A result can only be right or wrong")
-    
     # 2 way translation
     def to_dict(self):
         """

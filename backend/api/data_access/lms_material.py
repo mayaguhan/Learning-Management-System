@@ -20,19 +20,14 @@ class Material(db.Model):
     def getSectionID(self):
         return self.section_id
 
-    def getMaterialName(self):
-        return self.material_name
+    def getFileName(self):
+        return self.file_name
 
-    def setMaterialName(self,new_name):
+    def setFileName(self,new_name):
         if new_name!="" and len(new_name)<=100:
-            self.material_name = new_name
-
-    def getType(self):
-        return self.type
-
-    def setType(self,new_type):
-        if new_type!="" and len(new_type)<=20:
-            self.section_name = new_type
+            self.file_name = new_name
+        else:
+            raise Exception("Invalid File Name")
 
     def getLink(self):
         return self.link
@@ -40,6 +35,8 @@ class Material(db.Model):
     def setLink(self,new_link):
         if new_link!="" and len(new_link)<=200:
             self.link = new_link
+        else:
+            raise Exception("Invalid link")
     
     # 2 way translation
     def to_dict(self):

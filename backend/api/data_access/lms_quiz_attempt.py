@@ -27,12 +27,6 @@ class Course(db.Model):
     def getLearnerID(self):
         return self.learner_id
 
-    def getCourseID(self):
-        return self.course_id
-
-    def getTrainerID(self):
-        return self.trainer_id
-
     def getAttemptDate(self):
         return self.attempt_date
     

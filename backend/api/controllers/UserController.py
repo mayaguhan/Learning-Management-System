@@ -19,10 +19,10 @@ def getAllPeople():
             }
         ),404
 
-@app.route("/usersBySeniority")
+@app.route("/usersBySeniority",methods=["POST"])
 def getPersonBySeniority():
     data = request.get_json()
-    seniority_level = data.seniority_level
+    seniority_level = data["seniorityLevel"]
     users = LMSUser.query.filter_by(seniority_level=seniority_level)
     if users:
         return jsonify(
@@ -36,6 +36,18 @@ def getPersonBySeniority():
                 "message":"Oops no one has that seniority level."
             }
         ),404
+
+@app.route("/getUserByID/<int:user_id>")
+def getUserByID(user_id):
+    user = LMSUser.query.filter_by(user_id=user_id).first()
+    if user:
+        return jsonify({
+            "data" : user.to_dict()
+        }),200
+    else:
+        return jsonify({
+            "message" : "No such user exists"
+        }), 404
 
 @app.route("/users",methods=["POST"])
 def add_user():

@@ -9,10 +9,12 @@ class MaterialVisit(db.Model):
     material_id = db.Column(db.Integer,db.ForeignKey('lms_material.id'), primary_key=True)
     learner_id = db.Column(db.Integer,db.ForeignKey('lms_user.id'),primary_key=True)
     
-    # as of 9 October, all methods are local and update operations have not been made yet
     # Getter and setter methods
-
+    def getMaterialID(self):
+        return self.material_id
     
+    def getLearnerID(self):
+        return self.learner_id
     # 2 way translation
     def to_dict(self):
         """

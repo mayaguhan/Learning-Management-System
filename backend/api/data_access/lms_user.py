@@ -14,19 +14,14 @@ class LMSUser(db.Model):
 
     # Getter and setter methods
 
-    def getUsername(self):
-        return self.username
-
-    def setUsername(self,new_name):
-        if new_name!="" and len(new_name)<=50:
-            self.username = new_name
-
     def getName(self):
         return self.name
 
     def setName(self,new_name):
         if new_name!="" and len(new_name)<=50:
             self.name = new_name
+        else:
+            raise Exception("Please input a valid name")
     
     def getEmail(self):
         return self.email
@@ -34,6 +29,8 @@ class LMSUser(db.Model):
     def setEmail(self,new_email):
         if new_email!="" and len(new_email)<=50:
             self.email = new_email
+        else:
+            raise Exception("Please input a valid email")
 
     def getSeniorityLevel(self):
         return self.seniority_level
@@ -41,6 +38,8 @@ class LMSUser(db.Model):
     def setSeniorityLevel(self,new_seniority):
         if new_seniority!="" and len(new_seniority)<=20:
             self.seniority_level = new_seniority
+        else:
+            raise Exception("Please input a valid seniority level")
 
     def getContact(self):
         return self.contact
