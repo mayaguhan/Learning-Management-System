@@ -1,10 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-from app_config import app
-from flask_cors import CORS
-db = SQLAlchemy(app)
-CORS(app)
 
-class Course(db.Model):
+db = SQLAlchemy()
+
+class LMSCourse(db.Model):
     __tablename__ = "lms_course"
     course_id = db.Column(db.Integer, primary_key=True)
     course_requisite_id = db.Column(db.Integer)
@@ -12,7 +10,7 @@ class Course(db.Model):
     title = db.Column(db.VARCHAR(100))
     outline = db.Column(db.VARCHAR(500))
     badge = db.Column(db.VARCHAR(200))
-    active = db.Column(db.SmallInteger(1))
+    active = db.Column(db.SmallInteger())
     
 
     # Getter and setter methods

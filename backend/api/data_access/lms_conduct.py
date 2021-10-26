@@ -1,9 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-from app_config import app,db
-from flask_cors import CORS
-from datetime import datetime
 
-class Conduct(db.Model):
+db = SQLAlchemy()
+
+class LMSConduct(db.Model):
     __tablename__ = "lms_conduct"
     conduct_id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer,db.ForeignKey('lms_course.id'))

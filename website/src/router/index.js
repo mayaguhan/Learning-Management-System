@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import store from '../store.js'
 
 Vue.use(VueRouter)
 
@@ -24,56 +25,81 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
   },
   {
-    path: '/Login',
+    path: '/Login/:type',
     name: 'Login',
-    component: () => import('../views/Login.vue')
+    component: () => import('../views/Login.vue'),
+    props: true
   },
   {
     path: '/learnercourses',
     name: 'LearnerCourses',
     component: () =>import('../views/Learner/Courses.vue'),
-    props: true
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: '/trainercourses',
     name: 'TrainerCourses',
-    component: () =>import('../views/Trainer/TrainerCourses.vue')
+    component: () =>import('../views/Trainer/TrainerCourses.vue'),
+    meta: {
+      requiresAuth: true
+    }
   },
   {
-    path: '/singlecourse/:course_id/:trainer_id',
+    path: '/singlecourse/:conduct_id',
     name: 'SingleCourse',
     component: () =>import('@/views/Learner/SingleCourse.vue'),
-    props: true
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
-    path: '/quiz/:section_id/:learner_id/:course_id/:trainer_id',
+    path: '/quiz/:section_id',
     name: 'Quiz',
     component: () =>import('@/views/Learner/Quiz.vue'),
-    props: true
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
-    path: '/trainercoursedetail/:course_id',
+    path: '/trainercoursedetail/:conduct_id',
     name: 'CourseDetail',
     component: () =>import('@/views/Trainer/CourseDetail.vue'),
-    props: true
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
-    path: '/trainerenrolledstudent/:course_id',
+    path: '/trainerenrolledstudent/:conduct_id',
     name: 'EnrolledStudent',
     component: () =>import('../views/Trainer/EnrolledStudent.vue'),
-    props: true
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: '/trainerquizdetail/:section_id',
     name: 'QuizDetail',
     component: () =>import('../views/Trainer/QuizDetail.vue'),
-    props: true
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: '/selfenrol/:course_id',
     name: 'SelfEnrol',
     component: () =>import('../views/Learner/SelfEnrol.vue'),
-    props: true
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   },
 ]
 
@@ -81,6 +107,24 @@ const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
   routes
+})
+
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+
+    // console.log(store.getters.getLogin);
+    if (!(store.getters.getLogin)) {
+      console.log(store.getters.getLogin);
+      next("/");
+    } else {
+      next() // go to wherever I'm going
+    }
+  } else {
+    next() // does not require auth, make sure to always call next()!
+  }
 })
 
 export default router

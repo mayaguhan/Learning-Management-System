@@ -1,8 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
-from app_config import app
-from flask_cors import CORS
-db = SQLAlchemy(app)
-CORS(app)
+
+db = SQLAlchemy()
 
 class LMSUser(db.Model):
     __tablename__ = "lms_user"
@@ -13,6 +11,8 @@ class LMSUser(db.Model):
     contact = db.Column(db.VARCHAR(20))
 
     # Getter and setter methods
+    def getUserId(self):
+        return self.user_id
 
     def getName(self):
         return self.name
