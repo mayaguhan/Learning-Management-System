@@ -2,13 +2,10 @@
     <div class="mt-5">
         <v-container fluid>
             <v-row>
-                <v-col>
-                    <h1></h1>
-                </v-col>
+                <v-col><h1 class="text-center">{{ sectionName }} Quiz</h1></v-col>
             </v-row>
             <v-row align="center">
-                <v-col></v-col>
-                <v-col><h1>{{ formatedCountdown || 'countdown over' }}</h1></v-col>
+                <v-col><h1 class="text-center">{{ formatedCountdown || 'countdown over' }}</h1></v-col>
             </v-row>
             <v-row>
                 <v-col cols="2">
@@ -93,6 +90,8 @@ export default {
     data: () => ({
         currentUserId: 14, // To be replaced with user_id of logged in user
         quizAttemptId: 0,
+        conductId: 0,
+        sectionName: "",
         
         questions: [],
         options: [],
@@ -113,7 +112,9 @@ export default {
             }
             axios.post(updatedApiWithEndpoint, dataObj)
                  .then((response) => {
-                     this.countdown = response.data[0]["quiz_duration"] * 60;                     
+                     this.conductId = response.data[0]["conduct_id"];
+                     this.countdown = response.data[0]["quiz_duration"] * 60;
+                     this.sectionName = response.data[0]["section_name"];               
                  }) 
         },
         // Add new Quiz attempt
@@ -172,7 +173,6 @@ export default {
                 console.log(totalScore);      
             });
             this.updateGrade(totalScore);
-            this.snackbar = true; 
         },
         updateGrade(studentScore){
             // Update Quiz attempt with grade
@@ -185,9 +185,16 @@ export default {
                 .then((response) => {
                     console.log(studentScore);
                     console.log(response);
-                    this.$router.push('/learner');
+                    this.text = `You got ${studentScore}/100`
+                    this.showSnackbar();
                 })
         },
+        showSnackbar() {
+            // Show snackbar, once snackbar disappears (due to timeout set), redirect
+            this.snackbar = true;
+            setTimeout(() => { this.$router.replace(`/singlecourse/${this.conductId}`); }, this.timeout);
+        }
+        
     },
     computed: {
         apiLink(){
@@ -211,11 +218,21 @@ export default {
     // Timer
     mounted() {
         const stopCountdown = setInterval(() => {
-        console.log('current countdown', this.countdown)
-        this.countdown -= 1
-        if (!this.countdown) clearInterval(stopCountdown)
+            console.log('current countdown', this.countdown)
+            this.countdown -= 1
+            if (!this.countdown) clearInterval(stopCountdown)
         }, 1000)
     },
+    watch: {
+        countdown: function(newValue, oldValue){
+            console.log("old value: ", oldValue);
+            console.log("new value: ", newValue)
+            if (newValue == 0) {
+                alert("Time's up, your answers have been automatically submitted.");
+                this.submit();   
+            }
+        }
+    }
 }
 </script>
 
