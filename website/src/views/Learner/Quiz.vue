@@ -17,8 +17,8 @@
                         <thead>
                         </thead>
                         <tbody>
-                            <tr v-for="question in questions" :key="question.question_id">
-                                <td>Question {{ question.quiz_question_id }}</td>
+                            <tr v-for="(question, index) in questions" :key="question.question_id">
+                                <td><a :href='question.hyperlink'>Question {{ index + 1 }}</a></td>
                             </tr>
                         </tbody>
                         </template>
@@ -26,11 +26,11 @@
                 </v-col>
 
                 <v-col>
-                    <div v-for="question in questions" v-bind:key="question.quiz_question_id">
+                    <div v-for="(question, index) in questions" v-bind:key="question.quiz_question_id">
                         <v-container>
                             <v-row>
                                 <v-col>
-                                    <div>{{ question.question_name }}</div>
+                                    <div :id="question.quiz_question_id">{{ "Q" + (index+1) + ") " + question.question_name }}</div>
                                     
                                     <div v-for="questionChoice in question.question_choices" v-bind:key="questionChoice.quiz_choice_id">
                                         <input type="radio" :name="question.quiz_question_id" v-bind:value="questionChoice.quiz_choice_id" v-model="question.selectedAnswer">
@@ -114,6 +114,10 @@ export default {
                     ));
                     this.questions = questionArr;
                     console.log(questionArr);
+                    this.questions.forEach(question => {
+                        question["hyperlink"] = "#" + question.quiz_question_id;
+                    });
+                    console.log(this.questions);
                 })
         },
         submit() {
@@ -149,7 +153,7 @@ export default {
                     console.log(studentScore);
                     console.log(response);
                 })
-        }
+        },
     },
     computed: {
         apiLink(){
