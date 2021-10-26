@@ -1,14 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
-from app_config import app
-from flask_cors import CORS
-db = SQLAlchemy(app)
-CORS(app)
+
+db = SQLAlchemy()
 
 class LMSEnrolment(db.Model):
     __tablename__ = "lms_enrolment"
     learner_id = db.Column(db.Integer, db.ForeignKey('lms_user.id'),primary_key=True)
     conduct_id = db.Column(db.Integer,db.ForeignKey('lms_conduct.id'), primary_key=True)
-    self_enrolment = db.Column(db.SmallInteger(1))
+    self_enrolment = db.Column(db.SmallInteger())
     status = db.Column(db.VARCHAR(10))
     
 

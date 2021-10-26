@@ -1,8 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
-from app_config import app
-from flask_cors import CORS
-db = SQLAlchemy(app)
-CORS(app)
+
+db = SQLAlchemy()
 
 class MaterialVisit(db.Model):
     __tablename__ = "lms_material_visit"

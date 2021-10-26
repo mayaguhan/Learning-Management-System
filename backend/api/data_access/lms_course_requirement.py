@@ -1,10 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-from app_config import app
-from flask_cors import CORS
-db = SQLAlchemy(app)
-CORS(app)
 
-class CourseRequirement(db.Model):
+db = SQLAlchemy()
+
+class LMSCourseRequirement(db.Model):
     __tablename__ = "lms_course_requirement"
     course_id = db.Column(db.Integer,db.ForeignKey('lms_course.id'), primary_key=True)
     course_requisite_id = db.Column(db.Integer,db.ForeignKey('lms_course.id'), primary_key=True)
