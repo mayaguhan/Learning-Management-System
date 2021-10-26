@@ -40,7 +40,35 @@
                             </v-row>
                         </v-container>
                     </div>
-                    <v-btn @click="submit()">Submit</v-btn>
+                    <template>
+                        <div>
+                            <v-btn
+                            dark
+                            color="blue darken-2"
+                            @click="submit()"
+                            >
+                            Submit
+                            </v-btn>
+
+                            <v-snackbar
+                            v-model="snackbar"
+                            :timeout="timeout"
+                            >
+                            {{ text }}
+
+                            <template v-slot:action="{ attrs }">
+                                <v-btn
+                                color="blue"
+                                text
+                                v-bind="attrs"
+                                @click="snackbar = false"
+                                >
+                                Close
+                                </v-btn>
+                            </template>
+                            </v-snackbar>
+                        </div>
+                    </template>
                 </v-col>
             </v-row> 
         </v-container>
@@ -71,6 +99,10 @@ export default {
         quizResult: 0,
         // Timer
         countdown: 0,
+        // Snackbar
+        snackbar: false,
+        text: 'My timeout is set to 2000.',
+        timeout: 2000,
     }),
     methods: {
         // Get Section information by section_id
@@ -140,6 +172,7 @@ export default {
                 console.log(totalScore);      
             });
             this.updateGrade(totalScore);
+            this.snackbar = true; 
         },
         updateGrade(studentScore){
             // Update Quiz attempt with grade
@@ -152,6 +185,7 @@ export default {
                 .then((response) => {
                     console.log(studentScore);
                     console.log(response);
+                    this.$router.push('/learner');
                 })
         },
     },
