@@ -94,7 +94,6 @@ export default {
         sectionName: "",
         
         questions: [],
-        options: [],
         quizResult: 0,
         // Timer
         countdown: 0,
