@@ -94,6 +94,7 @@ export default {
         sectionName: "",
         
         questions: [],
+        options: [],
         quizResult: 0,
         // Timer
         countdown: 0,
@@ -110,11 +111,11 @@ export default {
                 "sectionId": this.section_id
             }
             axios.post(updatedApiWithEndpoint, dataObj)
-                 .then((response) => {
-                     this.conductId = response.data[0]["conduct_id"];
-                     this.countdown = response.data[0]["quiz_duration"] * 60;
-                     this.sectionName = response.data[0]["section_name"];               
-                 }) 
+                .then((response) => {
+                    this.conductId = response.data[0]["conduct_id"];
+                    this.countdown = response.data[0]["quiz_duration"] * 60;
+                    this.sectionName = response.data[0]["section_name"];               
+                }) 
         },
         // Add new Quiz attempt
         addQuizAttempt() {

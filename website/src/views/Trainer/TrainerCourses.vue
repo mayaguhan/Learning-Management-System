@@ -14,16 +14,22 @@
                     {{row.item.course_code}} - {{row.item.title}} 
                 </td>
                 <td>
-                    {{ row.item.current  }} / {{ row.item.capacity  }}
+                    {{ row.item.enrolment  }} / {{ row.item.capacity  }}
                 </td>
                 <td>
-                    {{ row.item.start_date }}
+                    {{ formatDate(row.item.start_date) }}
                 </td>
                 <td>
-                    {{ row.item.end_date }}
+                    {{ formatDate(row.item.end_date) }}
+                </td>
+                <td>
+                    {{ formatDate(row.item.start_register) }}
+                </td>
+                <td>
+                    {{ formatDate(row.item.end_register) }}
                 </td>
                 <td width="10">
-                    <router-link :to="{ name: 'CourseDetail', params: { course_id: 1, trainer_id: 1 }}">
+                    <router-link :to="{ name: 'CourseDetail', params: { conduct_id: row.item.conduct_id }}">
                         <v-btn depressed small color="#0062E4">
                             <span style="color: white">View Class</span> 
                         </v-btn>
@@ -37,54 +43,50 @@
 </template>
 
 <script>
+import axios from 'axios';
+import moment from "moment";
+
 export default {
     name: 'TrainerCourses',
     data: () => ({
+        currentUserId: 2, // To be replaced with user_id of logged in user
+
         courses: [],
         search: '',
         headers: [
-            { text: 'Course Name', value: 'title', align: 'start', sortable: true},
+            { text: 'Course', value: 'course_code', align: 'start', sortable: true},
             { text: 'Capacity', value: 'current', filterable: false, sortable: true},
             { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
             { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
+            { text: 'Register Start Date', value: 'start_register', filterable: false, sortable: true},
+            { text: 'Register End Date', value: 'end_register', filterable: false, sortable: true},
             { text: '', value: 'actions', filterable: false, sortable: false}
         ],
     }),
-
-    methods: {
-        getCoursesDetail() {
-            // Get all Courses that are conducted by user_id
-            // Dummy JSON, to be replaced with API call
-            let data = [{
-                "course_id": 1,
-                "course_code": "PQ101",
-                "title": "Print Quality Control I",
-                "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a printing press and auxiliary equipment to produce quality printed products on papers and other materials as well as trouble shooting and maintenance of printing machines",
-                "capacity": 20,
-                "current": 2,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31",
-                "trainer_id": 1
-            },
-            {
-                "course_id": 2,
-                "course_code": "PQ201",
-                "title": "Print Quality Control II",
-                "outline": "This course provide trainees with the intermediate skills and knowledge in setting up and operating a printing press and auxiliary equipment to produce quality printed products on papers and other materials as well as trouble shooting and maintenance of printing machines",
-                "capacity": 15,
-                "current": 1,
-                "start_date": "2021-01-01",
-                "end_date": "2021-12-31",
-                "course_requirement": 1,
-                "trainer_id": 1
-            }];
-            this.courses = data;
-
+    computed: {
+        apiLink(){
+            return this.$store.state.apiLink;
         },
+        
+    },
+    methods: {
+        // Get all Courses that are conducted by trainer_id
+        getCoursesDetail(trainer_id) {
+            let updatedApiWithEndpoint = this.apiLink + "/getallcoursesthatareconductedbyuser";
+            let dataObj = { "trainerId": trainer_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+            .then((response) => {
+                console.log(response.data)
+                this.courses = response.data;
+            })
+        },
+        formatDate(date) {  
+            return moment(date).format('yyyy-MM-DD HH:mm');
+        }
     },
     created() {
         // Calls method to get course details
-        this.getCoursesDetail();
+        this.getCoursesDetail(this.currentUserId);
 
     }
 }
