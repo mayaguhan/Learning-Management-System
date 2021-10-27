@@ -121,7 +121,7 @@
                         <b>Topic's Slide Decks</b><br>
                         <ul v-for="(material, indexM) in materials" v-bind:key="material.material_id">
                             <li v-if="materials.length > 0" >
-                                <v-btn v-bind:href="link(material.link)" target="_blank">
+                                <v-btn v-bind:href="s3link(material.link)" target="_blank">
                                     <v-icon>mdi-pencil</v-icon> {{ material.file_name }}
                                 </v-btn>
                                 <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material, indexM)">
@@ -203,13 +203,12 @@ export default {
         s3Link(){
             return this.$store.state.s3Link;
         },
-
-        link(material_link) {
-            let updatedS3WithEndpoint = this.s3Link + '/' + material_link;
-            return updatedS3WithEndpoint;
-        },
     },
     methods: {
+        s3link(material_link) {
+            let updatedS3WithEndpoint = this.s3Link + material_link;
+            return updatedS3WithEndpoint;
+        },
 
         // Get a Course Conducted information by conduct_id
         getCourseDetail() {
@@ -362,18 +361,20 @@ export default {
         },
 
         uploadFiles(section_id){
+            console.log(section_id)
             console.log(this.files);
-            var str = section_id.toString();
             for (var file in this.files){
                 console
-                this.upload(this.files[file], str);
+                this.upload(this.files[file], section_id);
             }
         },
         upload(file, str) {
-            var updatedApiWithEndpoint = this.apiLink + "/uploadfile";
-            console.log(updatedApiWithEndpoint)
-            console.log(file)
+            // Api Link for upload
+            console.log(this.apiLink)
+            var updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
 
+
+            // Uploading to S3
             var nameWithExtension = file['name']
 
             var extensionArray = file['type'].split("/")
@@ -394,27 +395,28 @@ export default {
                 content = reader.result.split(',')[1];
                 console.log(content)
 
-                var dataObj = {"sectionNumber": str,"fileName": name, 
+                var dataObj = {"sectionNumber": str.toString(),"fileName": name, 
                             "fileExtension": extension, "content": content };
                 console.log(dataObj);
                 axios.post(updatedApiWithEndpointM, dataObj)
                     .then((response) => {
                         this.link = response.data;
                         console.log(this.link);
+
+                        // Saving filepath to DB
+                        let dataObj = { "sectionId": str, "fileName": name, "link": this.link }
+                        axios.post(updatedApiWithEndpoint, dataObj)
+                            .then((response) => {
+                                console.log(response);
+                            })
+
                 })
             }
-            this.addMaterial(parseInt(str), name, this.link);
+
+
 
         },
-
-        addMaterial(section_id, name, link) {
-            let updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
-            let dataObj = { "sectionId": section_id, "fileName": name, "link": link }
-            axios.post(updatedApiWithEndpoint, dataObj)
-                .then((response) => {
-                    console.log(response);
-                })
-        },
+        
 
         deleteMaterial(material, indexM) {
             this.materials.splice(indexM, 1);
