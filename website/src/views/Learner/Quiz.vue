@@ -171,6 +171,7 @@ export default {
                 console.log(updatedApiWithEndpoint);
                 console.log(totalScore);      
             });
+            totalScore = totalScore.toFixed(2);
             this.updateGrade(totalScore);
         },
         updateGrade(studentScore){
