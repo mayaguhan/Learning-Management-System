@@ -92,8 +92,8 @@ export default {
                 .then((response) => {
                     console.log(response);
                 })
-            var message = "This student has successfully been enrolled into the course!";
-            alert(message);
+            //var message = "This student has successfully been enrolled into the course!";
+            //alert(message);
         },
 
     },

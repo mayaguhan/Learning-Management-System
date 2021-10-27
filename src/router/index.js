@@ -52,23 +52,22 @@ const routes = [
     props: true
   },
   {
-    path: '/trainercoursedetail/:course_id',
+    path: '/trainercoursedetail/:conduct_id',
     name: 'CourseDetail',
     component: () =>import('@/views/Trainer/CourseDetail.vue'),
-    props: true
-  },
-  {
-    path: '/trainerenrolledstudent/:course_id',
-    name: 'EnrolledStudent',
-    component: () =>import('../views/Trainer/EnrolledStudent.vue'),
-    props: true
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   },
   {
     path: '/trainerquizdetail/:section_id',
     name: 'QuizDetail',
     component: () =>import('../views/Trainer/QuizDetail.vue'),
     props: true
-  }
+  },
+
+
 ]
 
 const router = new VueRouter({

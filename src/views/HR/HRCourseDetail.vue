@@ -383,7 +383,6 @@ export default {
             // Execute Delete query
             // TO DO: Delete material
 
-
         },
     },
     created() {
