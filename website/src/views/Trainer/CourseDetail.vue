@@ -35,7 +35,7 @@
             <!-- Add New Section Dialog -->
             <v-dialog v-model="dialog" persistent max-width="600px">
                 <template v-slot:activator="{ on, attrs }">
-                    <v-btn color="primary" dark v-bind="attrs" v-on="on" v-show="toggleEdit == true">
+                    <v-btn color="primary mr-3" dark v-bind="attrs" v-on="on" v-show="toggleEdit == true">
                         Add New Section
                     </v-btn>
                 </template>
@@ -57,12 +57,6 @@
                                 label="Quiz Duration" hint="Duration of the quiz" suffix="minutes"></v-text-field>
                             </v-col>
                         </v-row>
-                        <v-row>
-                            <v-col>
-                                <v-text-field v-model="newQuizPassingGrade" type="number" :rules="[rules.required, rules.gradeMin, rules.gradeMax]"
-                                label="Passing Grade" hint="Grade % learner needs to get to clear this section" suffix="%"></v-text-field>
-                            </v-col>
-                        </v-row>
                     </v-form>
                     </v-card-text>
                     <v-card-actions>
@@ -78,18 +72,18 @@
             </v-dialog>
 
             <!-- Save Section Edits -->
-            <v-btn class="primary" @click="toggleEdit=!toggleEdit, saveEdit()" v-show="toggleEdit == true">
+            <v-btn class="primary mr-3" @click="toggleEdit=!toggleEdit, saveEdit()" v-show="toggleEdit == true">
                 Save
             </v-btn>
 
             <!-- Cancel Section Edits -->
-            <v-btn class="light"  @click="toggleEdit=!toggleEdit, editAction('cancel')" v-show="toggleEdit == true">
+            <v-btn class="light mr-3"  @click="toggleEdit=!toggleEdit, editAction('cancel')" v-show="toggleEdit == true">
                 Cancel
             </v-btn>
         </h2>
 
         <template>
-        <v-expansion-panels focusable :items="sections">
+        <v-expansion-panels focusable :items="sections" :key="componentKey">
             <v-expansion-panel v-for="(section, indexS) in sections" :key="section.course_id" @click="expandSection(section.section_id)">
                 <v-expansion-panel-header>
                     {{ section.section_name }}
@@ -112,7 +106,7 @@
                         <b>Quiz Statistics: </b> 
                         {{ section.pass_count }} / {{ section.learner_count }} Learners have passed this quiz <br>
                         <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }" v-show="formatDate(currentDate) < courseDetail.start_date">
-                            <v-btn class="primary">
+                            <v-btn class="primary mr-3">
                                 Manage Quiz
                             </v-btn>
                         </router-link><br>
@@ -142,7 +136,7 @@
                     </div>
                     <v-divider></v-divider>
 
-                    <v-btn class="primary" v-show="toggleEdit == true" @click="deleteSection(section, indexS)">
+                    <v-btn class="primary mr-3" v-show="toggleEdit == true" @click="deleteSection(section, indexS)">
                         Delete Section
                     </v-btn>
                 </v-expansion-panel-content>
@@ -173,7 +167,6 @@ export default {
         newSection: {},
         newSectionName: "",
         newQuizDuration: 10,
-        newQuizPassingGrade: 0,
         currentDate: new Date(),
         toggleEdit: false,
         deleteSectionId: [],
@@ -184,10 +177,9 @@ export default {
             required: value => !!value || 'Required.',
             counter: value => value.length <= 50 || 'Max 50 characters',
             durationMin: value => value >= 10 || 'Min duration is 10 minutes',
-            durationMax: value => value <= 120 || 'Max duration is 120 minutes',
-            gradeMin: value => value >= 0 || 'Min passing grade is 0%',
-            gradeMax: value => value <= 100 || 'Max passing grade is 100%'
+            durationMax: value => value <= 120 || 'Max duration is 120 minutes'
         },
+        componentKey: 0
     }),
     computed: {
         apiLink(){
@@ -195,6 +187,9 @@ export default {
         }
     },
     methods: {
+        forceRerender() {
+            this.componentKey += 1;
+        },
         // Get a Course Conducted information by conduct_id
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
@@ -234,8 +229,8 @@ export default {
                 "conduct_id": this.conduct_id, 
                 "sequence": this.sections.length+1,
                 "section_name": this.newSectionName,
-                "quiz_duration": this.newQuizDuration * 60,
-                "passing_grade": this.newQuizPassingGrade
+                "quiz_duration": this.newQuizDuration,
+                "passing_grade": 0
             });
         },
         deleteSection(section_id, indexS) {
@@ -264,7 +259,7 @@ export default {
                         // Add new Section
                         let updatedApiWithEndpoint = this.apiLink + "/addnewsection";
                         let dataObj = { "conductId": change.conduct_id, "sequence": this.sections.length+1, 
-                                        "sectionName": change.section_name, "quizDuration": change.quiz_duration, "passingGrade": change.passing_grade };                  
+                                        "sectionName": change.section_name, "quizDuration": change.quiz_duration, "passingGrade": 0 };                  
                         axios.post(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 console.log(response);
@@ -282,6 +277,9 @@ export default {
                         //     })
                     }
                 });
+                // Update last sequence in course to be 85
+                let finalSection = this.sections.reduce((a,b)=>a.sequence>b.sequence?a:b).section_id;
+                this.updatePassingGrade(finalSection);
             }
             console.log(this.deleteSectionId);
             this.deleteSectionId.forEach(section => {
@@ -317,8 +315,9 @@ export default {
                     //     })
                 }
             });
-            this.deleteSectionId = [];
             this.getCourseSections();
+            this.forceRerender();
+            this.deleteSectionId = [];
         },
         comparer(otherArray){
             return function(current){
@@ -332,6 +331,16 @@ export default {
                     )
                 }).length == 0;
             }
+        },
+        updatePassingGrade(section_id) {
+            // Update Section by section_id
+            let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            let dataObj = { "conductId": this.conduct_id, "sectionId" : section_id, };
+            console.log(updatedApiWithEndpoint, dataObj);
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            //     .then((response) => {
+            //         console.log(response);
+            //     })
         },
         expandSection(section_id) {
             // console.log(section_id);

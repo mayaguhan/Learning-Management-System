@@ -13,7 +13,7 @@
             </v-btn>
 
             <!-- Save Section Edit -->
-            <v-btn class="primary" @click="toggleEditSection=!toggleEditSection, saveSectionEdit()" 
+            <v-btn class="primary mr-3" @click="toggleEditSection=!toggleEditSection, saveSectionEdit()" 
             v-show="toggleEditSection == true" >
                 Save
             </v-btn>
@@ -46,24 +46,24 @@
             </v-btn>
 
             <!-- Save Question Edits -->
-            <v-btn class="primary" @click="toggleEditQuestion=!toggleEditQuestion, saveEditQuestion()" 
+            <v-btn class="primary mr-3" @click="toggleEditQuestion=!toggleEditQuestion, saveEditQuestion()" 
             v-show="toggleEditQuestion == true" :disabled="toggleEditChoice">
                 Save
             </v-btn>
 
             <!-- Cancel Question Edits -->
-            <v-btn class="light"  @click="toggleEditQuestion=!toggleEditQuestion, editAction('cancel')" 
+            <v-btn class="light mr-3"  @click="toggleEditQuestion=!toggleEditQuestion, editAction('cancel')" 
             v-show="toggleEditQuestion == true" :disabled="toggleEditChoice">
                 Cancel
             </v-btn>
 
-            <v-btn class="primary" v-show="toggleEditQuestion == true" 
+            <v-btn class="primary mr-3" v-show="toggleEditQuestion == true" 
             @click="addQuestion()">
                 Add Question
             </v-btn>
         </h2>
 
-        <v-expansion-panels focusable :items="questions">
+        <v-expansion-panels focusable :items="questions" :key="componentKey">
             <v-expansion-panel v-for="(question, indexQ) in questions" :key="question.quiz_question_id" :disabled="toggleEditChoice">
                 <v-expansion-panel-header>
                     {{ question.question_name }}
@@ -90,7 +90,7 @@
                                     <v-switch v-model="questionChoice.correct" v-show="toggleEditChoice == true" label="Correct"></v-switch>
                                 </v-col>
                                 <v-col cols="1">
-                                    <v-btn class="primary" v-show="toggleEditChoice" @click="deleteChoice(questionChoice.quiz_choice_id, indexQ, indexO)" >
+                                    <v-btn class="primary mr-3" v-show="toggleEditChoice" @click="deleteChoice(questionChoice.quiz_choice_id, indexQ, indexO)" >
                                         Delete
                                     </v-btn>
                                 </v-col>
@@ -102,21 +102,21 @@
                     <div v-show="toggleEditQuestion == true">
                         <v-divider></v-divider>
                         <!-- Delete Question Button -->
-                        <v-btn class="primary"  @click="deleteQuestion(question.quiz_question_id, indexQ)" :disabled="toggleEditChoice">
+                        <v-btn class="primary mr-3"  @click="deleteQuestion(question.quiz_question_id, indexQ)" :disabled="toggleEditChoice">
                             Delete Question
                         </v-btn>
                         
                         <!-- Toggle: Edit Question Choices -->
-                        <v-btn class="primary" @click="toggleEditChoice=!toggleEditChoice, editChoice('edit')" v-show="toggleEditChoice == false && question.quiz_question_id != null">
+                        <v-btn class="primary mr-3" @click="toggleEditChoice=!toggleEditChoice, editChoice('edit')" v-show="toggleEditChoice == false && question.quiz_question_id != null">
                             Edit Choices
                         </v-btn>
 
-                        <v-btn class="primary" @click="addChoice(question.quiz_question_id, indexQ)" v-show="toggleEditChoice == true && question.quiz_question_id != null" >
+                        <v-btn class="primary mr-3" @click="addChoice(question.quiz_question_id, indexQ)" v-show="toggleEditChoice == true && question.quiz_question_id != null" >
                             Add Question Choice
                         </v-btn>
 
                         <!-- Save Question Choice Edits -->
-                        <v-btn class="primary" @click="toggleEditChoice=!toggleEditChoice, saveEditChoice(indexQ)" v-show="toggleEditChoice == true">
+                        <v-btn class="primary mr-3" @click="toggleEditChoice=!toggleEditChoice, saveEditChoice(indexQ)" v-show="toggleEditChoice == true">
                             Save
                         </v-btn>
 
@@ -315,8 +315,12 @@ export default {
             gradeMin: value => value >= 0 || 'Min passing grade is 0%',
             gradeMax: value => value <= 100 || 'Max passing grade is 100%',
         },
+        componentKey: 0
     }),
     methods: {
+        forceRerender() {
+            this.componentKey += 1;
+        },
         // Get Section information by section_id
         getSectionDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getsectioninfobysectionid";
@@ -424,7 +428,8 @@ export default {
                             axios.post(addOptionEndPoint, dataObj2)
                                 .then((response) => {
                                     console.log(response.data);
-                                    location.reload();
+                                    this.getQuestionChoices();
+                                    this.forceRerender();
                                 })
                     })
                 } else {
