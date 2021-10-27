@@ -373,7 +373,6 @@ export default {
             console.log(this.apiLink)
             var updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
 
-
             // Uploading to S3
             var nameWithExtension = file['name']
 
@@ -409,22 +408,14 @@ export default {
                             .then((response) => {
                                 console.log(response);
                             })
-
                 })
             }
-
-
-
         },
-        
-
         deleteMaterial(material, indexM) {
             this.materials.splice(indexM, 1);
             console.log("Deleting Material: " + material.material_id);
             // Execute Delete query
             // TO DO: Delete material
-
-
 
 
         },
@@ -435,8 +426,6 @@ export default {
 
         // Calls method to get section details
         this.getCourseSections();
-
-
     }
 }
 </script>
