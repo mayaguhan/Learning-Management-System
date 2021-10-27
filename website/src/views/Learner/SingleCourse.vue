@@ -24,15 +24,19 @@
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                     <div v-if=" section.section_id != null">
-                        
-
                         <!-- Upload slide decks -->
                         <b>Topic's Slide Decks</b><br>
                         <ul v-for="material in materials" v-bind:key="material.material_id">
-                            
+                            <li v-if="materials.length > 0" >
+                                <v-btn v-bind:href="s3link(material.link)" target="_blank">
+                                    {{ material.file_name }}
+                                </v-btn>
+                            </li>
+                            <li v-else>
+                                <b>This section has no materials</b>
+                            </li>
                         </ul>
-                        <!-- TO DO: Method to upload new materials -->
-
+                        
                     </div>
                     <v-divider></v-divider>
 
@@ -72,61 +76,49 @@ export default {
         materials: [],
     }),
     methods: {
-        // Get a Course Conducted information by conduct_id
+        s3link(material_link) {
+            let updatedS3WithEndpoint = this.s3Link + material_link;
+            return updatedS3WithEndpoint;
+        },
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
+                    console.log(response.data);
                     this.courseDetail = response.data[0];
                 })
         },
-        // Get all Sections by conduct_id and user_id (Learner)
+        // Get all Sections by conduct_id (Trainer)
         getCourseSections() {
-            let updatedApiWithEndpoint = this.apiLink + "/getallsectionsbyconductanduserid";
-            let dataObj = { "conductId": this.conduct_id, "learnerId": this.currentUserId } 
+            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid";
+            let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    let sections = response.data;
-                    let boldSection = false;
-                    sections.forEach(section => {
-                        if (section.result == "No Attempt" && boldSection == false) {
-                            section["boldSection"] = true
-                            boldSection = true;
-                        } else if (section.result == "No Attempt" && boldSection == true) {
-                            section["disabled"] = true
-                        }
-                    });
-                    console.log(sections);
-                    this.sections = sections;
+                    console.log(response.data);
+                    this.sections = response.data;
                 })
         },
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD hh:mm');
         },
         expandSection(section_id) {
-            // console.log(section_id);
-            // Get all Materials by section_id
-            // Dummy JSON, to be replaced with API call
-            let materialData = [{
-                "material_id": 1, 
-                "material_name": "Section " + section_id + " Material 1",
-                "type": "pdf",
-                "link": "https://www.google.com.sg/"
-                },
-                {
-                "material_id": 2, 
-                "material_name": "Section " + section_id + " Material 2",
-                "type": "pdf",
-                "link": "https://www.google.com.sg/"
-            }];
-            this.materials = materialData;
+            let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
+            let dataObj = { "sectionId": section_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.materials = response.data;
+            })
         },
+
     },
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
-        }
+        },
+        s3Link(){
+            return this.$store.state.s3Link;
+        },
     },
     created() {
         // Calls method to get course details

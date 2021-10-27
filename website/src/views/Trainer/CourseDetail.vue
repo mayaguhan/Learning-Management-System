@@ -115,8 +115,8 @@
                         <b>Topic's Slide Decks</b><br>
                         <ul v-for="(material, indexM) in materials" v-bind:key="material.material_id">
                             <li v-if="materials.length > 0" >
-                                <v-btn v-bind:href="material.link" target="_blank">
-                                    <v-icon>mdi-pencil</v-icon> {{ material.material_name }}
+                                <v-btn v-bind:href="s3link(material.link)" target="_blank">
+                                    {{ material.file_name }}
                                 </v-btn>
                                 <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material, indexM)">
                                     <v-icon>mdi-trash-can</v-icon>
@@ -126,10 +126,11 @@
                                 <b>This section has no materials</b>
                             </li>
                         </ul>
-                        <v-file-input chips multiple label="Upload Material(s)" v-show="toggleEdit == true"></v-file-input>
-                        <!-- TO DO: Method to upload new materials -->
+                        <v-file-input v-model="files" counter multiple show-size label="Upload file" v-show="toggleEdit == true"></v-file-input>
+                        <v-btn class="primary" v-show="toggleEdit == true" @click="uploadFiles(section.section_id)">
+                            Upload
+                        </v-btn>
 
-                        
                     </div>
                     <div v-else>
                         <b>You have to save your edits before you create a new quiz or upload materials.</b>
@@ -159,6 +160,12 @@ export default {
     data: () => ({
         currentUserId: 2, // To be replaced with user_id of logged in user
 
+        files: {},
+        content: "",
+        file_name: "",
+        file_extension: "",
+        link: "",
+
         courseDetail: {},
         sections: [],
         sectionsCopy: [],
@@ -184,12 +191,20 @@ export default {
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
-        }
+        },
+        s3Link(){
+            return this.$store.state.s3Link;
+        },
     },
     methods: {
         forceRerender() {
             this.componentKey += 1;
         },
+        s3link(material_link) {
+            let updatedS3WithEndpoint = this.s3Link + material_link;
+            return updatedS3WithEndpoint;
+        },
+
         // Get a Course Conducted information by conduct_id
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
@@ -305,7 +320,6 @@ export default {
                     // TO DO: Delete all materials related to the section
 
 
-
                     // Delete Section by section_id
                     // let updatedApiWithEndpoint = this.apiLink + "/TBC";
                     // let dataObj = { "sectionId" : section.section_id };
@@ -332,35 +346,74 @@ export default {
                 }).length == 0;
             }
         },
-        updatePassingGrade(section_id) {
-            // Update Section by section_id
-            let updatedApiWithEndpoint = this.apiLink + "/TBC";
-            let dataObj = { "conductId": this.conduct_id, "sectionId" : section_id, };
-            console.log(updatedApiWithEndpoint, dataObj);
-            // axios.post(updatedApiWithEndpoint, dataObj)
-            //     .then((response) => {
-            //         console.log(response);
-            //     })
-        },
+
         expandSection(section_id) {
-            // console.log(section_id);
-            // Get all Materials by section_id
-            // Dummy JSON, to be replaced with API call
-            let materialData = [{
-                "material_id": 1, 
-                "material_name": "Section " + section_id + " Material 1",
-                "type": "pdf",
-                "link": "https://www.google.com.sg/"
-                },
-                {
-                "material_id": 2, 
-                "material_name": "Section " + section_id + " Material 2",
-                "type": "pdf",
-                "link": "https://www.google.com.sg/"
-            }];
-            this.materials = materialData;
+            let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
+            let dataObj = { "sectionId": section_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.materials = response.data;
+                })
+        },
+
+        uploadFiles(section_id){
+            console.log(section_id)
+            console.log(this.files);
+            for (var file in this.files){
+                console
+                this.upload(this.files[file], section_id);
+            }
+        },
+        upload(file, str) {
+            // Api Link for upload
+            console.log(this.apiLink)
+            var updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
+
+
+            // Uploading to S3
+            var nameWithExtension = file['name']
+
+            var extensionArray = file['type'].split("/")
+            var extension = extensionArray[1]
+
+            var indexOfExtension = nameWithExtension.indexOf(extension);
+            var name = nameWithExtension.slice(0, indexOfExtension-1)
+
+            var content = "";
+
+            var updatedApiWithEndpointM = this.apiLink + "/uploadfile";
+            console.log(updatedApiWithEndpointM);
+
+
+            let reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                content = reader.result.split(',')[1];
+                console.log(content)
+
+                var dataObj = {"sectionNumber": str.toString(),"fileName": name, 
+                            "fileExtension": extension, "content": content };
+                console.log(dataObj);
+                axios.post(updatedApiWithEndpointM, dataObj)
+                    .then((response) => {
+                        this.link = response.data;
+                        console.log(this.link);
+
+                        // Saving filepath to DB
+                        let dataObj = { "sectionId": str, "fileName": name, "link": this.link }
+                        axios.post(updatedApiWithEndpoint, dataObj)
+                            .then((response) => {
+                                console.log(response);
+                            })
+
+                })
+            }
+
+
 
         },
+        
+
         deleteMaterial(material, indexM) {
             this.materials.splice(indexM, 1);
             console.log("Deleting Material: " + material.material_id);

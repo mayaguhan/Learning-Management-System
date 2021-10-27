@@ -84,18 +84,38 @@ const routes = [
     }
   },
   {
-    path: '/trainerquizdetail/:section_id',
-    name: 'QuizDetail',
-    component: () =>import('../views/Trainer/QuizDetail.vue'),
+    path: '/selfenrol/:course_id',
+    name: 'SelfEnrol',
+    component: () =>import('../views/Learner/SelfEnrol.vue'),
     props: true,
     meta: {
       requiresAuth: true
     }
   },
   {
-    path: '/selfenrol/:course_id',
-    name: 'SelfEnrol',
-    component: () =>import('../views/Learner/SelfEnrol.vue'),
+    path: '/hrcourses',
+    name: 'HRCourses',
+    component: () =>import('../views/HR/HRCourses.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
+    path: '/hrcoursedetail/:conduct_id',
+    name: 'HRCourseDetail',
+    component: () =>import('../views/HR/HRCourseDetail.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
+    path: '/enrolstudent/:conduct_id/:course_id',
+    name: 'EnrolStudent',
+    component: () =>import('../views/HR/EnrolStudent.vue'),
     props: true,
     meta: {
       requiresAuth: true

@@ -88,7 +88,7 @@ export default {
         //
     },
     data: () => ({
-        currentUserId: 14, // To be replaced with user_id of logged in user
+        currentUserId: 12, // To be replaced with user_id of logged in user
         quizAttemptId: 0,
         conductId: 0,
         sectionName: "",
