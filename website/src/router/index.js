@@ -75,6 +75,15 @@ const routes = [
     }
   },
   {
+    path: '/trainerquizdetail/:section_id',
+    name: 'QuizDetail',
+    component: () =>import('../views/Trainer/QuizDetail.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
     path: '/trainerenrolledstudent/:conduct_id',
     name: 'EnrolledStudent',
     component: () =>import('../views/Trainer/EnrolledStudent.vue'),

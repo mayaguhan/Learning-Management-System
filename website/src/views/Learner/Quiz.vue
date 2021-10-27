@@ -217,7 +217,6 @@ export default {
     // Timer
     mounted() {
         const stopCountdown = setInterval(() => {
-            console.log('current countdown', this.countdown)
             this.countdown -= 1
             if (!this.countdown) clearInterval(stopCountdown)
         }, 1000)

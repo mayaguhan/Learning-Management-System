@@ -264,9 +264,6 @@ export default {
         saveEdit() {
             // Save edit section changes
             let changes = this.sections.filter(this.comparer(this.sectionsCopy));
-            console.log("Edited: ", this.sections);
-            console.log("Original: ", this.sectionsCopy);
-            console.log("Changes: ", changes);
             if (changes.length > 0) {
                 changes.forEach(change => {
                     if (change.section_id == null) {
@@ -357,8 +354,6 @@ export default {
         },
 
         uploadFiles(section_id){
-            console.log(section_id)
-            console.log(this.files);
             for (var file in this.files){
                 console
                 this.upload(this.files[file], section_id);
@@ -366,13 +361,9 @@ export default {
         },
         upload(file, str) {
             // Api Link for upload
-            console.log(this.apiLink)
             var updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
-
-
             // Uploading to S3
             var nameWithExtension = file['name']
-
             var extensionArray = file['type'].split("/")
             var extension = extensionArray[1]
 
@@ -380,37 +371,25 @@ export default {
             var name = nameWithExtension.slice(0, indexOfExtension-1)
 
             var content = "";
-
             var updatedApiWithEndpointM = this.apiLink + "/uploadfile";
-            console.log(updatedApiWithEndpointM);
-
 
             let reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = function () {
+                // this.expandSection(section_id);
                 content = reader.result.split(',')[1];
-                console.log(content)
-
-                var dataObj = {"sectionNumber": str.toString(),"fileName": name, 
+                let dataObj = {"sectionNumber": str.toString(),"fileName": name, 
                             "fileExtension": extension, "content": content };
-                console.log(dataObj);
                 axios.post(updatedApiWithEndpointM, dataObj)
                     .then((response) => {
-                        this.link = response.data;
-                        console.log(this.link);
-
                         // Saving filepath to DB
-                        let dataObj = { "sectionId": str, "fileName": name, "link": this.link }
+                        let dataObj = { "sectionId": str, "fileName": name, "link":  response.data }
                         axios.post(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 console.log(response);
                             })
-
-                })
+                    })
             }
-
-
-
         },
         
 
