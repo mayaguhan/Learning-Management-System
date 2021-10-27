@@ -38,11 +38,61 @@
                            {{ formatDate(row.item.end_date) }}
                         </td>
                         <td width="10">
-                          <router-link :to="{ name: 'HRConduct', params: { course_id: row.item.course_id }}">
-                              <v-btn depressed small color="#0062E4">
-                                  <span style="color: white">View Course</span> 
-                              </v-btn>
-                          </router-link>
+                          <!-- Enrol Course Dialog -->
+                          <v-btn color="primary" :disabled="row.item.trainer_count == 0"
+                          @click.stop="$set(selectedCourse, row.item.course_id, true), getCourseTrainer(row.item.course_id)">
+                            View Trainers
+                          </v-btn>
+                          <v-dialog v-model="selectedCourse[row.item.course_id]" scrollable max-width="1200" :key="row.item.course_id">
+                            <v-card>
+                              <v-card-title>
+                                <span>Classes: {{ row.item.course_code }} - {{ row.item.title }}</span>
+                              </v-card-title>
+                              <v-card-subtitle>
+                                {{ row.item.outline }}
+                              </v-card-subtitle>
+                              <v-card-text>
+                                <v-data-table :headers="headersTrainers" :items="trainers">
+                                  <template v-slot:item="row">
+                                    <tr>
+                                      <td>
+                                        {{ row.item.name }} 
+                                      </td>
+                                      <td>
+                                        {{ row.item.email }} <br>
+                                        {{ row.item.contact }}
+                                      </td>
+                                      <td>
+                                        {{ row.item.remaining }}
+                                      </td>
+                                      <td>
+                                        {{ formatDate(row.item.end_register) }} to <br>
+                                        {{ formatDate(row.item.start_date) }}
+                                      </td>
+                                      <td>
+                                        {{ formatDate(row.item.end_date) }}
+                                      </td>
+                                      <td>
+                                        {{ formatDate(row.item.end_date) }}
+                                      </td>
+                                      <td>
+                                        <router-link :to="{ name: 'HRCourseDetail', params: { conduct_id: row.item.conduct_id }}">
+                                        <v-btn depressed small color="#0062E4" @click="dialog = false">
+                                          <span style="color: white">View Class</span> 
+                                        </v-btn>
+                                        </router-link>
+    
+                                      </td>
+                                    </tr>
+                                  </template>
+                                </v-data-table>
+                              </v-card-text>
+                              <v-card-actions>
+                                <v-btn color="primary" @click.stop="$set(selectedCourse, row.item.course_id, false)">Close</v-btn>
+                              </v-card-actions>
+                            </v-card>
+                          </v-dialog>
+      
                         </td>
                     </tr>
                 </template>
@@ -102,6 +152,9 @@ export default {
 
         allcourses: true,
         allengineers: false,
+        dialog: false, 
+
+        selectedCourse: {},
 
         searchCourses: '',
         headersCourses: [
@@ -111,13 +164,23 @@ export default {
             { text: '', value: 'actions', filterable: false, sortable: false}
         ],
         courses: [],
+        trainers: [],
 
         searchEngineers: '',
         headersEngineers: [
             { text: 'Name', value: 'name', align: 'start', sortable: true},
             { text: 'Seniority Level', value: 'seniority_level', filterable: false, sortable: false},
         ],
-        engineers: []
+        engineers: [],
+        headersTrainers: [
+            { text: 'Trainer', value: 'name', align: 'start', filterable: true, sortable: true},
+            { text: 'Contact Details', value: 'contact_details', filterable: false, sortable: false},
+            { text: 'Available', value: 'remaining', align: 'start', filterable: true, sortable: true},
+            { text: 'Registration', value: 'end_register', align: 'start', filterable: true, sortable: true},
+            { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
+            { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
+            { text: '', value: 'actions', filterable: false, sortable: false}
+        ]
       }
     },
 
@@ -143,7 +206,17 @@ export default {
 
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD');
-        }
+        },
+
+        getCourseTrainer(course_id) {
+          let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
+          let dataObj = { 'courseId' : course_id};
+          console.log(dataObj, course_id);
+          axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+              this.trainers = response.data;
+          })
+      },
 
     },
 

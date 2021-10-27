@@ -6,8 +6,18 @@
             <h1 style="font-size: 3rem">Let's Get Learning</h1>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
             <div style="text-align: center">
-              <v-btn depressed color="primary" style="width: 45%; margin-right: 5%">Sign In As Trainer</v-btn>
-              <v-btn depressed color="primary" style="width: 45%; margin-left: 5%">Sign In As Learner</v-btn>
+              <router-link to="/login/trainer">
+                <v-btn depressed color="primary" style="width: 45%; margin-right: 5%">
+                  Sign In As Trainer
+                </v-btn>
+              </router-link>
+              
+              <router-link to="/login/learner">
+                <v-btn depressed color="primary" style="width: 45%; margin-left: 5%">
+                  Sign In As Learner
+                </v-btn>
+              </router-link>
+
             </div>
           </div>
         </v-col>

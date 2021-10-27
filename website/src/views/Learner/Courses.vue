@@ -29,18 +29,23 @@
                 <td>
                   {{ row.item.cr_course_code }} - {{ row.item.cr_title }} 
                 </td>
+                <td>
+                  {{ row.item.trainer_count }} 
+                </td>
                 <td width="10">
                   <!-- Enrol Course Dialog -->
-                  <v-dialog v-model="dialog" max-width="1200px">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn color="primary" dark v-bind="attrs" v-on="on" @click="getCourseTrainer(row.item.course_id)">
-                        View Trainers
-                      </v-btn>
-                    </template>
+                  <v-btn color="primary" :disabled="row.item.trainer_count == 0"
+                  @click.stop="$set(selectedCourse, row.item.course_id, true), getCourseTrainer(row.item.course_id)">
+                    View Trainers
+                  </v-btn>
+                  <v-dialog v-model="selectedCourse[row.item.course_id]" scrollable max-width="1200" :key="row.item.course_id">
                     <v-card>
                       <v-card-title>
                         <span>Enrol: {{ row.item.course_code }} - {{ row.item.title }}</span>
                       </v-card-title>
+                      <v-card-subtitle>
+                        {{ row.item.outline }}
+                      </v-card-subtitle>
                       <v-card-text>
                         <v-data-table :headers="headersTrainers" :items="trainers">
                           <template v-slot:item="row">
@@ -53,35 +58,33 @@
                                 {{ row.item.contact }}
                               </td>
                               <td>
-                                {{ row.item.remaining  }} / {{ row.item.capacity  }}
+                                {{ row.item.remaining }}
                               </td>
                               <td>
-                                {{ formatDate(row.item.start_register) }}
-                              </td>
-                              <td>
-                                {{ formatDate(row.item.end_register) }} to 
+                                {{ formatDate(row.item.end_register) }} to <br>
                                 {{ formatDate(row.item.start_date) }}
                               </td>
                               <td>
                                 {{ formatDate(row.item.end_date) }}
                               </td>
                               <td>
-                                <v-btn @click="dialog = false, addEnrolment(row.item.conduct_id)">
-                                  Enrol Class
+                                {{ formatDate(row.item.end_date) }}
+                              </td>
+                              <td>
+                                <v-btn depressed small color="#0062E4" 
+                                @click="dialog = false, addEnrolment(row.item.conduct_id)">
+                                  <span style="color: white">Enrol Class</span> 
                               </v-btn>
                               </td>
                             </tr>
                           </template>
                         </v-data-table>
                       </v-card-text>
+                      <v-card-actions>
+                        <v-btn color="primary" @click.stop="$set(selectedCourse, row.item.course_id, false)">Close</v-btn>
+                      </v-card-actions>
                     </v-card>
                   </v-dialog>
-                  <!-- 
-                  <router-link :to="{ name: 'SelfEnrol', params: { course_id: row.item.course_id }}">
-                    <v-btn depressed small color="#0062E4">
-                      <span style="color: white">Enrol</span> 
-                    </v-btn>
-                  </router-link> -->
                 </td>
               </tr>
             </template>
@@ -160,7 +163,7 @@
 </template>
 
 <script>
-  // import axios from 'axios';
+  import axios from 'axios';
   import moment from "moment";
 
   export default {
@@ -181,9 +184,12 @@
         coursesCompleted: [],
         trainers: [],
         
+        selectedCourse: {},
+        
         headersNotEnrolled: [
           { text: 'Course', value: 'course_code', align: 'start', sortable: true},
           { text: 'Requisite', value: 'cr_course_code'},
+          { text: 'Trainers', value: 'trainer_count'},
           { text: '', value: 'actions', filterable: false, sortable: false}
         ],
         headersProgress: [
@@ -205,7 +211,7 @@
         headersTrainers: [
           { text: 'Trainer', value: 'name', align: 'start', filterable: true, sortable: true},
           { text: 'Contact Details', value: 'contact_details', filterable: false, sortable: false},
-          { text: 'Capacity', value: 'remaining', align: 'start', filterable: true, sortable: true},
+          { text: 'Available', value: 'remaining', align: 'start', filterable: true, sortable: true},
           { text: 'Registration', value: 'end_register', align: 'start', filterable: true, sortable: true},
           { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
           { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
@@ -216,160 +222,56 @@
     methods: {
       // Get all Courses a User has not Enrolled In
       getCoursesNotEnrolledIn() {
-        // let updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
-        // let dataObj = { 'learnerId' : this.currentUserId};
-        // axios.post(updatedApiWithEndpoint, dataObj)
-        //   .then((response) => {
-        //     console.log(response.data);
-        //     this.coursesNotEnrolled = response.data;
-        //   })
-        this.coursesNotEnrolled = [
-          {
-            "course_id": 1,
-            "course_code": "X105",
-            "title": "Fundamentals of Xerox WorkCentre 6515",
-            "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a  printing press and auxiliary equipment to produce quality printed products on papers and other materials.",
-            "trainer_count": 4,
-            "course_requisite_id": null,
-            "cr_course_code": null,
-            "cr_title": null,
-          },
-          {
-            "course_id": 9,
-            "course_code": "203",
-            "title": "Fundamentals of Xerox WorkCentre XXXX",
-            "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a  printing press and auxiliary equipment to produce quality printed products on papers and other materials.",
-            "trainer_count": 4,
-            "course_requisite_id": 5,
-            "cr_course_code": "X107",
-            "cr_title": "X107 Title",
-          },
-        ];
+        let updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
+        let dataObj = { 'learnerId' : this.currentUserId};
+        axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+            this.coursesNotEnrolled = response.data;
+          })
       },
       // Get all in-progress Courses a User has by learner_id
       getCoursesProgress() {
-        // let dataObj = { 'learnerId' : this.currentUserId};
-        // let updatedApiWithEndpoint = this.apiLink + "/TBC";
-        // axios.post(updatedApiWithEndpoint, dataObj)
-        //   .then((response) => {
-        //     console.log(response.data);
-        //     this.coursesProgress = response.data;
-        //   })
-        this.coursesProgress = [
-          {
-            "conduct_id": 52,
-            "course_id": 7,
-            "course_code": "X105",
-            "title": "Fundamentals of Xerox WorkCentre 6515",
-            "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a  printing press and auxiliary equipment to produce quality printed products on papers and other materials.",
-            "badge": "placeholder",
-            "name": "Yeo Yu Quan",
-            "progress": 0,
-            "section_count": 3
-          },
-          {
-            "conduct_id": 53,
-            "course_id": 8,
-            "course_code": "X105",
-            "title": "Fundamentals of Xerox WorkCentre 6515",
-            "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a  printing press and auxiliary equipment to produce quality printed products on papers and other materials.",
-            "badge": "placeholder",
-            "name": "Yeo Yu Quan",
-            "progress": 1,
-            "section_count": 3
-          }
-        ];
+        let dataObj = { 'learnerId' : this.currentUserId};
+        let updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasbystatus";
+        axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+            this.coursesProgress = response.data;
+          })
       },
       // Get all completed Courses User has by learner_id
       getCoursesCompleted() {
-        // let dataObj = { 'learnerId' : this.currentUserId};
-        // let updatedApiWithEndpoint = this.apiLink + "/TBC";
-        // axios.post(updatedApiWithEndpoint, dataObj)
-        //   .then((response) => {
-        //     console.log(response.data);
-        //     this.coursesCompleted = response.data;
-        //   })
-        this.coursesCompleted = [
-          {
-            "conduct_id": 46,
-            "course_id": 1,
-            "course_code": "X105",
-            "title": "Fundamentals of Xerox WorkCentre 6515",
-            "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a  printing press and auxiliary equipment to produce quality printed products on papers and other materials.",
-            "badge": "placeholder",
-            "name": "Yeo Yu Quan"
-          },
-          {
-            "conduct_id": 47,
-            "course_id": 2,
-            "course_code": "X105",
-            "title": "Fundamentals of Xerox WorkCentre 6515",
-            "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a  printing press and auxiliary equipment to produce quality printed products on papers and other materials.",
-            "badge": "placeholder",
-            "name": "Yeo Yu Quan"
-          },
-          {
-            "conduct_id": 48,
-            "course_id": 3,
-            "course_code": "X105",
-            "title": "Fundamentals of Xerox WorkCentre 6515",
-            "outline": "This course provide trainees with the basic skills and knowledge in setting up and operating a  printing press and auxiliary equipment to produce quality printed products on papers and other materials.",
-            "badge": "placeholder",
-            "name": "Yeo Yu Quan"
-          },
-        ];
+        let dataObj = { 'learnerId' : this.currentUserId};
+        let updatedApiWithEndpoint = this.apiLink + "/getallcompletedcoursesbyuserid";
+        axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+            this.coursesCompleted = response.data;
+          })
       },
       // Get all Trainers that are conducting a Course by course_id
       getCourseTrainer(course_id) {
-        // let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
-        // let dataObj = { 'courseId' : course_id};
-        // axios.post(updatedApiWithEndpoint, dataObj)
-        //   .then((response) => {
-        //     console.log(response.data);
-        //   })
-        console.log(course_id);
-        this.trainers = [
-          {
-            "conduct_id": 46,
-            "course_id": 1,
-            "name": "Yeo Yu Quan",
-            "email": "email",
-            "capacity": 10,
-            "start_date": "2021-11-01 00:00:00",
-            "end_date": "2021-11-01 00:00:00",
-            "start_register": "2021-11-01 00:00:00",
-            "end_register": "2021-11-01 00:00:00",
-            "enrolments": 1,
-            "remaining": 10
-          },
-          {
-            "conduct_id": 46,
-            "course_id": 1,
-            "name": "Yeo Yu Quan",
-            "email": "email",
-            "capacity": 10,
-            "start_date": "2021-11-01 00:00:00",
-            "end_date": "2021-11-01 00:00:00",
-            "start_register": "2021-11-01 00:00:00",
-            "end_register": "2021-11-01 00:00:00",
-            "enrolments": 1,
-            "remaining": 10
-          },
-        ];
-        console.log(this.trainers);
+        let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
+        let dataObj = { 'courseId' : course_id};
+        console.log(dataObj, course_id);
+        axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+            this.trainers = response.data;
+          })
       },
       formatDate(date) {  
         return moment(date).format('yyyy-MM-DD HH:mm');
       },
       // Add new Enrolment
       addEnrolment(conduct_id) {
-        // let updatedApiWithEndpoint = this.apiLink + "/TBC";
-        // let dataObj = { "learnerId" : this.currentUserId, "conductId": conduct_id, "selfEnrolment": 1, "status" : "New" };
-        // axios.post(updatedApiWithEndpoint, dataObj)
-        //   .then((response) => {
-        //     console.log(response);
-        //     // TO DO: Display successful enrolment
-        // })
+        let updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
+        let dataObj = { "learnerId" : this.currentUserId, "conductId": conduct_id, "selfEnrolment": 1, "status" : "New" };
+        axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+            console.log(response);
+            // TO DO: Display successful enrolment
+
+
+            
+        })
         console.log(conduct_id);
       }
     },

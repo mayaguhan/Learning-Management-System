@@ -47,12 +47,13 @@ import axios from 'axios';
 export default {
     name: "EnrolStudent",
     props: {
-        course_id: parseInt({ type: Number }),
-        trainer_id: parseInt({ type: Number })
+        conduct_id: parseInt({ type: Number }),
+        course_id: parseInt({ type: Number })
     },
     data: () => ({
 
-        status: "Progress",
+        status: "New",
+        self_enrolment: 0,
 
         enrolStudents: [],
         search: '',
@@ -74,7 +75,7 @@ export default {
 
         // Get all Learners that are eligible for the course
         getEnrolStudents() {
-            let updatedApiWithEndpoint1 = this.apiLink + "/getuserseligibleforcourse";
+            let updatedApiWithEndpoint1 = this.apiLink + "/getallengineerseligibleforcoursebycourse";
             let dataObj = { "courseId": this.course_id}
             axios.post(updatedApiWithEndpoint1, dataObj)
                 .then((response) => {
@@ -83,17 +84,15 @@ export default {
                 })
         },
 
-        // TO-DO: ensure HR doesn't enrol the same student twice before refreshing the page
-
         enrolStudent(learner_id){
             let updatedApiWithEndpoint3 = this.apiLink + "/addnewenrolment";
-            let dataObj = { "learnerId": learner_id, "courseId": this.course_id, "trainerId": this.trainer_id, "status": status}
+            let dataObj = { "learnerId": learner_id, "conductId": this.conduct_id, "selfEnrolment": this.self_enrolment, "status": this.status}
             axios.post(updatedApiWithEndpoint3, dataObj)
                 .then((response) => {
                     console.log(response);
                 })
-            //var message = "This student has successfully been enrolled into the course!";
-            //alert(message);
+            var message = "This student has successfully been enrolled into the course!";
+            alert(message);
         },
 
     },
