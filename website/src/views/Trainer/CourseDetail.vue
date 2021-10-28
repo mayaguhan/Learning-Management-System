@@ -343,7 +343,16 @@ export default {
                 }).length == 0;
             }
         },
-
+        updatePassingGrade(section_id) {
+            // Update Section by section_id
+            let updatedApiWithEndpoint = this.apiLink + "/TBC";
+            let dataObj = { "conductId": this.conduct_id, "sectionId" : section_id, };
+            console.log(updatedApiWithEndpoint, dataObj);
+            // axios.post(updatedApiWithEndpoint, dataObj)
+            //     .then((response) => {
+            //         console.log(response);
+            //     })
+        },
         expandSection(section_id) {
             let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
             let dataObj = { "sectionId": section_id }
