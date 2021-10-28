@@ -33,6 +33,9 @@ export default new Vuex.Store({
         getApiLink(state){
             return state.apiLink;
         },
+        getS3Link(state){
+            return state.s3Link;
+        },
         getUserId(state){
             return state.userId;
         },
