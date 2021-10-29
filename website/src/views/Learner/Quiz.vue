@@ -88,7 +88,7 @@ export default {
         //
     },
     data: () => ({
-        currentUserId: 14, // To be replaced with user_id of logged in user
+        currentUserId: 12, // To be replaced with user_id of logged in user
         quizAttemptId: 0,
         conductId: 0,
         sectionName: "",
@@ -217,7 +217,6 @@ export default {
     // Timer
     mounted() {
         const stopCountdown = setInterval(() => {
-            console.log('current countdown', this.countdown)
             this.countdown -= 1
             if (!this.countdown) clearInterval(stopCountdown)
         }, 1000)
