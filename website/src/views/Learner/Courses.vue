@@ -14,7 +14,7 @@
     <div>
     <!-- All Courses Content -->
       <div v-if="allcourses">
-        <v-card :key="componentKey">
+        <v-card>
           <v-card-title>
             <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
             <v-spacer></v-spacer>
@@ -26,7 +26,6 @@
               <tr>
                 <td>
                   {{ row.item.course_code }} - {{ row.item.title }}
-                  {{ componentKey }}
                 </td>
                 <td>
                   {{ row.item.cr_course_code }} - {{ row.item.cr_title }} 
@@ -184,8 +183,6 @@
         myRequests: false,
         dialog: false, 
         search: '',
-        // Component Key
-        componentKey: 0,
 
         coursesNotEnrolled: [],
         coursesProgress: [],
@@ -195,7 +192,7 @@
         selectedCourse: {},
         
         headersNotEnrolled: [
-          { text: 'Course', value: 'course_code', align: 'start', sortable: true},
+          { text: 'Course', value: 'title', align: 'start', sortable: true},
           { text: 'Requisite', value: 'cr_course_code'},
           { text: 'Trainers', value: 'trainer_count'},
           { text: '', value: 'actions', filterable: false, sortable: false}
@@ -278,8 +275,13 @@
           .then((response) => {
             console.log(response);
             // TO DO: Display successful enrolment
-            alert(`You have successfully submitted the enrollment request for ${courseName}`);
-            this.componentKey += 1;
+            if (response.status === 200) {
+              this.getCoursesNotEnrolledIn();
+              alert(`You have successfully submitted the enrollment request for ${courseName}`);
+            }
+            else {
+              alert("Sorry, you have already enrolled into the class");
+            }
             
             
         })
