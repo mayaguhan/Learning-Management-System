@@ -32,10 +32,11 @@
                 </td>
                 <td>
                   {{ row.item.trainer_count }} 
+                  <!-- {{row.item}} -->
                 </td>
                 <td width="10">
                   <!-- Enrol Course Dialog -->
-                  <v-btn color="primary" :disabled="row.item.trainer_count == null"
+                  <v-btn color="primary" :disabled="row.item.trainer_count == null || doesNotMeetReq(row.item.course_requisite_id)"
                   @click.stop="$set(selectedCourse, row.item.course_id, true), getCourseTrainer(row.item.course_id)">
                     View Trainers
                   </v-btn>
@@ -249,6 +250,7 @@
         let updatedApiWithEndpoint = this.apiLink + "/getallcompletedcoursesbyuserid";
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
+            console.log("Completed Courses", response.data);
             this.coursesCompleted = response.data;
           })
       },
@@ -286,6 +288,14 @@
             
         })
         console.log(conduct_id);
+      },
+      doesNotMeetReq(course_requisite_id_para){
+        for (let i = 0; i < this.coursesCompleted.length; i++) {
+          if (course_requisite_id_para === this.coursesCompleted[i]["course_id"]){
+            return false;
+          }
+          return true;
+        }
       }
     },
     computed: {
