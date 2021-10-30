@@ -39,7 +39,7 @@
                         
                     </div>
                     <v-divider></v-divider>
-
+                    <div>{{section}}</div>
                     <div v-if="section.best_grade !== null">
                         <b>Best Grade: {{ section.best_grade }} / 100</b>
                     </div>
