@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class Material(db.Model):
+class LMSMaterial(db.Model):
     __tablename__ = "lms_material"
     material_id = db.Column(db.Integer, primary_key=True)
     section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))

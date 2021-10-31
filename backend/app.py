@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import api.controllers.CourseController as courseController
 import api.controllers.UserController as userController
+import api.controllers.QuizController as quizController
+import api.controllers.SectionController as sectionController
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -64,6 +66,89 @@ def getTrainersThatAreEligibleToTeachACourse():
 @app.route("/adduser",methods=["POST"])
 def addUser():
     return userController.addUser(request.get_json())
+
+# Get quiz performance by quiz attempt id
+@app.route("/getquizperformancebyattemptid", methods=["POST"])
+def getQuizPerformanceByAttemptId():
+    return quizController.getQuizPerformanceByQuizAttemptID(request.get_json())
+# Get quiz questions by section id
+@app.route("/addquizattempt",methods=["POST"])
+def addQuizAttempt():
+  return quizController.addQuizAttempt(request.get_json())
+
+# Get quiz questions by section id
+@app.route("/getallcorrectquizchoicesbysectionid",methods=["POST"])
+def getAllCorrectQuizChoicesBySectionId():
+  return quizController.getAllCorrectQuizChoicesBySectionId(request.get_json())
+# Get quiz questions by section id
+@app.route("/getquizquestionsandchoicesbysectionid",methods=["POST"])
+def getQuizQuestionsAndChoicesBySectionId():
+  return quizController.getQuizQuestionsAndChoicesBySectionId(request.get_json())
+# Get quiz questions by section id
+@app.route("/getquizquestionsbysectionid",methods=["POST"])
+def getQuizQuestionsBySectionId():
+  return quizController.getQuizQuestionsBySectionId(request.get_json())
+# Get material by section id
+@app.route("/getmaterialsbysectionid",methods=["POST"])
+def getMaterialBySectionId():
+    return sectionController.getMaterialsBySectionID(request.get_json()) 
+# Udpate quiz choice
+@app.route("/updatequizchoice",methods=["POST"])
+def updateQuizChoice():
+    return quizController.updateQuizChoice(request.get_json())
+
+# Update quiz question
+@app.route("/updatequizquestion",methods=["POST"])
+def updateQuizQuestion():
+    return quizController.updateQuizQuestion(request.get_json())
+# Add quiz attempt
+# @app.route("/addnewquizattempt", methods = ["POST"])
+# def addQuizAttempt():
+#     return quizController.addQuizAttempt(request.get_json())
+# Add quiz performance
+@app.route("/addnewquizperformance", methods = ["POST"])
+def addQuizPerformance():
+    return quizController.addQuizPerformance(request.get_json())
+# Add quiz choice
+@app.route("/addnewchoice", methods = ["POST"])
+def addChoice():
+    return quizController.addQuizChoice(request.get_json())
+
+# Add quiz quesion
+@app.route("/addquizquestion", methods = ["POST"])
+def addQuestion():
+    return quizController.addQuizQuestion(request.get_json())
+# Add new material
+@app.route("/addnewmaterial", methods = ["POST"])
+def addMaterial():
+    print(request.get_json())
+    return sectionController.addNewMaterial(request.get_json())
+
+# Delete material by ID
+@app.route("/deletematerialbyid", methods = ["DELETE"])
+def deleteMaterialById():
+    return sectionController.deleteMaterialByMaterialID(request.get_json())
+
+# Update section details
+@app.route("/updatesection", methods = ["POST"])
+def updateSection():
+    return sectionController.updateSectionBySectionID(request.get_json())
+
+#Delete section by ID
+@app.route("/deletesectionbyid",methods = ["DELETE"])
+def deleteSectionByID():
+    return sectionController.deleteSectionBySectionID(request.get_json())
+# Update quiz attempt
+@app.route("/getquizattempt",methods=["POST"])
+def getQuizAttempt():
+    return quizController.getQuizAttempyByID(request.get_json())
+
+# Update quiz attempt
+@app.route("/updatequizattempt",methods=["PUT"])
+def updateAttempt():
+    print(request)
+    print(request.get_json())
+    return quizController.updateQuizAttemptGrade(request.get_json())
 
 
 

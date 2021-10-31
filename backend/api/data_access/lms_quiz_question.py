@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class QuizQuestion(db.Model):
+class LMSQuizQuestion(db.Model):
     __tablename__ = "lms_quiz_question"
     quiz_question_id = db.Column(db.Integer, primary_key=True)
     section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))#,primary_key=True)

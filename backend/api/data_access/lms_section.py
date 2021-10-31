@@ -2,10 +2,10 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class Section(db.Model):
+class LMSSection(db.Model):
     __tablename__ = "lms_section"
     section_id = db.Column(db.Integer, primary_key=True)
-    conduct_id = db.Column(db.Integer,db.ForeignKey('lms_conduct.id'))#, primary_key=True)
+    conduct_id = db.Column(db.Integer,db.ForeignKey('lms_conduct.conduct_id'))#, primary_key=True)
     sequence = db.Column(db.Integer)
     section_name = db.Column(db.VARCHAR(50))
     quiz_duration = db.Column(db.Integer)

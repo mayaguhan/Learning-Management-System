@@ -2,11 +2,11 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class QuizPerformance(db.Model):
+class LMSQuizPerformance(db.Model):
     __tablename__ = "lms_quiz_performance"
     quiz_attempt_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_attempt.id'), primary_key=True)
     quiz_question_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_question.id'),primary_key=True)
-    quiz_option_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_option.id'),primary_key=True)
+    quiz_choice_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_choice.id'),primary_key=True)
     
     # as of 9 October, all methods are local and update operations have not been made yet
     # Getter and setter methods
@@ -22,11 +22,11 @@ class QuizPerformance(db.Model):
     def setQuestionID(self,newID):
         self.quiz_question_id = newID
 
-    def getOptionID(self):
-        return self.quiz_option_id
+    def getChoiceID(self):
+        return self.quiz_choice_id
     
     def setOptionID(self,newID):
-        self.quiz_option_id = newID
+        self.quiz_choice_id = newID
 
     
     # 2 way translation
