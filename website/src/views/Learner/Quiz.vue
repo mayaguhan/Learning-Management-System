@@ -92,6 +92,7 @@ export default {
         quizAttemptId: 0,
         conductId: 0,
         sectionName: "",
+        passingGrade: 0,
         
         questions: [],
         quizResult: 0,
@@ -111,6 +112,7 @@ export default {
             }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
+                    this.passingGrade = response.data[0]["passing_grade"];
                     this.conductId = response.data[0]["conduct_id"];
                     this.countdown = response.data[0]["quiz_duration"] * 60;
                     this.sectionName = response.data[0]["section_name"];               
@@ -185,7 +187,12 @@ export default {
                 .then((response) => {
                     console.log(studentScore);
                     console.log(response);
-                    this.text = `You got ${studentScore}/100`
+                    if (studentScore >= this.passingGrade) {
+                        this.text = `You passed! You got ${studentScore}/100`;
+                    }
+                    else {
+                        this.text = `You failed, better luck next time! The passing grade is ${this.passingGrade}, you got ${studentScore}/100`;
+                    }
                     this.showSnackbar();
                 })
         },
