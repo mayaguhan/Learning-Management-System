@@ -1,42 +1,43 @@
 <template>
     <div>
         <h1>
-            Manage Quiz: {{ sectionDetail.section_name }}
+            Manage Quiz: {{ sectionDetail.section_name }} 
         </h1>
 
         <h2>
-            Quiz Information
-            <!-- Toggle: Edit Section -->
-            <v-btn icon @click="toggleEditSection=!toggleEditSection" 
-            v-show="toggleEditSection == false">
-                <v-icon>mdi-pencil</v-icon>
-            </v-btn>
+            <v-form v-model="isSaveValid">
+                Quiz Information
+                <!-- Toggle: Edit Section -->
+                <v-btn icon @click="toggleEditSection=!toggleEditSection" v-show="toggleEditSection == false">
+                    <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+                <!-- Save Section Edit -->
+                <v-btn class="primary mr-3" @click="toggleEditSection=!toggleEditSection, saveSectionEdit()" 
+                v-show="toggleEditSection == true" :disabled="!isSaveValid">
+                    Save
+                </v-btn>
 
-            <!-- Save Section Edit -->
-            <v-btn class="primary mr-3" @click="toggleEditSection=!toggleEditSection, saveSectionEdit()" 
-            v-show="toggleEditSection == true" >
-                Save
-            </v-btn>
-
-            <!-- Cancel Section Edit -->
-            <v-btn class="light"  @click="toggleEditSection=!toggleEditSection" 
-            v-show="toggleEditSection == true">
-                Cancel
-            </v-btn>
+                <!-- Cancel Section Edit -->
+                <v-btn class="light"  @click="toggleEditSection=!toggleEditSection" v-show="toggleEditSection == true">
+                    Cancel
+                </v-btn>
+            </v-form>
         </h2>
+
         <p>
             Quiz Duration: 
             <span v-show="toggleEditSection == false">{{ sectionDetail.quiz_duration }} minutes <br></span>
             
-            <v-text-field v-model="sectionDetail.quiz_duration" :rules="[rules.required, rules.durationMin, rules.durationMax]"
+            <v-text-field v-model="quizDuration" :rules="[rules.required, rules.durationMin, rules.durationMax]"
             v-show="toggleEditSection == true" type="number" label="Quiz Duration"  maxlength="4" ></v-text-field>
             
             Pass Criteria: 
             <span v-show="toggleEditSection == false">{{ sectionDetail.passing_grade }}% to pass <br></span>
-            <v-text-field v-model="sectionDetail.passing_grade" :rules="[rules.required, rules.gradeMin, rules.gradeMax]"
+            <v-text-field v-model="passingGrade" :rules="[rules.required, rules.gradeMin, rules.gradeMax]"
             v-show="toggleEditSection == true" type="number" label="Passing Grade %"  maxlength="3" ></v-text-field>
         </p>
-
+        
+        <v-divider class="mt-3 mb-3"></v-divider>
         <h2>
             Quiz Questions
             <!-- Toggle: Edit Questions -->
@@ -129,8 +130,7 @@
                 </v-expansion-panel-content>
             </v-expansion-panel>
         </v-expansion-panels>
-
-
+        <v-divider class="mt-3 mb-3"></v-divider>
         <h2>Quiz Statistics</h2>
         <v-expansion-panels multiple>
             <v-expansion-panel>
@@ -308,13 +308,16 @@ export default {
         ],
 
         rules: {
-            required: value => !!value || 'Required.',
+            required: value => !!value || 'Required',
             counter: value => value.length <= 100 || 'Max 100 characters',
             durationMin: value => value >= 10 || 'Min duration is 10 minutes',
             durationMax: value => value <= 120 || 'Max duration is 120 minutes',
             gradeMin: value => value >= 0 || 'Min passing grade is 0%',
             gradeMax: value => value <= 100 || 'Max passing grade is 100%',
         },
+        isSaveValid: false,
+        quizDuration: 0,
+        passingGrade: 0,
         componentKey: 0
     }),
     methods: {
@@ -328,6 +331,8 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.sectionDetail = response.data[0];
+                    this.quizDuration = response.data[0].quiz_duration;
+                    this.passingGrade = response.data[0].passing_grade;
                 })
         },
 
@@ -353,7 +358,6 @@ export default {
                         this.editChoices.push(question.question_choices)
                     });
                     this.questions = questionArr;
-                    console.log(this.questions);
                 })
         },
         choiceColour: function (correct) {
@@ -364,14 +368,14 @@ export default {
 
         // --- Section ---
         saveSectionEdit() {
-            // TO DO: Save Section Edits
             // Update Section by section_id
-            console.log("Save");
-            console.log("New Section Duration:", parseInt(this.sectionDetail.quiz_duration));
-            console.log("New Section Passing", parseInt(this.sectionDetail.passing_grade));
-
-
-
+            let updatedApiWithEndpoint = this.apiLink + "/updatesectionbysectionid";
+            let dataObj = { "sectionId": this.section_id, "sectionName": this.sectionDetail.section_name, "sequence": this.sectionDetail.sequence,
+                            "quizDuration": this.sectionDetail.quiz_duration, "passingGrade": this.sectionDetail.passing_grade};
+            axios.put(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    console.log(response);
+                })
         },
 
 
@@ -402,22 +406,15 @@ export default {
         saveEditQuestion() {
             // Save edit question changes
             let changes = this.questions.filter(this.questionComparer(this.questionsCopy)); // Questions to update
-            // console.log("Edited:", this.questions);
-            // console.log("Original:", this.questionsCopy);
-            // console.log("Changes:", changes);
-
             changes.forEach(change => {
                 if (change.quiz_question_id == null) {
                     // Add new Quiz Question
                     let updatedApiWithEndpoint = this.apiLink + "/addnewquizquestion";
                     let dataObj = { "sectionId": this.section_id, "questionName": change.question_name };
-                    console.log(updatedApiWithEndpoint, dataObj);
                     axios.post(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             // Retrieve new Quiz Question and adds 2 Choices
                             let newQuizQuestionId = response.data[0].insertId
-                            console.log("New quiz_question_id: ", newQuizQuestionId);
-
                             let addOptionEndPoint = this.apiLink + "/addnewquizoption";
                             let dataObj1 = { "quizQuestionId": newQuizQuestionId, "choice": "Choice B", "correct": 0 };
                             axios.post(addOptionEndPoint, dataObj1)
@@ -444,7 +441,6 @@ export default {
             });
             this.deleteQuestionId.forEach(quiz_question_id => {
                 if (quiz_question_id != null) {
-                    console.log("DELETE: ", quiz_question_id);
                     // Delete Quiz Question by quiz_question_id
                     let updatedApiWithEndpoint = this.apiLink + "/deletequizquestionbyquestionid";
                     let dataObj = { "questionId" : quiz_question_id };
@@ -493,10 +489,6 @@ export default {
         saveEditChoice(indexQ) {
             // Save Edit Choice Changes
             let changes = this.editChoices[indexQ].filter(this.choiceComparer(this.choicesCopy[indexQ]));
-            console.log("Edited:", this.editChoices[indexQ]);
-            console.log("Original:", this.choicesCopy[indexQ]);
-            console.log("Changes:", changes);
-
             changes.forEach(change => {
                 if (change.quiz_choice_id == null) {
                     // Add new Quiz Choice
@@ -505,7 +497,6 @@ export default {
                     axios.post(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             console.log(response.data);
-                            // console.log("New quiz_option_id: ", response.data[0].insertId);
                         })
                 } else {
                     // Update Quiz Choice by quiz_choice_id
@@ -517,10 +508,8 @@ export default {
                         })
                 }
             });
-            // Delete Choices
             this.deleteChoiceId.forEach(quiz_choice_id => {
                 if (quiz_choice_id != null) {
-                    console.log("DELETE: ", quiz_choice_id);
                     // Delete Quiz Choice by quiz_choice_id
                     let updatedApiWithEndpoint = this.apiLink + "/deletequizchoicebychoiceid";
                     let dataObj = { "quizChoiceId" : quiz_choice_id };
@@ -531,7 +520,6 @@ export default {
                 }
             });
             this.deleteQuestionId = [];
-            console.log(this.questions);
         },
         choiceComparer(otherArray){
             return function(current){
