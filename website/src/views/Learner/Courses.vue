@@ -290,6 +290,9 @@
         console.log(conduct_id);
       },
       doesNotMeetReq(course_requisite_id_para){
+        if (course_requisite_id_para == null) {
+          return false
+        }
         for (let i = 0; i < this.coursesCompleted.length; i++) {
           if (course_requisite_id_para === this.coursesCompleted[i]["course_id"]){
             return false;
