@@ -24,6 +24,8 @@
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                     <div v-if=" section.section_id != null">
+                        
+
                         <!-- Upload slide decks -->
                         <b>Topic's Slide Decks</b><br>
                         <ul v-for="material in materials" v-bind:key="material.material_id">
@@ -36,7 +38,8 @@
                                 <b>This section has no materials</b>
                             </li>
                         </ul>
-                        
+                        <!-- TO DO: Method to upload new materials -->
+
                     </div>
                     <v-divider></v-divider>
 
@@ -80,23 +83,34 @@ export default {
             let updatedS3WithEndpoint = this.s3Link + material_link;
             return updatedS3WithEndpoint;
         },
+        // Get a Course Conducted information by conduct_id
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    console.log(response.data);
                     this.courseDetail = response.data[0];
                 })
         },
-        // Get all Sections by conduct_id (Trainer)
+        // Get all Sections by conduct_id and user_id (Learner)
         getCourseSections() {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid";
-            let dataObj = { "conductId": this.conduct_id }
+            let updatedApiWithEndpoint = this.apiLink + "/getallsectionsbyconductanduserid";
+            let dataObj = { "conductId": this.conduct_id, "learnerId": this.currentUserId } 
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    console.log(response.data);
-                    this.sections = response.data;
+                    let sections = response.data;
+                    console.log(sections);
+                    let boldSection = false;
+                    sections.forEach(section => {
+                        if ((section.result == "No Attempt" && boldSection == false) || ((section.best_grade !== null) && (section.best_grade < section.passing_grade))) {
+                            section["boldSection"] = true
+                            boldSection = true;
+                        } else if (section.result == "No Attempt" && boldSection == true) {
+                            section["disabled"] = true
+                        }
+                    });
+                    console.log(sections);
+                    this.sections = sections;
                 })
         },
         formatDate(date) {  
@@ -110,7 +124,6 @@ export default {
                     this.materials = response.data;
             })
         },
-
     },
     computed: {
         apiLink(){

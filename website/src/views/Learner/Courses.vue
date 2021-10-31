@@ -1,8 +1,9 @@
 <template>
   <div>
     <v-tabs>
-      <v-tab @click="allcourses = true; myprogress = false; inProgress = false; completed = false">All Courses</v-tab>
-      <v-tab @click="myprogress = true; allcourses = false; inProgress= true; completed = false">My Progress</v-tab>
+      <v-tab @click="allcourses = true; myprogress = false; inProgress = false; completed = false; myRequests = false">All Courses</v-tab>
+      <v-tab @click="myprogress = true; allcourses = false; inProgress= true; completed = false; myRequests = false">My Progress</v-tab>
+      <v-tab @click="myRequests= true; myprogress = false; allcourses = false; inProgress= false; completed = false">Requests</v-tab>
     </v-tabs>
 
     <v-tabs v-if="myprogress">
@@ -24,17 +25,18 @@
             <template v-slot:item="row">
               <tr>
                 <td>
-                  {{ row.item.course_code }} - {{ row.item.title }} 
+                  {{ row.item.course_code }} - {{ row.item.title }}
                 </td>
                 <td>
                   {{ row.item.cr_course_code }} - {{ row.item.cr_title }} 
                 </td>
                 <td>
                   {{ row.item.trainer_count }} 
+                  <!-- {{row.item}} -->
                 </td>
                 <td width="10">
                   <!-- Enrol Course Dialog -->
-                  <v-btn color="primary" :disabled="row.item.trainer_count == 0"
+                  <v-btn color="primary" :disabled="row.item.trainer_count == null || doesNotMeetReq(row.item.course_requisite_id)"
                   @click.stop="$set(selectedCourse, row.item.course_id, true), getCourseTrainer(row.item.course_id)">
                     View Trainers
                   </v-btn>
@@ -72,7 +74,7 @@
                               </td>
                               <td>
                                 <v-btn depressed small color="#0062E4" 
-                                @click="dialog = false, addEnrolment(row.item.conduct_id)">
+                                @click="dialog = false, addEnrolment(row.item.conduct_id, row.item.name)">
                                   <span style="color: white">Enrol Class</span> 
                               </v-btn>
                               </td>
@@ -158,6 +160,9 @@
           </template>
         </v-data-table>
       </div>
+
+      <!-- My Requests Content -->
+
     </div>
   </div>
 </template>
@@ -176,6 +181,7 @@
         myprogress: false,
         inProgress: false,
         completed: false,
+        myRequests: false,
         dialog: false, 
         search: '',
 
@@ -187,13 +193,13 @@
         selectedCourse: {},
         
         headersNotEnrolled: [
-          { text: 'Course', value: 'course_code', align: 'start', sortable: true},
+          { text: 'Course', value: 'title', align: 'start', sortable: true},
           { text: 'Requisite', value: 'cr_course_code'},
           { text: 'Trainers', value: 'trainer_count'},
           { text: '', value: 'actions', filterable: false, sortable: false}
         ],
         headersProgress: [
-          { text: 'Course', value: 'course_code', align: 'start', sortable: true},
+          { text: 'Course', value: 'title', align: 'start', sortable: true},
           { text: 'Trainer', value: 'name', sortable: true},
           { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
           { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
@@ -202,7 +208,7 @@
         ],
         headersCompleted: [
           { text: 'Badge', value: 'badge', align: 'start', filterable: false, sortable: false},
-          { text: 'Course', value: 'course_code', sortable: true},
+          { text: 'Course', value: 'title', sortable: true},
           { text: 'Trainer', value: 'name', sortable: true},
           { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
           { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
@@ -244,9 +250,12 @@
         let updatedApiWithEndpoint = this.apiLink + "/getallcompletedcoursesbyuserid";
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
+            console.log("Completed Courses", response.data);
             this.coursesCompleted = response.data;
           })
       },
+      // Get all requested Courses a User has by leanrner_id - TO-DO
+      
       // Get all Trainers that are conducting a Course by course_id
       getCourseTrainer(course_id) {
         let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
@@ -261,18 +270,35 @@
         return moment(date).format('yyyy-MM-DD HH:mm');
       },
       // Add new Enrolment
-      addEnrolment(conduct_id) {
+      addEnrolment(conduct_id, courseName) {
         let updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
-        let dataObj = { "learnerId" : this.currentUserId, "conductId": conduct_id, "selfEnrolment": 1, "status" : "New" };
+        let dataObj = { "learnerId" : this.currentUserId, "conductId": conduct_id, "selfEnrolment": 1, "status" : "Request" };
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
             console.log(response);
             // TO DO: Display successful enrolment
-
-
+            if (response.status === 200) {
+              this.getCoursesNotEnrolledIn();
+              alert(`You have successfully submitted the enrollment request for ${courseName}`);
+            }
+            else {
+              alert("Sorry, you have already enrolled into the class");
+            }
+            
             
         })
         console.log(conduct_id);
+      },
+      doesNotMeetReq(course_requisite_id_para){
+        if (course_requisite_id_para == null) {
+          return false
+        }
+        for (let i = 0; i < this.coursesCompleted.length; i++) {
+          if (course_requisite_id_para === this.coursesCompleted[i]["course_id"]){
+            return false;
+          }
+          return true;
+        }
       }
     },
     computed: {
