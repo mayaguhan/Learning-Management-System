@@ -1,8 +1,9 @@
 <template>
     <div>
         <v-tabs>
-            <v-tab @click="allcourses = true; allengineers = false;">All Courses</v-tab>
-            <v-tab @click="allengineers = true; allcourses = false;">Engineers</v-tab>
+            <v-tab @click="allcourses=true, allengineers=false, allrequest=false">All Courses</v-tab>
+            <v-tab @click="allcourses=false, allengineers=true, allrequest=false">Engineers</v-tab>
+            <v-tab @click="allcourses=false, allengineers=false, allrequest=true">Requests</v-tab>
         </v-tabs>
 
         <div>
@@ -10,37 +11,26 @@
           <div v-if="allcourses">
             <v-card>
               <v-card-title>
-                <v-text-field
-                  v-model="searchCourses"
-                  append-icon="mdi-magnify"
-                  label="Search"
-                  single-line
-                  hide-details
-                ></v-text-field>
-                <v-spacer></v-spacer>
-                <v-spacer></v-spacer>
-                <v-spacer></v-spacer>
+                <v-text-field v-model="searchCourses" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
               </v-card-title>
-              <v-data-table
-                :headers="headersCourses"
-                :items="courses"
-                :search="searchCourses"
-              >
+              <v-data-table :headers="headersCourses" :items="courses" :search="searchCourses">
                 <template v-slot:item="row">
                     <tr>
                         <td>
                             {{row.item.course_code}} - {{row.item.title}} 
                         </td>
                         <td>
+                          {{row.item.trainer_count}} 
+                        </td>
+                        <td>
                             {{ formatDate(row.item.start_date) }}
                         </td>
                         <td>
-                           {{ formatDate(row.item.end_date) }}
+                            {{ formatDate(row.item.end_date) }}
                         </td>
                         <td width="10">
                           <!-- Enrol Course Dialog -->
-                          <v-btn color="primary" :disabled="row.item.trainer_count == 0"
-                          @click.stop="$set(selectedCourse, row.item.course_id, true), getCourseTrainer(row.item.course_id)">
+                          <v-btn color="primary" @click.stop="$set(selectedCourse, row.item.course_id, true), getCourseTrainer(row.item.course_id)">
                             View Trainers
                           </v-btn>
                           <v-dialog v-model="selectedCourse[row.item.course_id]" scrollable max-width="1200" :key="row.item.course_id">
@@ -52,6 +42,101 @@
                                 {{ row.item.outline }}
                               </v-card-subtitle>
                               <v-card-text>
+
+                                <!-- Assign Trainer Dialog -->
+                                <v-btn color="primary" @click.stop="$set(selectedAssign, row.item.course_id, true), getCourseAssign(row.item.course_id)">
+                                  View Eligible Trainers
+                                </v-btn>
+                                <v-dialog v-model="selectedAssign[row.item.course_id]" scrollable max-width="1200" :key="row.item.course_id">
+                                  <v-card>
+                                    <v-card-title>
+                                      {{ row.item.course_code }} - {{ row.item.title }}
+                                    </v-card-title>
+                                    <v-card-subtitle>
+                                      Assign a Senior Engineer to teach this course
+                                    </v-card-subtitle>
+                                    <v-card-text>
+                                      <!-- List of Trainers to Assign -->
+                                      <v-data-table :headers="headersAssigns" :items="assigns">
+                                        <template v-slot:item="assign">
+                                          <tr>
+                                            <td>
+                                              {{ assign.item.name }} 
+                                            </td>
+                                            <td>
+                                              {{ assign.item.email }} <br>
+                                              {{ assign.item.contact }}
+                                            </td>
+                                            <td>
+                                              <v-btn color="primary" @click.stop="$set(selectedTrainer, assign.item.user_id, true)">
+                                                Assign Trainer
+                                              </v-btn>
+                                              <v-dialog persistent v-model="selectedTrainer[assign.item.user_id]" scrollable max-width="500" :key="assign.item.user_id">
+                                                <v-card>
+                                                  <v-card-title> 
+                                                    Add New Class
+                                                  </v-card-title>
+                                                  <v-card-subtitle>
+                                                    {{ assign.item.name }}'s {{ row.item.course_code }} - {{ row.item.title }}
+                                                  </v-card-subtitle>
+                                                  <v-card-text>
+                                                    <v-form v-model="isFormValid">
+                                                    <v-menu v-model="assignStartRegisterMenu">
+                                                      <template v-slot:activator="{ on, attrs }">
+                                                        <v-text-field v-model="assignStartRegister" prepend-icon="mdi-calendar" :rules="[rules.required, rules.currentDate]"
+                                                        label="Registration Start Date" readonly v-bind="attrs" v-on="on"></v-text-field>
+                                                      </template>
+                                                      <v-date-picker v-model="assignStartRegister" @input="assignStartRegisterMenu = false"></v-date-picker>
+                                                    </v-menu>
+
+                                                    <v-menu v-model="assignEndRegisterMenu">
+                                                      <template v-slot:activator="{ on, attrs }">
+                                                        <v-text-field v-model="assignEndRegister" prepend-icon="mdi-calendar" :rules="[rules.required, rules.currentDate, rules.assignRegister]"
+                                                        label="Registration End Date" readonly v-bind="attrs" v-on="on"></v-text-field>
+                                                      </template>
+                                                      <v-date-picker v-model="assignEndRegister" @input="assignEndRegisterMenu = false"></v-date-picker>
+                                                    </v-menu>
+
+                                                    <v-menu v-model="assignStartDateMenu">
+                                                      <template v-slot:activator="{ on, attrs }">
+                                                        <v-text-field v-model="assignStartDate" prepend-icon="mdi-calendar" :rules="[rules.required, rules.currentDate, rules.assignRegisterPeriod]"
+                                                        label="Course Start Date" readonly v-bind="attrs" v-on="on"></v-text-field>
+                                                      </template>
+                                                      <v-date-picker v-model="assignStartDate" @input="assignStartDateMenu = false"></v-date-picker>
+                                                    </v-menu>
+
+                                                    <v-menu v-model="assignEndDateMenu">
+                                                      <template v-slot:activator="{ on, attrs }">
+                                                        <v-text-field v-model="assignEndDate" prepend-icon="mdi-calendar" :rules="[rules.required, rules.currentDate, rules.assignPeriod]"
+                                                        label="Course End Date" readonly v-bind="attrs" v-on="on"></v-text-field>
+                                                      </template>
+                                                      <v-date-picker v-model="assignEndDate" @input="assignEndDateMenu = false"></v-date-picker>
+                                                    </v-menu>
+
+                                                    <v-text-field v-model="newCapacity" type="number" :rules="[rules.required, rules.capacityMin, rules.capacityMax]"
+                                                    label="Capacity" hint="Maximum class size" suffix="learners"></v-text-field>
+                                                  </v-form>
+                                                  </v-card-text>
+                                                  <v-card-actions>
+                                                    <v-btn class="primary" :disabled="!isFormValid" @click="assignTrainer(row.item.course_id, assign.item.user_id), selectedTrainer[assign.item.user_id]=false">
+                                                      Confirm 
+                                                    </v-btn>
+                                                    <v-spacer></v-spacer>
+                                                    <v-btn @click="selectedTrainer[assign.item.user_id]=false">
+                                                      Close
+                                                    </v-btn>
+                                                </v-card-actions>
+                                                </v-card>
+                                              </v-dialog>
+                                            </td>
+                                          </tr>
+                                          </template>
+                                        </v-data-table>
+                                    </v-card-text>
+                                  </v-card>
+                                </v-dialog>
+
+                                <!-- List of Trainers Conducting -->
                                 <v-data-table :headers="headersTrainers" :items="trainers">
                                   <template v-slot:item="row">
                                     <tr>
@@ -77,22 +162,17 @@
                                       </td>
                                       <td>
                                         <router-link :to="{ name: 'HRCourseDetail', params: { conduct_id: row.item.conduct_id }}">
-                                        <v-btn depressed small color="#0062E4" @click="dialog = false">
-                                          <span style="color: white">View Class</span> 
+                                        <v-btn class="primary">
+                                          View Class
                                         </v-btn>
                                         </router-link>
-    
                                       </td>
                                     </tr>
                                   </template>
                                 </v-data-table>
                               </v-card-text>
-                              <v-card-actions>
-                                <v-btn color="primary" @click.stop="$set(selectedCourse, row.item.course_id, false)">Close</v-btn>
-                              </v-card-actions>
                             </v-card>
                           </v-dialog>
-      
                         </td>
                     </tr>
                 </template>
@@ -104,37 +184,101 @@
           <div v-if="allengineers">
             <v-card>
               <v-card-title>
-                <v-text-field
-                  v-model="searchEngineers"
-                  append-icon="mdi-magnify"
-                  label="Search"
-                  single-line
-                  hide-details
-                ></v-text-field>
-                <v-spacer></v-spacer>
-                <v-spacer></v-spacer>
-                <v-spacer></v-spacer>
+                <v-text-field v-model="searchEngineers" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
               </v-card-title>
-              <v-data-table
-                :headers="headersEngineers"
-                :items="engineers"
-                :search="searchEngineers"
-              >
+              <v-data-table :headers="headersEngineers" :items="engineers" :search="searchEngineers">
+                <template v-slot:item="row">
+                  <tr>
+                    <td>
+                      {{row.item.name}}
+                    </td>
+                    <td>
+                      {{ row.item.seniority_level }}
+                    </td>
+                  </tr>
+                </template>
+              </v-data-table>
+            </v-card>
+          </div>
+
+          <!-- Self-Enrolment Requests -->
+          <div v-if="allrequest">
+            <v-card>
+              <v-card-title>
+                <v-text-field v-model="searchRequest" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
+              </v-card-title>
+              <v-data-table :headers="headersRequest" :items="requests" :search="searchRequest" >
                 <template v-slot:item="row">
                     <tr>
                         <td>
-                            {{row.item.name}}
+                          {{ row.item.name }}
                         </td>
                         <td>
-                            {{ row.item.seniority_level }}
+                          {{ row.item.contact }} <br>
+                          {{ row.item.email }}
+                        </td>
+                        <td>
+                          {{ row.item.seniority_level }}
+                        </td>
+                        <td>
+                          {{ row.item.course_code }} - {{ row.item.title }} 
+                        </td>
+                        <td width="10">
+                          <v-btn color="primary" @click.stop="$set(selectedRequest, row.item.learner_id+'|'+row.item.course_id, true)">
+                            Action
+                          </v-btn>
+
+                          <v-dialog persistent v-model="selectedRequest[row.item.learner_id+'|'+row.item.course_id]" scrollable max-width="800" 
+                            :key="row.item.learner_id+'|'+row.item.course_id">
+                            <v-card>
+                              <v-card-title>
+                                {{ row.item.course_code }} - {{ row.item.title }} 
+                              </v-card-title>
+                              <v-card-subtitle>
+                                {{ row.item.outline }}
+                              </v-card-subtitle>
+                              <v-card-text>
+                                <table>
+                                  <tr>
+                                    <td>Name: </td>
+                                    <td>{{ row.item.name }}</td>
+                                  </tr>
+                                  <tr>
+                                    <td>Contact: </td>
+                                    <td>{{ row.item.contact }} | {{ row.item.email }}</td>
+                                  </tr>
+                                  <tr>
+                                    <td>Registration Period: </td>
+                                    <td>{{ formatDate(row.item.start_register)}} - {{ formatDate(row.item.end_register)}}</td>
+                                    
+                                  </tr>
+                                  <tr>
+                                    <td>Course Period: </td>
+                                    <td>{{ formatDate(row.item.start_date)}} - {{ formatDate(row.item.end_date)}}</td>
+                                  </tr>
+                                </table>
+                                <v-text-field v-model="enrolmentRemarks" label="Remarks" maxlength="50" ></v-text-field>
+                              </v-card-text>
+                              <v-card-actions>
+                                <v-btn class="success" @click="selfEnrolmentAction(row.item, 'Progress'), selectedRequest[row.item.learner_id+'|'+row.item.course_id]=false">
+                                  Accept 
+                                </v-btn>
+                                <v-btn class="error" @click="selfEnrolmentAction(row.item, 'Reject'),  selectedRequest[row.item.learner_id+'|'+row.item.course_id]=false">
+                                  Reject 
+                                </v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn @click="selectedRequest[row.item.learner_id+'|'+row.item.course_id]=false, enrolmentRemarks=''">
+                                  Close
+                                </v-btn>
+                              </v-card-actions>
+                            </v-card>
+                          </v-dialog>
                         </td>
                     </tr>
                 </template>
               </v-data-table>
             </v-card>
-
           </div>
-
         </div>
     </div>
 </template>
@@ -149,75 +293,170 @@ export default {
     
     data () {
       return {
+        currentUserId: 1, // To be replaced with user_id of logged in user
 
         allcourses: true,
         allengineers: false,
-        dialog: false, 
+        allrequest: false,
 
         selectedCourse: {},
+        selectedAssign: {},
+        selectedRequest: {},
+        selectedTrainer: {},
+        enrolmentRemarks: "",
+        assignStartDate: "",
+        assignEndDate: "",
+        assignStartRegister: "",
+        assignEndRegister: "",
+        assignStartDateMenu: false,
+        assignEndDateMenu: false,
+        assignStartRegisterMenu: false,
+        assignEndRegisterMenu: false,
+        newCapacity: 10,
+        isFormValid: false,
 
+        courses: [],
         searchCourses: '',
         headersCourses: [
             { text: 'Course Name', value: 'title', align: 'start', sortable: true},
+            { text: 'Trainers', value: 'trainer_count', filterable: false, sortable: true},
             { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
             { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
             { text: '', value: 'actions', filterable: false, sortable: false}
         ],
-        courses: [],
-        trainers: [],
 
+        engineers: [],
         searchEngineers: '',
         headersEngineers: [
             { text: 'Name', value: 'name', align: 'start', sortable: true},
             { text: 'Seniority Level', value: 'seniority_level', filterable: false, sortable: false},
         ],
-        engineers: [],
+        
+        trainers: [],
         headersTrainers: [
-            { text: 'Trainer', value: 'name', align: 'start', filterable: true, sortable: true},
-            { text: 'Contact Details', value: 'contact_details', filterable: false, sortable: false},
-            { text: 'Available', value: 'remaining', align: 'start', filterable: true, sortable: true},
-            { text: 'Registration', value: 'end_register', align: 'start', filterable: true, sortable: true},
-            { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
-            { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
+            { text: 'Trainer', value: 'name', align: 'start', sortable: true},
+            { text: 'Contact Details', value: 'contact_details', sortable: false},
+            { text: 'Available', value: 'remaining', align: 'start', sortable: true},
+            { text: 'Registration', value: 'end_register', align: 'start', sortable: true},
+            { text: 'Start Date', value: 'start_date', sortable: true},
+            { text: 'End Date', value: 'end_date', sortable: true},
+            { text: '', value: 'actions', sortable: false}
+        ],
+
+        assigns: [],
+        headersAssigns: [
+            { text: 'Trainer', value: 'name', align: 'start', sortable: true},
+            { text: 'Contact Details', value: 'contact_details', sortable: false},
+            { text: '', value: 'actions', sortable: false}
+        ],
+
+        requests: [],
+        searchRequest: '',
+        headersRequest: [
+            { text: 'Name', value: 'name', align: 'start', sortable: true},
+            { text: 'Contact', value: 'email', filterable: false, sortable: false},
+            { text: 'Seniority Level', value: 'seniority_level', filterable: false, sortable: true},
+            { text: 'Course', value: 'course_code', filterable: false, sortable: true},
             { text: '', value: 'actions', filterable: false, sortable: false}
-        ]
+        ],
+
+        rules: {
+            required: value => !!value || 'Required.',
+            currentDate: value => value >= this.formatDate(new Date()) || "You can't select a date in the past",
+            assignRegister: value => value > this.assignStartRegister || "Your registration end date must be later than your start date",
+            assignPeriod: value => value > this.assignStartDate || "Your class end date must be later than your start date",
+            assignRegisterPeriod: value => value > this.assignEndRegister || "Your class start date must be after your class registration end date",
+            capacityMin: value => value >= 10 || 'Class minimum capacity is 10',
+            capacityMax: value => value <= 100 || 'Class capacity is capped at 100'
+        },
       }
     },
 
     methods: {
+        // Get all Courses
         getCoursesDetail() {
             let updatedApiWithEndpoint1 = this.apiLink + "/getallcourses";
             axios.get(updatedApiWithEndpoint1)
             .then((response) => {
-               console.log(response);
-               this.courses = response.data;
+                this.courses = response.data;
             })
         },
 
+        // Get all Users
         getEngineersDetail() {
             let updatedApiWithEndpoint2 = this.apiLink + "/getusers";
             axios.get(updatedApiWithEndpoint2)
             .then((response) => {
-                console.log(response);
                 this.engineers = response.data;
             })
+        },
 
+        // Get all Trainers that are conducting a Course by course_id
+        getCourseTrainer(course_id) {
+          let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
+          let dataObj = { 'courseId' : course_id};
+          axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+              this.trainers = response.data;
+          })
+        },
+
+        // Get all Trainers eligible to teach a Course by course_id
+        getCourseAssign(course_id) {
+          let updatedApiWithEndpoint = this.apiLink + "/getalltrainerseligibletoteachacourse";
+          let dataObj = { 'courseId' : course_id};
+          axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+              this.assigns = response.data;
+          })
+        },
+
+        // Add new Course Conduct
+        assignTrainer(course_id, trainer_id) {
+          // TO DO: 
+          let updatedApiWithEndpoint = this.apiLink + "/TBC";
+          let dataObj = { "courseId" : course_id, "trainerId": trainer_id, "capacity": this.newCapacity, 
+                          "startDate" : this.assignStartDate, "endDate":  this.assignEndDate, 
+                          "startRegister": this.assignStartRegister, "endRegister" : this.assignEndRegister };
+          console.log(updatedApiWithEndpoint, dataObj)
+
+          // axios.put(updatedApiWithEndpoint, dataObj)
+          // .then((response) => {
+          //     console.log(response.data)
+          // })
+          this.assignStartDate = '';
+          this.assignEndDate = '';
+          this.assignStartRegister = '';
+          this.assignEndRegister = '';
+          this.newCapacity = 10;
+        },
+
+        // Get all Self-Enrolment request
+        getEnrolmentRequest() {
+          let updatedApiWithEndpoint = this.apiLink + "/getallselfenrolmentrequest";
+          axios.get(updatedApiWithEndpoint)
+          .then((response) => {
+              this.requests = response.data;
+          })
+        },
+
+        // Updates an enrolment by learner_id and conduct_id
+        selfEnrolmentAction(request, action) {
+          console.log(request, action)
+          // TO DO: 
+          let updatedApiWithEndpoint = this.apiLink + "/TBC";
+          let dataObj = { "learnerId" : request.learner_id, "conductId": request.conduct_id, "status" : action, "remarks": this.enrolmentRemarks };
+          console.log(updatedApiWithEndpoint, dataObj)
+          // axios.put(updatedApiWithEndpoint, dataObj)
+          // .then((response) => {
+          //     console.log(response.data)
+          // })
+          this.enrolmentRemarks = '';
         },
 
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD');
         },
-
-        getCourseTrainer(course_id) {
-          let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
-          let dataObj = { 'courseId' : course_id};
-          console.log(dataObj, course_id);
-          axios.post(updatedApiWithEndpoint, dataObj)
-          .then((response) => {
-              this.trainers = response.data;
-          })
-      },
-
     },
 
     computed: {
@@ -228,11 +467,13 @@ export default {
     created() {
         // Calls method to get course details
         this.getCoursesDetail();
+
+        // Calls method to get trainer details
         this.getEngineersDetail();
 
-
+        // Calls method to get all self-enrolment requests
+        this.getEnrolmentRequest();
     }
-
   }
 </script>
 
