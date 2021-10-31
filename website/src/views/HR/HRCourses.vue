@@ -12,6 +12,46 @@
             <v-card>
               <v-card-title>
                 <v-text-field v-model="searchCourses" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
+                <v-dialog v-model="courseDialog" persistent max-width="600px">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn class="primary ml-5" v-bind="attrs" v-on="on">
+                      Add New Course
+                    </v-btn>
+                  </template>
+                  <v-card>
+                    <v-card-title>
+                      <span class="text-h5">Add New Course</span>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-form v-model="courseFormValid">
+                        <v-text-field v-model="newCourseCode" counter :rules="[rules.required, rules.courseCode]" 
+                        label="Course Code" maxlength="10"></v-text-field>
+
+                        <v-text-field v-model="newTitle" counter :rules="[rules.required, rules.courseTitle]" 
+                        label="Course Title" maxlength="100"></v-text-field>
+
+                        <v-textarea v-model="newOutline" :rules="[rules.required, rules.courseOutline]" 
+                        label="Course Outline" maxlength="500" filled auto-grow background-color="light-grey"></v-textarea>
+
+                        <v-select v-model="newRequisite" :items="courses" :menu-props="{ top: true, offsetY: true }"
+                          label="Courses" item-text="title" item-value="course_id"></v-select>
+
+                        <v-file-input v-model="newBadge" prepend-icon="mdi-camera" 
+                        accept="image/png, image/jpeg, image/bmp" label="Upload Badge Image" ></v-file-input>
+                      </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="blue darken-1" text @click="courseDialog=false">
+                          Close
+                      </v-btn>
+                      <v-btn color="blue darken-1" text :disabled="!courseFormValid" @click="courseDialog=false, addNewCourse()">
+                          Add
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+              </v-dialog>
+
               </v-card-title>
               <v-data-table :headers="headersCourses" :items="courses" :search="searchCourses">
                 <template v-slot:item="row">
@@ -174,6 +214,49 @@
                             </v-card>
                           </v-dialog>
                         </td>
+
+                        <td>
+                          <v-btn color="primary" @click.stop="$set(selectedEdit, row.item.course_id, true)">
+                            Edit
+                          </v-btn>
+
+                          <v-dialog persistent v-model="selectedEdit[row.item.course_id]" scrollable max-width="800" :key="row.item.course_id">
+                            <v-card>
+                              <v-card-title>
+                                Edit a Course
+                              </v-card-title>
+                              <v-card-text>
+                                <v-form v-model="editFormValid">
+                                  <v-text-field v-model="row.item.course_code" counter :rules="[rules.required, rules.courseCode]" 
+                                  label="Course Code" maxlength="10"></v-text-field>
+
+                                  <v-text-field v-model="row.item.title" counter :rules="[rules.required, rules.courseTitle]" 
+                                  label="Course Title" maxlength="100"></v-text-field>
+
+                                  <v-textarea v-model="row.item.outline" :rules="[rules.required, rules.courseOutline]" 
+                                  label="Course Outline" maxlength="500" filled auto-grow background-color="light-grey"></v-textarea>
+
+                                  <v-select v-model="row.item.course_requisite_id" :items="courses" :menu-props="{ top: true, offsetY: true }"
+                                    label="Courses" item-text="course_requisite_id" item-value="course_requisite_id"></v-select>
+
+                                  <v-file-input v-model="newBadge" prepend-icon="mdi-camera" 
+                                  accept="image/png, image/jpeg, image/bmp" label="Upload Badge Image" ></v-file-input>
+                                </v-form>
+                              </v-card-text>
+                              <v-card-actions>
+                                <v-spacer></v-spacer>
+
+                                <v-btn color="blue darken-1" text :disabled="!editFormValid" 
+                                @click="selectedEdit[row.item.course_id]=false, editCourse(row.item), newBadge={}">
+                                  Edit
+                                </v-btn>
+                                <v-btn color="blue darken-1" text @click="selectedEdit[row.item.course_id]=false, newBadge={}">
+                                  Close
+                                </v-btn>
+                              </v-card-actions>
+                            </v-card>
+                          </v-dialog> 
+                        </td>
                     </tr>
                 </template>
               </v-data-table>
@@ -191,6 +274,10 @@
                   <tr>
                     <td>
                       {{row.item.name}}
+                    </td>
+                    <td>
+                      {{ row.item.email }}<br>
+                      {{ row.item.contact }}
                     </td>
                     <td>
                       {{ row.item.seniority_level }}
@@ -240,11 +327,11 @@
                               <v-card-text>
                                 <table>
                                   <tr>
-                                    <td>Name: </td>
+                                    <td>Learner Name: </td>
                                     <td>{{ row.item.name }}</td>
                                   </tr>
                                   <tr>
-                                    <td>Contact: </td>
+                                    <td>Learner Contact: </td>
                                     <td>{{ row.item.contact }} | {{ row.item.email }}</td>
                                   </tr>
                                   <tr>
@@ -303,6 +390,7 @@ export default {
         selectedAssign: {},
         selectedRequest: {},
         selectedTrainer: {},
+        selectedEdit: {},
         enrolmentRemarks: "",
         assignStartDate: "",
         assignEndDate: "",
@@ -313,7 +401,15 @@ export default {
         assignStartRegisterMenu: false,
         assignEndRegisterMenu: false,
         newCapacity: 10,
+        courseDialog: false,
+        courseFormValid: false,
+        editFormValid: false,
         isFormValid: false,
+        newRequisite: 0,
+        newCourseCode: "",
+        newTitle: "",
+        newOutline: "",
+        newBadge: {},
 
         courses: [],
         searchCourses: '',
@@ -322,6 +418,7 @@ export default {
             { text: 'Trainers', value: 'trainer_count', filterable: false, sortable: true},
             { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
             { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
+            { text: '', value: 'actions', filterable: false, sortable: false},
             { text: '', value: 'actions', filterable: false, sortable: false}
         ],
 
@@ -329,6 +426,7 @@ export default {
         searchEngineers: '',
         headersEngineers: [
             { text: 'Name', value: 'name', align: 'start', sortable: true},
+            { text: 'Contact Details', value: 'contact_details', sortable: false},
             { text: 'Seniority Level', value: 'seniority_level', filterable: false, sortable: false},
         ],
         
@@ -367,12 +465,22 @@ export default {
             assignPeriod: value => value > this.assignStartDate || "Your class end date must be later than your start date",
             assignRegisterPeriod: value => value > this.assignEndRegister || "Your class start date must be after your class registration end date",
             capacityMin: value => value >= 10 || 'Class minimum capacity is 10',
-            capacityMax: value => value <= 100 || 'Class capacity is capped at 100'
+            capacityMax: value => value <= 100 || 'Class capacity is capped at 100',
+            courseCode: value => value.length <= 10 || 'Max Length is 10',
+            courseTitle: value => value.length <= 100 || 'Max Length is 100',
+            courseOutline: value => value.length <= 500 || 'Max Length is 500'
         },
       }
     },
 
     methods: {
+        forceRerender() {
+            this.componentKey += 1;
+        },
+        s3link(material_link) {
+            let updatedS3WithEndpoint = this.s3Link + material_link;
+            return updatedS3WithEndpoint;
+        },
         // Get all Courses
         getCoursesDetail() {
             let updatedApiWithEndpoint1 = this.apiLink + "/getallcourses";
@@ -419,7 +527,7 @@ export default {
                           "startDate" : this.assignStartDate, "endDate":  this.assignEndDate, 
                           "startRegister": this.assignStartRegister, "endRegister" : this.assignEndRegister };
           console.log(updatedApiWithEndpoint, dataObj)
-
+          // let updatedApiWithEndpoint = this.apiLink + "/TBC";
           // axios.put(updatedApiWithEndpoint, dataObj)
           // .then((response) => {
           //     console.log(response.data)
@@ -452,6 +560,64 @@ export default {
           //     console.log(response.data)
           // })
           this.enrolmentRemarks = '';
+        },
+        upload(file, str) {
+            var nameWithExtension = file['name']
+            var extensionArray = file['type'].split("/")
+            var extension = extensionArray[1]
+
+            var indexOfExtension = nameWithExtension.indexOf(extension);
+            var name = nameWithExtension.slice(0, indexOfExtension-1)
+
+            var content = "";
+            // var updatedApiWithEndpointM = this.apiLink + "/uploadfile";
+
+            let reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                content = reader.result.split(',')[1];
+                let dataObj = {"courseId": str.toString(),"fileName": name, 
+                            "fileExtension": extension, "content": content };
+                console.log(dataObj);
+                // axios.post(updatedApiWithEndpointM, dataObj)
+                //     .then((response) => {
+                //         // Saving filepath to DB
+                //         console.log(response)
+                //     })
+            }
+        },
+
+        // Add Course
+        addNewCourse() {
+          // TO DO:
+          console.log(this.newRequisite, this.newCourseCode, this.newTitle, this.newOutline, this.newBadge)
+
+
+
+
+
+          if (this.newBadge != {}) {
+            this.upload(this.newBadge, 100);
+          }
+          this.newRequisite = 0;
+          this.newCourseCode = "";
+          this.newTitle = "";
+          this.newOutline = "";
+          this.newBadge = {};
+        },
+
+        // Update Course by course_id
+        editCourse(course) {
+          // TO DO:
+
+
+
+
+          console.log(course)
+          if (this.newBadge != {}) {
+            this.upload(this.newBadge, 100);
+          }
+          this.newBadge = {};
         },
 
         formatDate(date) {  
