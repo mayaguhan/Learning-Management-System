@@ -9,17 +9,51 @@
         </p>
 
         <router-link :to="{ name: 'EnrolledStudent', params: { conduct_id: conduct_id } }">
-                <v-btn class="primary">
-                    View Enrolled Students
-                </v-btn>
+            <v-btn class="primary">
+                View Enrolled Students
+            </v-btn>
         </router-link>
-            <br>
-            <br>
-        <router-link :to="{ name: 'EnrolStudent', params: { conduct_id: conduct_id, course_id: courseDetail.course_id } }">
-                <v-btn class="primary">
+        <br>
+
+        <v-dialog v-model="dialog" max-width="600px">
+            <template v-slot:activator="{ on, attrs }">
+                <v-btn color="primary mt-3" dark v-bind="attrs" v-on="on">
                     Enrol Students
                 </v-btn>
-        </router-link> 
+            </template>
+            <v-card>
+                <v-card-title>
+                    Enrol Students
+                </v-card-title>
+                <v-card-text>
+                    <v-data-table :headers="headers" :items="enrolStudents" :search="search" :key="componentKey">
+                    <template v-slot:item="row">
+                        <tr>
+                            <td>
+                                {{ row.item.name }}
+                            </td>
+                            <td>
+                                {{ row.item.seniority_level }}
+                            </td>
+                            <td>
+                                {{ row.item.email }} <br>
+                                {{ row.item.contact }}
+                            </td>
+                            <td width="10">
+                                <v-btn class="primary" @click="enrolStudent(row.item.user_id)">
+                                    Enrol
+                                </v-btn>
+                            </td>
+                        </tr>
+                    </template>
+                    </v-data-table>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+
+        <!-- <router-link :to="{ name: 'EnrolStudent', params: { conduct_id: conduct_id, course_id: courseDetail.course_id } }"> -->
+        
+        <!-- </router-link>  -->
 
         <h2>Course Description</h2>
         <p>
@@ -85,29 +119,39 @@ export default {
         conduct_id: parseInt({ type: Number })
     },
     data: () => ({
-        currentUserId: 12, // To be replaced with user_id of logged in user
+        currentUserId: 1, // To be replaced with user_id of logged in user
 
         courseDetail: {},
         sections: [],
         materials: [],
+        enrolStudents: [],
+        search: '',
+        dialog: false,
+        headers: [
+            { text: 'Student Name', value: 'name', align: 'start', sortable: true},
+            { text: 'Level', value: 'seniority_level', filterable: false, sortable: true},
+            { text: 'Contact Details', value: 'contact_details', filterable: false, sortable: false},
+            { text: '', value: 'actions', filterable: false, sortable: false}
+        ],
+        componentKey: 0
     }),
     methods: {
-
+        forceRerender() {
+            this.componentKey += 1;
+        },
         s3link(material_link) {
             let updatedS3WithEndpoint = this.s3Link + material_link;
             return updatedS3WithEndpoint;
         },
 
-                // Get a Course Conducted information by conduct_id
+        // Get a Course Conducted information by conduct_id
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    console.log(response.data);
                     this.courseDetail = response.data[0];
-                    // To be removed
-                    this.courseDetail.start_date = "2021-10-31 12:00";
+                    this.getEnrolStudents(response.data[0].course_id, response.data[0].course_requisite_id)
                 })
         },
         // Get all Sections by conduct_id (Trainer)
@@ -116,7 +160,6 @@ export default {
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    console.log(response.data);
                     this.sections = response.data;
                 })
         },
@@ -124,7 +167,8 @@ export default {
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD hh:mm');
         },
-
+        
+        // Retrieves all materials of a section
         expandSection(section_id) {
             let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
             let dataObj = { "sectionId": section_id }
@@ -132,6 +176,34 @@ export default {
                 .then((response) => {
                     this.materials = response.data;
             })
+        },
+
+        // Get all Engineers that are eligible for a course by course id
+        getEnrolStudents(course_id, requisite_id) {
+            let updatedApiWithEndpoint = this.apiLink;
+            if (requisite_id == null) {
+                updatedApiWithEndpoint += "/getallengineerseligibleforcoursebycourse";
+            } else {
+                updatedApiWithEndpoint += "/getallengineerseligibleforcoursewithreqbycourse";
+            }
+            let dataObj = { "courseId": course_id}
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.enrolStudents = response.data;
+                })
+        },
+
+        enrolStudent(learner_id){
+            let updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
+            let dataObj = { "learnerId": learner_id, "conductId": this.conduct_id, "selfEnrolment": 0, "status": "Progress"}
+
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    console.log(response);
+                    this.getEnrolStudents(this.courseDetail.course_id, this.courseDetail.course_requisite_id)
+                    this.forceRerender();
+                    alert("This student has successfully been enrolled into the course!");
+                })
         },
 
     },

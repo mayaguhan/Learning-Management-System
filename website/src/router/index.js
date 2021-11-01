@@ -120,16 +120,6 @@ const routes = [
       requiresAuth: true
     }
   },
-
-  {
-    path: '/enrolstudent/:conduct_id/:course_id',
-    name: 'EnrolStudent',
-    component: () =>import('../views/HR/EnrolStudent.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true
-    }
-  },
 ]
 
 const router = new VueRouter({
