@@ -1,11 +1,13 @@
 from flask_sqlalchemy import SQLAlchemy
+from lms_user import LMSUser
+from lms_conduct import LMSConduct
 
 db = SQLAlchemy()
 
 class LMSEnrolment(db.Model):
     __tablename__ = "lms_enrolment"
-    learner_id = db.Column(db.Integer, db.ForeignKey('lms_user.id'),primary_key=True)
-    conduct_id = db.Column(db.Integer,db.ForeignKey('lms_conduct.id'), primary_key=True)
+    learner_id = db.Column(db.Integer, db.ForeignKey(LMSUser.user_id),primary_key=True)
+    conduct_id = db.Column(db.Integer,db.ForeignKey(LMSConduct.conduct_id), primary_key=True)
     self_enrolment = db.Column(db.SmallInteger())
     status = db.Column(db.VARCHAR(10))
     

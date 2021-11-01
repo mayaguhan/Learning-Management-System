@@ -1,11 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
+from lms_conduct import LMSConduct
 
 db = SQLAlchemy()
 
-class Section(db.Model):
+class LMSSection(db.Model):
     __tablename__ = "lms_section"
     section_id = db.Column(db.Integer, primary_key=True)
-    conduct_id = db.Column(db.Integer,db.ForeignKey('lms_conduct.id'))#, primary_key=True)
+    conduct_id = db.Column(db.Integer,db.ForeignKey(LMSConduct.conduct_id))#, primary_key=True)
     sequence = db.Column(db.Integer)
     section_name = db.Column(db.VARCHAR(50))
     quiz_duration = db.Column(db.Integer)
@@ -17,11 +18,12 @@ class Section(db.Model):
     def getSectionID(self):
         return self.section_id
 
-    def getCourseID(self):
-        return self.course_id
+    def getConductID(self):
+        return self.conduct_id
 
-    def getTrainerID(self):
-        return self.trainer_id
+    def getSequence(self):
+        return self.sequence
+    
 
     def getSectionName(self):
         return self.section_name
@@ -29,6 +31,8 @@ class Section(db.Model):
     def setSectionName(self,new_name):
         if new_name!="" and len(new_name)<=50:
             self.section_name = new_name
+        else:
+            raise Exception("Please give a name to this section")
 
     def getQuizDuration(self):
         return self.quiz_duration

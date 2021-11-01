@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from ..data_access.lms_course import LMSCourse
+from ..data_access.classes import LMSCourse
 
 db = SQLAlchemy()
 
