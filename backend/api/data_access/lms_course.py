@@ -15,11 +15,18 @@ class LMSCourse(db.Model):
 
     # Getter and setter methods
 
-    def getCourseID(self):
+    def getCourseId(self):
         return self.course_id
     
-    def getCourseRequisiteID(self):
+
+    def getCourseRequisiteId(self):
         return self.course_requisite_id
+    
+    def getBadge(self):
+        return self.badge
+    
+    def getActive(self):
+        return self.active
 
     def getCourseCode(self):
         return self.course_code

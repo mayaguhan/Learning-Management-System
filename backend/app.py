@@ -1,8 +1,8 @@
-import re
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import api.controllers.CourseController as courseController
 import api.controllers.UserController as userController
+import api.controllers.EnrolmentController as enrolmentController
 import api.controllers.QuizController as quizController
 import api.controllers.SectionController as sectionController
 from flask_cors import CORS
@@ -154,10 +154,44 @@ def updateAttempt():
 
 
 # COURSE ENDPOINTS
+
+# Get all courses
 @app.route("/getallcourses")
 def getAllCourses():
     return courseController.getAllCourses()
 
+# Get a single course
+@app.route("/getasinglecourse", methods=["POST"])
+def getASingleCourse():
+    return courseController.getASingleCourse(request.get_json())
+
+# Get all courses a user has enrolled
+@app.route("/getallcoursesauserhasenrolled", methods=["POST"])
+def getAllCoursesAUserHasEnrolled():
+    return courseController.getAllCoursesAUserHasEnrolled(request.get_json())
+
+# Get all completed courses that a user has by learner id
+@app.route("/getallcompletedcoursesbyuserid", methods=["POST"])
+def getAllCompletedCoursesByUserId():
+    return courseController.getAllCompletedCoursesByUserId(request.get_json())
+
+# Add a course
+@app.route("/addacourse", methods=["POST"])
+def addACourse():
+    return courseController.addACourse(request.get_json())
+
+
+
+
+# Enrolment Endpoints
+@app.route("/getallselfenrolmentrequests")
+def getAllSelfEnrolmentRequests():
+    return enrolmentController.getallSelfEnrolmentRequest()
+
+
+@app.route("/addnewenrolment", methods=["POST"])
+def addNewEnrolment():
+    return enrolmentController.addANewEnrolment(request.get_json())
 
 
 
