@@ -1,12 +1,14 @@
 from flask_sqlalchemy import SQLAlchemy
+from lms_user import LMSUser
+from lms_section import LMSSection
 
 db = SQLAlchemy()
 
 class LMSQuizAttempt(db.Model):
     __tablename__ = "lms_quiz_attempt"
     quiz_attempt_id = db.Column(db.Integer, primary_key=True)
-    learner_id = db.Column(db.Integer,db.ForeignKey('lms_user.id'))
-    section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))
+    learner_id = db.Column(db.Integer,db.ForeignKey(LMSUser.user_id))
+    section_id = db.Column(db.Integer,db.ForeignKey(LMSSection.section_id))
     attempt_date = db.Column(db.DateTime)
     grade = db.Column(db.Integer)
     

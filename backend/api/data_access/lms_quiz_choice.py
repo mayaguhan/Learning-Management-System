@@ -1,11 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
+from lms_quiz_question import LMSQuizQuestion
 
 db = SQLAlchemy()
 
 class LMSQuizChoice(db.Model):
     __tablename__ = "lms_quiz_choice"
     quiz_choice_id = db.Column(db.Integer, primary_key=True)
-    quiz_question_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_question.id'))#,primary_key=True)
+    quiz_question_id = db.Column(db.Integer,db.ForeignKey(LMSQuizQuestion.quiz_question_id))#,primary_key=True)
     choice = db.Column(db.VARCHAR(50))
     correct = db.Column(db.SmallInteger())
     

@@ -1,11 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
+from lms_conduct import LMSConduct
 
 db = SQLAlchemy()
 
 class LMSSection(db.Model):
     __tablename__ = "lms_section"
     section_id = db.Column(db.Integer, primary_key=True)
-    conduct_id = db.Column(db.Integer,db.ForeignKey('lms_conduct.conduct_id'))#, primary_key=True)
+    conduct_id = db.Column(db.Integer,db.ForeignKey(LMSConduct.conduct_id))#, primary_key=True)
     sequence = db.Column(db.Integer)
     section_name = db.Column(db.VARCHAR(50))
     quiz_duration = db.Column(db.Integer)

@@ -1,11 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
-
+from lms_section import LMSSection
 db = SQLAlchemy()
 
 class LMSMaterial(db.Model):
     __tablename__ = "lms_material"
     material_id = db.Column(db.Integer, primary_key=True)
-    section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))
+    section_id = db.Column(db.Integer,db.ForeignKey(LMSSection.section_id))
     file_name = db.Column(db.VARCHAR(100))
     link = db.Column(db.VARCHAR(200))
     

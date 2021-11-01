@@ -1,11 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
+from lms_section import LMSSection
 
 db = SQLAlchemy()
 
 class LMSQuizQuestion(db.Model):
     __tablename__ = "lms_quiz_question"
     quiz_question_id = db.Column(db.Integer, primary_key=True)
-    section_id = db.Column(db.Integer,db.ForeignKey('lms_section.id'))#,primary_key=True)
+    section_id = db.Column(db.Integer,db.ForeignKey(LMSSection.section_id))#,primary_key=True)
     question_name = db.Column(db.VARCHAR(200))
     
     # as of 9 October, all methods are local and update operations have not been made yet

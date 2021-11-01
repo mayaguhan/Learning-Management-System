@@ -1,12 +1,15 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from lms_course import LMSCourse
+from lms_user import LMSUser
 
 db = SQLAlchemy()
 
 class LMSConduct(db.Model):
     __tablename__ = "lms_conduct"
     conduct_id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer,db.ForeignKey('lms_course.id'))
-    trainer_id = db.Column(db.Integer,db.ForeignKey('lms_user.id'))
+    course_id = db.Column(db.Integer,db.ForeignKey(LMSCourse.course_id))
+    trainer_id = db.Column(db.Integer,db.ForeignKey(LMSUser.user_id))
     capacity = db.Column(db.Integer)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)

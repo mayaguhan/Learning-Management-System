@@ -1,10 +1,6 @@
 from flask import Flask, request, jsonify
 from sqlalchemy.sql.elements import Null
-from ..data_access.lms_section_requirement import LMSSectionRequirement
-from ..data_access.lms_section import LMSSection
-from ..data_access.lms_material import LMSMaterial
-from ..data_access.lms_material_visit import MaterialVisit
-from ..data_access.lms_quiz_attempt import LMSQuizAttempt
+from ..data_access.classes import LMSSectionRequirement, LMSSection, LMSMaterial, MaterialVisit, LMSQuizAttempt
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -134,7 +130,6 @@ def deleteMaterialByMaterialID(data):
 def deleteSectionBySectionID(data):
     sectionId = data["sectionId"]
     section = LMSSection.query.filter_by(section_id=sectionId).first()
-    print(section.to_dict())
     if not section:
         return jsonify({
             "code" : 404,

@@ -1,12 +1,15 @@
 from flask_sqlalchemy import SQLAlchemy
+from lms_quiz_attempt import LMSQuizAttempt
+from lms_quiz_question import LMSQuizQuestion
+from lms_quiz_choice import LMSQuizChoice
 
 db = SQLAlchemy()
 
 class LMSQuizPerformance(db.Model):
     __tablename__ = "lms_quiz_performance"
-    quiz_attempt_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_attempt.id'), primary_key=True)
-    quiz_question_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_question.id'),primary_key=True)
-    quiz_choice_id = db.Column(db.Integer,db.ForeignKey('lms_quiz_choice.id'),primary_key=True)
+    quiz_attempt_id = db.Column(db.Integer,db.ForeignKey(LMSQuizAttempt.quiz_attempt_id), primary_key=True)
+    quiz_question_id = db.Column(db.Integer,db.ForeignKey(LMSQuizQuestion.quiz_question_id),primary_key=True)
+    quiz_choice_id = db.Column(db.Integer,db.ForeignKey(LMSQuizChoice.quiz_choice_id),primary_key=True)
     
     # as of 9 October, all methods are local and update operations have not been made yet
     # Getter and setter methods
