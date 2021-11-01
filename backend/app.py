@@ -72,9 +72,9 @@ def addUser():
 def getQuizPerformanceByAttemptId():
     return quizController.getQuizPerformanceByQuizAttemptID(request.get_json())
 # Get quiz questions by section id
-@app.route("/addquizattempt",methods=["POST"])
-def addQuizAttempt():
-  return quizController.addQuizAttempt(request.get_json())
+# @app.route("/addquizattempt",methods=["POST"])
+# def addQuizAttempt():
+#   return quizController.addQuizAttempt(request.get_json())
 
 # Get quiz questions by section id
 @app.route("/getallcorrectquizchoicesbysectionid",methods=["POST"])
@@ -101,10 +101,7 @@ def updateQuizChoice():
 @app.route("/updatequizquestion",methods=["POST"])
 def updateQuizQuestion():
     return quizController.updateQuizQuestion(request.get_json())
-# Add quiz attempt
-# @app.route("/addnewquizattempt", methods = ["POST"])
-# def addQuizAttempt():
-#     return quizController.addQuizAttempt(request.get_json())
+    
 # Add quiz performance
 @app.route("/addnewquizperformance", methods = ["POST"])
 def addQuizPerformance():
@@ -118,16 +115,20 @@ def addChoice():
 @app.route("/addquizquestion", methods = ["POST"])
 def addQuestion():
     return quizController.addQuizQuestion(request.get_json())
+
+# Add new material visit
+# @app.route("/addnewmaterialvisit", methods = ["POST"])
+# def addNewMaterialVisit():
+#     return sectionController.addNewMaterialVisit(request.get_json())
 # Add new material
 @app.route("/addnewmaterial", methods = ["POST"])
-def addMaterial():
-    print(request.get_json())
+def addNewMaterial():
     return sectionController.addNewMaterial(request.get_json())
 
 # Delete material by ID
-@app.route("/deletematerialbyid", methods = ["DELETE"])
-def deleteMaterialById():
-    return sectionController.deleteMaterialByMaterialID(request.get_json())
+# @app.route("/deletematerialbyid", methods = ["DELETE"])
+# def deleteMaterialById():
+#     return sectionController.deleteMaterialByMaterialID(request.get_json())
 
 # Update section details
 @app.route("/updatesection", methods = ["POST"])
@@ -135,9 +136,9 @@ def updateSection():
     return sectionController.updateSectionBySectionID(request.get_json())
 
 #Delete section by ID
-@app.route("/deletesectionbyid",methods = ["DELETE"])
-def deleteSectionByID():
-    return sectionController.deleteSectionBySectionID(request.get_json())
+# @app.route("/deletesectionbyid",methods = ["DELETE"])
+# def deleteSectionByID():
+#     return sectionController.deleteSectionBySectionID(request.get_json())
 # Update quiz attempt
 @app.route("/getquizattempt",methods=["POST"])
 def getQuizAttempt():

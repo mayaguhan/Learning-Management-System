@@ -356,6 +356,7 @@ class LMSMaterial(db.Model):
 class MaterialVisit(db.Model):
     __tablename__ = "lms_material_visit"
     material_id = db.Column(db.Integer,db.ForeignKey(LMSMaterial.material_id), primary_key=True)
+    conduct_id = db.Column(db.Integer,db.ForeignKey(LMSConduct.conduct_id), primary_key = True)
     learner_id = db.Column(db.Integer,db.ForeignKey(LMSUser.user_id),primary_key=True)
     
     # Getter and setter methods

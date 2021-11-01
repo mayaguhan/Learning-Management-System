@@ -34,38 +34,38 @@ def getMaterialsBySectionID(data):
             "message" : materials
         }),500
 
-# def addNewMaterialVisit(data):
-#     if not all(key in data.keys() for
-#                key in ('learnerId', 'conductId',
-#                        "materialId")):
-#                        return jsonify({
-#             "code" : 500,
-#             "message" : "Error, inavlid input."
-#         }),500
-#     learnerId = data["learnerId"]
-#     conductId = data["conductId"]
-#     materialId = data["materialId"]
-#     materialVisit = MaterialVisit()
-#     materialVisit.learner_id = learnerId
-#     materialVisit.material_id = materialId
-#     material.link = link
-#     try:
-#         db.session.add(material)
-#         db.session.commit()
-#     except Exception as e:
-#         print(str(e))
-#         return jsonify(
-#             {
-#                 "code": 500,
-#                 "message": "An error occurred creating the homework."
-#             }
-#         ), 500
-#     return jsonify(
-#         {
-#             "code": 201,
-#             "data": material.to_dict()
-#         }
-#     ), 201
+def addNewMaterialVisit(data):
+    if not all(key in data.keys() for
+               key in ('learnerId', 'conductId',
+                       "materialId")):
+                       return jsonify({
+            "code" : 500,
+            "message" : "Error, inavlid input."
+        }),500
+    learnerId = data["learnerId"]
+    conductId = data["conductId"]
+    materialId = data["materialId"]
+    materialVisit = MaterialVisit()
+    materialVisit.learner_id = learnerId
+    materialVisit.material_id = materialId
+    materialVisit.conduct_id = conductId
+    try:
+        db.session.add(materialVisit)
+        db.session.commit()
+    except Exception as e:
+        print(str(e))
+        return jsonify(
+            {
+                "code": 500,
+                "message": "An error occurred creating the homework."
+            }
+        ), 500
+    return jsonify(
+        {
+            "code": 201,
+            "data": materialVisit.to_dict()
+        }
+    ), 201
 
 def addNewMaterial(data):
     if not all(key in data.keys() for
