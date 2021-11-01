@@ -12,7 +12,16 @@ class LMSConduct(db.Model):
     end_date = db.Column(db.DateTime)
     start_register = db.Column(db.DateTime)
     end_register = db.Column(db.DateTime)
+
+    def getConductId(self):
+        return self.conduct_id
     
+    def getCourseId(self):
+        return self.course_id
+    
+    def getTrainerId(self):
+        return self.trainer_id
+
     def getCapacity(self):
         return self.capacity
     
