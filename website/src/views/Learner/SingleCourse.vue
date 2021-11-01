@@ -29,7 +29,14 @@
                         <!-- Upload slide decks -->
                         <b>Topic's Slide Decks</b><br>
                         <ul v-for="material in materials" v-bind:key="material.material_id">
-                            
+                            <li v-if="materials.length > 0" >
+                                <v-btn v-bind:href="s3link(material.link)" target="_blank">
+                                    {{ material.file_name }}
+                                </v-btn>
+                            </li>
+                            <li v-else>
+                                <b>This section has no materials</b>
+                            </li>
                         </ul>
                         <!-- TO DO: Method to upload new materials -->
 
@@ -72,6 +79,10 @@ export default {
         materials: [],
     }),
     methods: {
+        s3link(material_link) {
+            let updatedS3WithEndpoint = this.s3Link + material_link;
+            return updatedS3WithEndpoint;
+        },
         // Get a Course Conducted information by conduct_id
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
@@ -88,9 +99,10 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     let sections = response.data;
+                    console.log(sections);
                     let boldSection = false;
                     sections.forEach(section => {
-                        if (section.result == "No Attempt" && boldSection == false) {
+                        if ((section.result == "No Attempt" && boldSection == false) || ((section.best_grade !== null) && (section.best_grade < section.passing_grade))) {
                             section["boldSection"] = true
                             boldSection = true;
                         } else if (section.result == "No Attempt" && boldSection == true) {
@@ -105,28 +117,21 @@ export default {
             return moment(date).format('yyyy-MM-DD hh:mm');
         },
         expandSection(section_id) {
-            // console.log(section_id);
-            // Get all Materials by section_id
-            // Dummy JSON, to be replaced with API call
-            let materialData = [{
-                "material_id": 1, 
-                "material_name": "Section " + section_id + " Material 1",
-                "type": "pdf",
-                "link": "https://www.google.com.sg/"
-                },
-                {
-                "material_id": 2, 
-                "material_name": "Section " + section_id + " Material 2",
-                "type": "pdf",
-                "link": "https://www.google.com.sg/"
-            }];
-            this.materials = materialData;
+            let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
+            let dataObj = { "sectionId": section_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.materials = response.data;
+            })
         },
     },
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
-        }
+        },
+        s3Link(){
+            return this.$store.state.s3Link;
+        },
     },
     created() {
         // Calls method to get course details

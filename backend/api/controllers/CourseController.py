@@ -7,6 +7,7 @@ from ..data_access.lms_conduct import LMSConduct
 from ..data_access.lms_enrolment import LMSEnrolment
 from ..data_access.lms_course import LMSCourse
 
+
 db = SQLAlchemy()
 
 # Get all courses

@@ -18,6 +18,7 @@ class LMSCourse(db.Model):
     def getCourseId(self):
         return self.course_id
     
+
     def getCourseRequisiteId(self):
         return self.course_requisite_id
     
@@ -33,6 +34,8 @@ class LMSCourse(db.Model):
     def setCourseCode(self,new_code):
         if new_code!="" and len(new_code)<=10:
             self.course_code = new_code
+        else:
+            raise Exception("Invalid input")
 
     def getTitle(self):
         return self.title
@@ -40,6 +43,8 @@ class LMSCourse(db.Model):
     def setTitle(self,new_title):
         if new_title!="" and len(new_title)<=50:
             self.title = new_title
+        else:
+            raise Exception("Invalid input")
     
     def getOutline(self):
         return self.outline
@@ -47,34 +52,20 @@ class LMSCourse(db.Model):
     def setOutline(self,new_outline):
         if new_outline!="" and len(new_outline)<=500:
             self.outline = new_outline
-
-    def getCapcity(self):
-        return self.capacity
-    
-    def setCapacity(self,new_capcity):
-        self.capacity = new_capcity
-    
-    def incrementCapacity(self):
-        self.capacity+=1
-
-    def decrementCapacity(self):
-        if self.capacity>0:
-            self.capacity-=1
         else:
-            raise Exception("Sorry, the course is full.")
+            raise Exception("Invalid input")
 
-    def getStartDate(self):
-        return self.start_date
+    def getBadge(self):
+        return self.badge
     
-    
-    
-    # need research on how datetime is stored in python
-    # need additional validators
-    # 1. new_end not earlier than current date time
-    # 2. new_end not earlier than start date
-    def setEndDate(self,new_end):
-        self.end_date = new_end
+    def setBadge(self,new_badge):
+        if new_badge!="" and len(new_badge)<=200:
+            self.badge = new_badge
+        else:
+            raise Exception("Invalid input")
 
+    def getActive(self):
+        return self.active
     
     # 2 way translation
     def to_dict(self):

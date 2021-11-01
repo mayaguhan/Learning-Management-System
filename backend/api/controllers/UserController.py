@@ -1,9 +1,5 @@
 from flask import Flask, request, jsonify
-from werkzeug import useragents
-from ..data_access.lms_user import LMSUser
-from ..data_access.lms_conduct import LMSConduct
-from ..data_access.lms_enrolment import LMSEnrolment
-from ..data_access.lms_course import LMSCourse
+from ..data_access.classes import LMSUser, LMSConduct, LMSEnrolment, LMSCourse
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
