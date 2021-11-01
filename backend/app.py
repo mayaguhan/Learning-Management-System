@@ -101,7 +101,7 @@ def updateQuizChoice():
 @app.route("/updatequizquestion",methods=["POST"])
 def updateQuizQuestion():
     return quizController.updateQuizQuestion(request.get_json())
-    
+
 # Add quiz performance
 @app.route("/addnewquizperformance", methods = ["POST"])
 def addQuizPerformance():
@@ -117,9 +117,9 @@ def addQuestion():
     return quizController.addQuizQuestion(request.get_json())
 
 # Add new material visit
-# @app.route("/addnewmaterialvisit", methods = ["POST"])
-# def addNewMaterialVisit():
-#     return sectionController.addNewMaterialVisit(request.get_json())
+@app.route("/addnewmaterialvisit", methods = ["POST"])
+def addNewMaterialVisit():
+    return sectionController.addNewMaterialVisit(request.get_json())
 # Add new material
 @app.route("/addnewmaterial", methods = ["POST"])
 def addNewMaterial():
