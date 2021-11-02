@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from lms_section import LMSSection
+from ..data_access.lms_section import LMSSection
 db = SQLAlchemy()
 
 class LMSMaterial(db.Model):

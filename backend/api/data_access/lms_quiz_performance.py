@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
-from lms_quiz_attempt import LMSQuizAttempt
-from lms_quiz_question import LMSQuizQuestion
-from lms_quiz_choice import LMSQuizChoice
+from ..data_access.lms_quiz_attempt import LMSQuizAttempt
+from ..data_access.lms_quiz_question import LMSQuizQuestion
+from ..data_access.lms_quiz_choice import LMSQuizChoice
 
 db = SQLAlchemy()
 

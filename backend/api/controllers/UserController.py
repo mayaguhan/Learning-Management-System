@@ -43,8 +43,6 @@ def getASingleUser(data):
             }
         ),404
 
-
-
 # Retrieve users by seniority level
 
 def getUsersBySeniority(data):
@@ -208,7 +206,7 @@ def addUser(data):
         return jsonify(
             {
                 "code": 500,
-                "message": "An error occurred creating the homework."
+                "message": "An error occurred creating the user."
             }
         ), 500
     return jsonify(
