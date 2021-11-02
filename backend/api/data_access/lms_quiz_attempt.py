@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
-from lms_user import LMSUser
-from lms_section import LMSSection
+from ..data_access.lms_user import LMSUser
+from ..data_access.lms_section import LMSSection
 
 db = SQLAlchemy()
 

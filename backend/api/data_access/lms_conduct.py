@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from lms_course import LMSCourse
-from lms_user import LMSUser
+from ..data_access.lms_course import LMSCourse
+from ..data_access.lms_user import LMSUser
 
 db = SQLAlchemy()
 
