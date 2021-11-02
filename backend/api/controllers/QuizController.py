@@ -4,6 +4,166 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+def getQuizPerformanceByQuizAtemptAndSectionId(data):
+    if not all(key in data.keys() for
+                key in ('sectionId', "attemptId")):
+                       return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    quizAttemptId = data["attemptId"]
+    sectionId = data["sectionId"]
+    # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
+    # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
+    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,LMSQuizChoice.choice,LMSQuizChoice.correct,LMSQuizPerformance.quiz_choice_id,LMSQuizChoice.quiz_question_id).select_from(LMSQuizChoice).join(LMSQuizPerformance,LMSQuizChoice.quiz_choice_id==LMSQuizPerformance.quiz_choice_id).filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId).order_by(LMSQuizQuestion.quiz_question_id).all()
+    if not quizPerformances:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no quiz performances were found"
+        }),404
+    else:
+        returnArray = []
+        for quizPerformance in quizPerformances:
+            individual = {}
+            individual["quiz_question_id"] = quizPerformance[0]
+            individual["question_name"] = quizPerformance[1]
+            individual["quiz_choice_id"] = quizPerformance[2]
+            individual["choice"] = quizPerformance[3]
+            individual["correct"] = quizPerformance[4]
+            individual["chosen"] = quizPerformance[5]
+            returnArray.append(individual)
+
+        return jsonify({
+                "code" : 201,
+                "data" : returnArray
+                }),201
+def deleteQuizQuestionByID(data):
+    if not("questionId" in data.keys()):
+        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    questionId = data["questionId"]
+    # delete quiz performance first due to foreign key dependence
+    quizPerformance = LMSQuizPerformance.query.filter_by(quiz_question_id=questionId).all()
+    if not quizPerformance:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no such quiz performance was found"
+        }),404
+    else:
+        try:
+            for performance in quizPerformance:
+                localPerformance = db.session.merge(performance)
+                db.session.delete(localPerformance)
+                db.session.commit()
+                
+        except Exception as e:
+            print(str(e))
+            return jsonify({
+                "code" : 500,
+                "error" : str(e),
+                "message": "Unable to commit to database."
+            }), 500
+        quizChoice = LMSQuizChoice.query.filter_by(quiz_question_id=questionId).all()
+        if not quizChoice:
+            return jsonify({
+                "code" : 404,
+                "message" : "Error, no such quiz choice was found"
+            }),404
+        else:
+            try:
+                for choice in quizChoice:
+                    localChoice = db.session.merge(choice)
+                    db.session.delete(localChoice)
+                    db.session.commit()
+                    
+            except Exception as e:
+                print(str(e))
+                return jsonify({
+                    "code" : 500,
+                    "error" : str(e),
+                    "message": "Unable to commit to database."
+                }), 500
+                # delete quiz performance first due to foreign key dependence
+            quizQuestion = LMSQuizQuestion.query.filter_by(quiz_question_id=questionId).all()
+            if not quizQuestion:
+                return jsonify({
+                    "code" : 404,
+                    "message" : "Error, no such quiz question was found"
+                }),404
+            else:
+                try:
+                    for question in quizQuestion:
+                        localQuestion = db.session.merge(question)
+                        db.session.delete(localQuestion)
+                        db.session.commit()
+                        
+                except Exception as e:
+                    print(str(e))
+                    return jsonify({
+                        "code" : 500,
+                        "error" : str(e),
+                        "message": "Unable to commit to database."
+                    }), 500
+                return jsonify({
+                        "code" : 201,
+                        "message": "Deletion Successful."
+                    }), 201
+
+def deleteQuizChoiceByID(data):
+    if not("quizChoiceId" in data.keys()):
+        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    quizChoiceId = data["quizChoiceId"]
+    # delete quiz performance first due to foreign key dependence
+    quizPerformance = LMSQuizPerformance.query.filter_by(quiz_choice_id=quizChoiceId).all()
+    if not quizPerformance:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no such quiz performance was found"
+        }),404
+    else:
+        try:
+            for performance in quizPerformance:
+                localPerformance = db.session.merge(performance)
+                db.session.delete(localPerformance)
+                db.session.commit()
+                
+        except Exception as e:
+            print(str(e))
+            return jsonify({
+                "code" : 500,
+                "error" : str(e),
+                "message": "Unable to commit to database."
+            }), 500
+        quizChoice = LMSQuizChoice.query.filter_by(quiz_choice_id=quizChoiceId).all()
+        if not quizChoice:
+            return jsonify({
+                "code" : 404,
+                "message" : "Error, no such quiz choice was found"
+            }),404
+        else:
+            try:
+                for choice in quizChoice:
+                    localChoice = db.session.merge(choice)
+                    db.session.delete(localChoice)
+                    db.session.commit()
+                    
+            except Exception as e:
+                print(str(e))
+                return jsonify({
+                    "code" : 500,
+                    "error" : str(e),
+                    "message": "Unable to commit to database."
+                }), 500
+            return jsonify({
+                    "code" : 201,
+                    "message": "Deletion Successful."
+                }), 201
+
 def getQuizPerformanceByQuizAttemptID(data):
     if not ("attemptId" in data.keys()):
                        return jsonify({
@@ -181,13 +341,14 @@ def updateQuizQuestion(data):
 
 def addQuizAttempt(data):
     if not all(key in data.keys() for
-                key in ('learnerId', "sectionId")):
+                key in ('learnerId',"conductId", "sectionId")):
                        return jsonify({
             "code" : 500,
             "message" : "Error, invalid input."
         }),500
     quizAttempt = LMSQuizAttempt()
     quizAttempt.learner_id = data["learnerId"]
+    quizAttempt.conduct_id = data["conductId"]
     quizAttempt.section_id = data["sectionId"]
     try:
         db.session.add(quizAttempt)

@@ -61,6 +61,20 @@ def getEngineersThatAreEligibleForACourseWithPreReq():
 def getTrainersThatAreEligibleToTeachACourse():
     return userController.getTrainersThatAreEligibleToTeachACourse(request.get_json())
 
+# Get quiz performance by attempt and section id
+@app.route("/getquizperformancebyattemptandsectionid",methods=["POST"])
+def getquizperformancebyattemptandsectionid():
+    return quizController.getQuizPerformanceByQuizAtemptAndSectionId(request.get_json())
+
+# Delete quiz question by quiz question id
+@app.route("/deletequizquestionbyid",methods=["DELETE"])
+def deletequizquestionbyid():
+    return quizController.deleteQuizQuestionByID(request.get_json())
+
+# Delete quiz choice by quiz choice id
+@app.route("/deletequizchoicebyid",methods=["DELETE"])
+def deletequizchoicebyid():
+    return quizController.deleteQuizChoiceByID(request.get_json())
 
 # Add a new user
 @app.route("/adduser",methods=["POST"])
@@ -72,9 +86,9 @@ def addUser():
 def getQuizPerformanceByAttemptId():
     return quizController.getQuizPerformanceByQuizAttemptID(request.get_json())
 # Get quiz questions by section id
-# @app.route("/addquizattempt",methods=["POST"])
-# def addQuizAttempt():
-#   return quizController.addQuizAttempt(request.get_json())
+@app.route("/addquizattempt",methods=["POST"])
+def addQuizAttempt():
+  return quizController.addQuizAttempt(request.get_json())
 
 # Get quiz questions by section id
 @app.route("/getallcorrectquizchoicesbysectionid",methods=["POST"])
@@ -126,9 +140,9 @@ def addNewMaterial():
     return sectionController.addNewMaterial(request.get_json())
 
 # Delete material by ID
-# @app.route("/deletematerialbyid", methods = ["DELETE"])
-# def deleteMaterialById():
-#     return sectionController.deleteMaterialByMaterialID(request.get_json())
+@app.route("/deletematerialbyid", methods = ["DELETE"])
+def deleteMaterialById():
+    return sectionController.deleteMaterialByMaterialID(request.get_json())
 
 # Update section details
 @app.route("/updatesection", methods = ["POST"])
