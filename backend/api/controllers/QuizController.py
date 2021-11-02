@@ -1,8 +1,41 @@
 from flask import Flask, request, jsonify
 from ..data_access.classes import LMSQuizAttempt, LMSQuizChoice, LMSQuizPerformance, LMSQuizQuestion
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 
 db = SQLAlchemy()
+
+def getQuizQuestionPerformanceBySectionId(data):
+    if not("sectionId" in data.keys()):
+        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    sectionId = data["sectionId"]
+    # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
+    # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
+    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,LMSQuizChoice.choice,LMSQuizChoice.correct,func.count(LMSQuizPerformance.quiz_choice_id)).select_from(LMSQuizQuestion).join(LMSQuizChoice,LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id).join(LMSQuizPerformance,LMSQuizChoice.quiz_choice_id==LMSQuizPerformance.quiz_choice_id).filter(LMSQuizQuestion.section_id==sectionId).group_by(LMSQuizQuestion.quiz_question_id).order_by(LMSQuizQuestion.quiz_question_id,LMSQuizChoice.quiz_choice_id).all()
+    if not quizPerformances:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no quiz performances were found"
+        }),404
+    else:
+        returnArray = []
+        for quizPerformance in quizPerformances:
+            individual = {}
+            individual["quiz_question_id"] = quizPerformance[0]
+            individual["question_name"] = quizPerformance[1]
+            individual["quiz_choice_id"] = quizPerformance[2]
+            individual["choice"] = quizPerformance[3]
+            individual["correct"] = quizPerformance[4]
+            individual["answer_count"] = quizPerformance[5]
+            returnArray.append(individual)
+
+        return jsonify({
+                "code" : 201,
+                "data" : returnArray
+                }),201
 
 def getQuizPerformanceByQuizAtemptAndSectionId(data):
     if not all(key in data.keys() for

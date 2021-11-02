@@ -62,6 +62,11 @@ def getTrainersThatAreEligibleToTeachACourse():
     return userController.getTrainersThatAreEligibleToTeachACourse(request.get_json())
 
 # Get quiz performance by attempt and section id
+@app.route("/getquizquestionperformancebysectionid",methods=["POST"])
+def getquizquestionperformancebysectionid():
+    return quizController.getQuizQuestionPerformanceBySectionId(request.get_json())
+
+# Get quiz performance by attempt and section id
 @app.route("/getquizperformancebyattemptandsectionid",methods=["POST"])
 def getquizperformancebyattemptandsectionid():
     return quizController.getQuizPerformanceByQuizAtemptAndSectionId(request.get_json())
