@@ -1,9 +1,154 @@
 from flask import Flask, request, jsonify
-from ..data_access.classes import LMSQuizAttempt, LMSQuizChoice, LMSQuizPerformance, LMSQuizQuestion
+from ..data_access.classes import LMSQuizAttempt, LMSQuizChoice, LMSQuizPerformance, LMSQuizQuestion, LMSSection, LMSUser
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, case
+import json
 
 db = SQLAlchemy()
+
+def getQuizAttemptForSection(data):
+    if not("sectionId" in data.keys()):
+        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    sectionId = data["sectionId"]
+    # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
+    # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
+    quizAttempt = db.session.query(
+        LMSUser.user_id,
+        LMSUser.name,
+        LMSUser.email,
+        LMSUser.seniority_level,
+        LMSUser.contact,
+        LMSQuizAttempt.quiz_attempt_id,
+        LMSQuizAttempt.grade,
+            case(
+
+                [(LMSQuizAttempt.grade>=LMSSection.passing_grade,"Pass")],
+                else_="Fail"
+            ),
+        LMSQuizAttempt.attempt_date
+        ).filter(LMSSection.section_id==LMSQuizAttempt.section_id,LMSQuizAttempt.learner_id==LMSUser.user_id,LMSQuizAttempt.section_id==sectionId).all()
+    if not quizAttempt:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no quiz attempts were found"
+        }),404
+    else:
+        returnArray = []
+        for quizAttempt in quizAttempt:
+            individual = {}
+            individual["user_id"] = quizAttempt[0]
+            individual["name"] = quizAttempt[1]
+            individual["email"] = quizAttempt[2]
+            individual["seniority_level"] = quizAttempt[3]
+            individual["contact"] = str(quizAttempt[4])
+            individual["quiz_attempt_id"] =quizAttempt[5]
+            individual["grade"] = quizAttempt[6]
+            individual["result"] = quizAttempt[7]
+            individual["attempt_date"] = quizAttempt[8]
+            # float(quizAttempt[2])
+            returnArray.append(individual)
+        print(returnArray)
+        return jsonify({
+                "code" : 201,
+                "data" : returnArray
+                }),201
+
+def getStudentQuizAttemptBySectionId(data):
+    if not("sectionId" in data.keys()):
+        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    sectionId = data["sectionId"]
+    # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
+    # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
+    quizAttempt = db.session.query(
+        LMSQuizAttempt.learner_id,
+        LMSUser.name,
+        LMSUser.email,
+        LMSUser.seniority_level,
+        LMSUser.contact,
+        func.sum(
+            case(
+
+                [(LMSQuizAttempt.grade>=LMSSection.passing_grade,1)],
+                else_=0
+            )
+        ),
+        func.count(LMSQuizAttempt.quiz_attempt_id),
+        func.max(LMSQuizAttempt.grade)
+        ).filter(LMSSection.section_id==LMSQuizAttempt.section_id,LMSQuizAttempt.learner_id==LMSUser.user_id,LMSQuizAttempt.section_id==sectionId).group_by(LMSQuizAttempt.learner_id).all()
+    if not quizAttempt:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no quiz attempts were found"
+        }),404
+    else:
+        returnArray = []
+        for quizAttempt in quizAttempt:
+            individual = {}
+            individual["user_id"] = quizAttempt[0]
+            individual["name"] = quizAttempt[1]
+            individual["email"] = quizAttempt[2]
+            individual["seniority_level"] = quizAttempt[3]
+            individual["contact"] = str(quizAttempt[4])
+            individual["pass_attempts"] = float(quizAttempt[5])
+            individual["quiz_attempt"] = float(quizAttempt[6])
+            individual["best_grade"] = float(quizAttempt[7])
+            # float(quizAttempt[2])
+            returnArray.append(individual)
+        print(returnArray)
+        return jsonify({
+                "code" : 201,
+                "data" : returnArray
+                }),201
+
+def getQuizAttemptPassingRateBySectionId(data):
+    if not("sectionId" in data.keys()):
+        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    sectionId = data["sectionId"]
+    # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
+    # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
+    quizAttempt = db.session.query(
+        func.sum(
+            case(
+
+                [(LMSQuizAttempt.grade>=LMSSection.passing_grade,1)],
+                else_=0
+            )
+        ),
+        func.count(LMSQuizAttempt.quiz_attempt_id),
+        func.sum(
+            case(
+                [(LMSQuizAttempt.grade>=LMSSection.passing_grade,1)],
+                else_=0
+            )
+        )/func.count(LMSQuizAttempt.quiz_attempt_id)
+        ).filter(LMSSection.section_id==LMSQuizAttempt.section_id,LMSQuizAttempt.section_id==sectionId).all()
+    if not quizAttempt:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no quiz attempts were found"
+        }),404
+    else:
+        returnArray = []
+        for quizAttempt in quizAttempt:
+            individual = {}
+            individual["pass_count"] = float(quizAttempt[0])
+            individual["total_attempt"] = quizAttempt[1]
+            individual["pass_rate"] = float(quizAttempt[2])
+            returnArray.append(individual)
+        print(returnArray)
+        return jsonify({
+                "code" : 201,
+                "data" : returnArray
+                }),201
 
 def getQuizQuestionPerformanceBySectionId(data):
     if not("sectionId" in data.keys()):

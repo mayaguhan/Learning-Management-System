@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from sqlalchemy.sql.elements import Null
-from ..data_access.classes import LMSSectionRequirement, LMSSection, LMSMaterial, MaterialVisit, LMSQuizAttempt
+from ..data_access.classes import LMSEnrolment, LMSSectionRequirement, LMSSection, LMSMaterial, MaterialVisit, LMSQuizAttempt
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func, case
 
 db = SQLAlchemy()
 
@@ -15,6 +16,56 @@ db = SQLAlchemy()
 #     conductId = data["conductId"]
 #     pcQuery = db.session.query(LMSQuizAttempt.section_id==LMSSection.section_id,LMSQuizAttempt.grade>=LMSSection.passing_grade).group_by(LMSQuizAttempt.learner_id,LMSQuizAttempt.section_id)
 #     thirdQuery = LMSSection.join(pcQuery)
+
+def getAllSectionsByConductAndUserId(data):
+    if not all(key in data.keys() for
+               key in ('learnerId', 'conductId')):
+                       return jsonify({
+            "code" : 500,
+            "message" : "Error, inavlid input."
+        }),500
+    learnerId = data["learnerId"]
+    conductId = data["conductId"]
+    # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
+    # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
+    sections = db.session.query(
+        LMSSection.section_id,
+        LMSSection.section_name,
+        LMSSection.sequence,
+        LMSSection.quiz_duration,
+        LMSSection.passing_grade,
+        func.max(LMSQuizAttempt.grade),
+        case(
+            [
+                (func.isnull(LMSQuizAttempt.grade),"No Attempt"),
+                (func.max(LMSQuizAttempt.grade)>=LMSSection.passing_grade,"Pass")
+            ],
+            else_="Fail"
+        )
+        ).select_from(LMSSection).join(LMSQuizAttempt,LMSSection.section_id==LMSQuizAttempt.section_id).filter(LMSSection.conduct_id==conductId,LMSEnrolment.learner_id==learnerId).group_by(LMSSection.section_id).order_by(LMSSection.sequence).all()
+    if not sections:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no quiz attempts were found"
+        }),404
+    else:
+        returnArray = []
+        for section in sections:
+            individual = {}
+            individual["section_id"] = section[0]
+            individual["section_name"] = section[1]
+            individual["sequence"] = section[2]
+            individual["quiz_duration"] = section[3]
+            individual["passing_grade"] = section[4]
+            individual["best_grade"] =section[5]
+            individual["result"] = section[6]
+            # float(quizAttempt[2])
+            returnArray.append(individual)
+        print(returnArray)
+        return jsonify({
+                "code" : 201,
+                "data" : returnArray
+                }),201
 
 def getMaterialsBySectionID(data):
     if not ("sectionId" in data.keys()):
