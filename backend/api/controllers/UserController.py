@@ -9,68 +9,7 @@ from ..data_access.lms_enrolment import LMSEnrolment
 
 db = SQLAlchemy()
 
-# Retrieve All Users
-
-def getAllUsers():
-    users = LMSUser.query.all()
-    if users:
-        return jsonify(
-            {
-                "code" : 200,
-                "data":[user.to_dict() for user in users]
-            }
-        ),200
-    else:
-        return jsonify(
-            {
-                "code": 404,
-                "message":"Oops no one exists"
-            }
-        ),404
-
-# Retrieve a single user
-def getASingleUser(data):
-    userId = data["userId"]
-    users = db.session.query(LMSUser).filter(LMSUser.user_id == userId)
-
-    if users:
-        return jsonify(
-            {
-                "code" : 200,
-                "data":[user.to_dict() for user in users]
-            }
-        ),200
-    else:
-        return jsonify(
-            {
-                "code": 404,
-                "message":"Oops no one exists"
-            }
-        ),404
-
-# Retrieve users by seniority level
-
-def getUsersBySeniority(data):
-    seniority_level = data["seniorityLevel"]
-    users = LMSUser.query.filter_by(seniority_level=seniority_level)
-    if users:
-        return jsonify(
-            {
-                "code" : 200,
-                "data":[user.to_dict() for user in users]
-            }
-        ),200
-    else:
-        return jsonify(
-            {
-                "code" : 404,
-                "message":"Oops no one has that seniority level."
-            }
-        ),404
-
-
-# Retrieve User ID By Email
-
+# Login User by email
 def retrieveUserIdByEmail(data):
     email = data["email"]
     user = LMSUser.query.filter_by(email=email).first()
@@ -90,8 +29,64 @@ def retrieveUserIdByEmail(data):
             }
         ),404
 
-# Get all users that has completed a course by course id
+# Get all Users
+def getAllUsers():
+    users = LMSUser.query.all()
+    if users:
+        return jsonify(
+            {
+                "code" : 200,
+                "data":[user.to_dict() for user in users]
+            }
+        ),200
+    else:
+        return jsonify(
+            {
+                "code": 404,
+                "message":"Oops no one exists"
+            }
+        ),404
 
+# Get a single User
+def getASingleUser(data):
+    userId = data["userId"]
+    users = db.session.query(LMSUser).filter(LMSUser.user_id == userId)
+
+    if users:
+        return jsonify(
+            {
+                "code" : 200,
+                "data":[user.to_dict() for user in users]
+            }
+        ),200
+    else:
+        return jsonify(
+            {
+                "code": 404,
+                "message":"Oops no one exists"
+            }
+        ),404
+
+# Get all Users by seniority_level
+def getUsersBySeniority(data):
+    seniority_level = data["seniorityLevel"]
+    users = LMSUser.query.filter_by(seniority_level=seniority_level)
+    if users:
+        return jsonify(
+            {
+                "code" : 200,
+                "data":[user.to_dict() for user in users]
+            }
+        ),200
+    else:
+        return jsonify(
+            {
+                "code" : 404,
+                "message":"Oops no one has that seniority level."
+            }
+        ),404
+
+# Get all Users that has completed a Course by course_id
 def getUsersThatHasCompletedACourse(data):
     courseId = data["courseId"]
     users = db.session.query(LMSUser).filter(LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSEnrolment.learner_id == LMSUser.user_id, LMSEnrolment.status == "Complete", LMSConduct.course_id == courseId).all()
@@ -111,7 +106,7 @@ def getUsersThatHasCompletedACourse(data):
             }
         ),404
 
-# Get all engineers that are eligible for a course by course id
+# Get all Engineers that are eligible for a course by course id
 def getEngineersThatAreEligibleForACourse(data):
     courseId = data["courseId"]
     subQuery = db.session.query(LMSEnrolment.learner_id).filter(LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSConduct.course_id == courseId)
@@ -133,32 +128,20 @@ def getEngineersThatAreEligibleForACourse(data):
             }
         ),404
 
-# Get all engineers that are eligible for a course with requisite by course Id
+# Get all Engineers that are eligible for a course with requisite by course id
 def getEngineersThatAreEligibleForACourseWithPreReq(data):
     courseId = data["courseId"]
-    
-    # Split query into parts
+
     courseReqQuery = db.session.query(LMSCourse.course_requisite_id).filter(LMSCourse.course_id == courseId)
-
     subQuery1 = db.session.query(LMSUser).filter(LMSUser.user_id == LMSEnrolment.learner_id, LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSUser.seniority_level == "Engineer", LMSEnrolment.status == "Complete", LMSConduct.course_id == courseReqQuery).all()
-
-
     queryRequiredForSubQuery2 = db.session.query(LMSEnrolment.learner_id).filter(LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSConduct.course_id == courseId)
 
     subQuery2 = db.session.query(LMSUser).filter(LMSUser.user_id.notin_(queryRequiredForSubQuery2), LMSUser.seniority_level == "Engineer").all()
-
     users = []
 
-    # print(subQuery1)
-    # print(subQuery2)
-
-
-    # Not sure if there is any better way to do how YQ did it. This is the current way. Complexity is O(N**2) but I don't think there will be a performance issue as our data is quite small and O(N**2) is relatively fast.  I would still prefer to find a better way where we can just make use of SQLAlchemy but for now, this will suffice
     if subQuery1 and subQuery2:
-
         for user in subQuery1:
             userId = user.getUserId()
-
             for user2 in subQuery2:
                 if userId == user2.getUserId():
                     users.append(user)
@@ -179,7 +162,7 @@ def getEngineersThatAreEligibleForACourseWithPreReq(data):
         ),404
 
 
-# Get all trainers that are eligible to teach a course by course_id
+# Get all Trainers eligible to teach a Course by course_id
 def getTrainersThatAreEligibleToTeachACourse(data):
     courseId = data["courseId"]
     users = db.session.query(LMSUser).filter(LMSUser.user_id == LMSEnrolment.learner_id, LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSUser.seniority_level == "Senior Engineer", LMSEnrolment.status == "Complete", LMSConduct.course_id == courseId).all()

@@ -21,42 +21,42 @@ CORS(app)
 
 # USER ENDPOINTS
 
-# Retrieve all users in the database
-@app.route("/users")
-def getAllUsers():
-    return userController.getAllUsers()
-
-# Retrieve a single user from the database
-@app.route("/getasingleuser", methods=["POST"])
-def getASingleUser():
-    return userController.getASingleUser(request.get_json())
-
-# Retrieve users by seniority level
-@app.route("/usersbyseniority", methods=["POST"])
-def getUsersBySeniority():
-    return userController.getUsersBySeniority(request.get_json())
-
-# Retreive user Id by email
+# Login User by email
 @app.route("/retrieveuseridbyemail", methods=["POST"])
 def retrieveUserIdByEmail():
     return userController.retrieveUserIdByEmail(request.get_json())
 
-# Get all users that has completed a course by course id
+# Get all Users
+@app.route("/users")
+def getAllUsers():
+    return userController.getAllUsers()
+
+# Get a single User
+@app.route("/getasingleuser", methods=["POST"])
+def getASingleUser():
+    return userController.getASingleUser(request.get_json())
+
+# Get all Users by seniority_level
+@app.route("/usersbyseniority", methods=["POST"])
+def getUsersBySeniority():
+    return userController.getUsersBySeniority(request.get_json())
+
+# Get all Users that has completed a Course by course_id
 @app.route("/getusersthathascompletedacourse", methods=["POST"])
 def getUsersThatHasCompletedACourse():
     return userController.getUsersThatHasCompletedACourse(request.get_json())
 
-# Get all engineers that are eligible for a course by course id
+# Get all Engineers that are eligible for a course by course id
 @app.route("/getallengineerseligibleforcoursebycourse", methods=["POST"])
 def getEngineersThatAreEligibleForACourse():
     return userController.getEngineersThatAreEligibleForACourse(request.get_json())
 
-# Get all engineers that are eligible for a course with pre-req by course id
+# Get all Engineers that are eligible for a course with requisite by course id
 @app.route("/getallengineerseligibleforcoursewithreqbycourse", methods=["POST"])
 def getEngineersThatAreEligibleForACourseWithPreReq():
     return userController.getEngineersThatAreEligibleForACourseWithPreReq(request.get_json())
 
-# Get all trainers that are eligible to teach a course by course_id
+# Get all Trainers eligible to teach a Course by course_id
 @app.route("/getalltrainerseligibletoteachacourse", methods=["POST"])
 def getTrainersThatAreEligibleToTeachACourse():
     return userController.getTrainersThatAreEligibleToTeachACourse(request.get_json())
@@ -71,11 +71,11 @@ def getTrainersConductingACourse():
 def getLearnersEnrolledByConduct():
     return userController.getLearnersEnrolledByConduct(request.get_json())
 
-
 # Add a new user
 @app.route("/adduser",methods=["POST"])
 def addUser():
     return userController.addUser(request.get_json())
+
 
 # Get quiz performance by quiz attempt id
 @app.route("/getquizperformancebyattemptid", methods=["POST"])
