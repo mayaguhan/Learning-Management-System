@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from ..data_access.classes import LMSUser, LMSConduct, LMSCourse, LMSQuizAttempt, LMSSection
+from ..data_access.classes import LMSUser, LMSConduct, LMSCourse, LMSQuizAttempt, LMSSection #Quiz new
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import func
@@ -204,25 +204,27 @@ def getTrainersThatAreEligibleToTeachACourse(data):
 def getTrainersConductingACourse(data):
     courseId = data["courseId"]
 
-    conductEnrolmentDict = dict(db.session.query(LMSConduct.conduct_id, func.count(LMSEnrolment.learner_id)).filter(
-    LMSConduct.conduct_id == LMSEnrolment.conduct_id).group_by(LMSConduct.course_id, LMSConduct.trainer_id).all())
+    enrolmentsSubquery = db.session.query(LMSConduct.conduct_id, (func.count(LMSEnrolment.learner_id)).label('enrolments')).filter(
+        LMSConduct.conduct_id == LMSEnrolment.conduct_id,
+        LMSConduct.course_id == courseId).group_by(LMSConduct.course_id, LMSConduct.trainer_id).subquery()
 
-    resultList = db.session.query(LMSUser, LMSConduct).filter(
-        LMSUser.user_id == LMSConduct.trainer_id, 
-        LMSConduct.course_id == LMSCourse.course_id, 
-        LMSConduct.start_register <= datetime.today(),
-        LMSConduct.end_register >= datetime.today(),
-        LMSUser.seniority_level == "Senior Engineer",
-        LMSConduct.course_id == courseId).all()
+    trainerList = db.session.query(LMSUser, LMSConduct, enrolmentsSubquery.c.enrolments).join(
+        enrolmentsSubquery, enrolmentsSubquery.c.conduct_id == LMSConduct.conduct_id, isouter=True).filter(
+            LMSUser.user_id == LMSConduct.trainer_id, 
+            LMSConduct.course_id == LMSCourse.course_id, 
+            LMSConduct.start_register <= datetime.today(),
+            LMSConduct.end_register >= datetime.today(),
+            LMSUser.seniority_level == "Senior Engineer",
+            LMSConduct.course_id == courseId).all()
 
     returnArray = []
-    if len(resultList) > 0:
-        for result in resultList:
+    if len(trainerList) > 0:
+        for result in trainerList:
             user = result[0]
             conduct = result[1]
             enrolments = 0
-            if (conduct.getConductId() in conductEnrolmentDict):
-                enrolments = conductEnrolmentDict[conduct.getConductId()]
+            if (result[2] is not None):
+                enrolments = result[2]
 
             returnObj = {}
             returnObj["conduct_id"] = conduct.getConductId()

@@ -175,10 +175,20 @@ def getAllCourses():
 def getASingleCourse():
     return courseController.getASingleCourse(request.get_json())
 
-# Get all courses a user has enrolled
+# Get a Single Course Conducted information by conduct_id
+@app.route("/getcourseconductinformation", methods=["POST"])
+def getCourseConductInformation():
+    return courseController.getCourseConductInformation(request.get_json())
+
+# Get all Courses a User has Enrolled
 @app.route("/getallcoursesauserhasenrolled", methods=["POST"])
 def getAllCoursesAUserHasEnrolled():
     return courseController.getAllCoursesAUserHasEnrolled(request.get_json())
+
+# Get all in-progress Courses a User has by learner_id
+@app.route("/getallinprogresscoursesbyuserid", methods=["POST"])
+def getAllInProgressCoursesByUserId():
+    return courseController.getAllInProgressCoursesByUserId(request.get_json())
 
 # Get all completed courses that a user has by learner id
 @app.route("/getallcompletedcoursesbyuserid", methods=["POST"])
@@ -186,9 +196,9 @@ def getAllCompletedCoursesByUserId():
     return courseController.getAllCompletedCoursesByUserId(request.get_json())
 
 # Get all Courses a User has not Enrolled In
-# @app.route("/getallcoursesauserhasnotenrolledin", methods=["POST"])
-# def getAllCoursesUserHasNotEnrolledIn():
-#     return courseController.getAllCoursesUserHasNotEnrolledIn(request.get_json())
+@app.route("/getallcoursesauserhasnotenrolledin", methods=["POST"])
+def getAllCoursesUserHasNotEnrolledIn():
+    return courseController.getAllCoursesUserHasNotEnrolledIn(request.get_json())
 
 # Get all Courses that are conducted by trainer_id
 @app.route("/getallcoursesconductedbytrainer", methods=["POST"])
