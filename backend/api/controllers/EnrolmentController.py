@@ -10,7 +10,7 @@ from ..data_access.lms_course import LMSCourse
 
 db = SQLAlchemy()
 
-# Get All Self Enrolment Request
+# Get All Self Enrolment Request (HR)
 def getallSelfEnrolmentRequest():
     enrolments = db.session.query(LMSEnrolment.learner_id, LMSEnrolment.conduct_id, LMSUser.name, LMSUser.email,LMSUser.seniority_level, LMSUser.contact, LMSCourse.course_id, LMSCourse.course_code, LMSCourse.title, LMSCourse.outline, LMSConduct.trainer_id, LMSConduct.capacity, LMSConduct.start_date, LMSConduct.end_date, LMSConduct.start_register, LMSConduct.end_register, LMSEnrolment.status).filter(LMSUser.user_id == LMSEnrolment.learner_id, LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSConduct.course_id == LMSCourse.course_id, LMSEnrolment.status == "Request").all()
 
@@ -101,7 +101,7 @@ def getLearnerSelfEnrolmentRequests(data):
             }
         ),404
 
-# Add a new enrolment
+# Add new Enrolment
 def addANewEnrolment(data):
     enrolment = LMSEnrolment(**data)
     try:
@@ -120,7 +120,6 @@ def addANewEnrolment(data):
             "data": enrolment.to_dict()
         }
     ), 201
-
 
 # Update Enrolment by learner_id and conduct_id
 def updateEnrolment(data):

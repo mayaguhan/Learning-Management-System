@@ -188,6 +188,50 @@ def getCourseConductInformation(data):
             }
         ),404
 
+# Get all Courses a User has Enrolled
+def getAllCoursesAUserHasEnrolled(data):
+    learnerId = data["learnerId"]
+    resultList = db.session.query(LMSCourse, LMSConduct, LMSEnrolment.status).filter(LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSCourse.course_id == LMSConduct.course_id, LMSEnrolment.learner_id == learnerId).order_by(LMSEnrolment.status.desc()).all()
+
+    returnArray = []
+    if len(resultList) > 0:
+        for result in resultList:
+            course = result[0]
+            conduct = result[1]
+
+            returnObj = {}
+            returnObj["course_id"] = course.getCourseId()
+            returnObj["course_requisite_id"] = course.getCourseRequisiteId()
+            returnObj["course_code"] = course.getCourseCode()
+            returnObj["title"] = course.getTitle()
+            returnObj["outline"] = course.getOutline()
+            returnObj["active"] = course.getActive()
+            returnObj["conduct_id"] = conduct.getConductId()
+            returnObj["trainer_id"] = conduct.getTrainerId()
+            returnObj["capacity"] = conduct.getCapacity()
+            returnObj["start_date"] = conduct.getStartDate()
+            returnObj["end_date"] = conduct.getEndDate()
+            returnObj["start_register"] = conduct.getStartRegister()
+            returnObj["end_register"] = conduct.getEndRegister()
+            returnObj["status"] = result[2]
+
+            returnArray.append(returnObj)
+        
+        return jsonify(
+            {
+                "code" : 200,
+                "data": returnArray
+            }
+        )
+    
+    else:
+        return jsonify(
+            {
+                "code" : 404,
+                "message":"Oops no course exists"
+            }
+        ),404
+
 # Get all in-progress Courses a User has by learner_id
 def getAllInProgressCoursesByUserId(data):
     learnerId = data["learnerId"]
@@ -260,51 +304,7 @@ def getAllInProgressCoursesByUserId(data):
             }
         ),404
 
-# Get all Courses a User has not Enrolled In
-def getAllCoursesAUserHasEnrolled(data):
-    learnerId = data["learnerId"]
-    resultList = db.session.query(LMSCourse, LMSConduct, LMSEnrolment.status).filter(LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSCourse.course_id == LMSConduct.course_id, LMSEnrolment.learner_id == learnerId).order_by(LMSEnrolment.status.desc()).all()
-
-    returnArray = []
-    if len(resultList) > 0:
-        for result in resultList:
-            course = result[0]
-            conduct = result[1]
-
-            returnObj = {}
-            returnObj["course_id"] = course.getCourseId()
-            returnObj["course_requisite_id"] = course.getCourseRequisiteId()
-            returnObj["course_code"] = course.getCourseCode()
-            returnObj["title"] = course.getTitle()
-            returnObj["outline"] = course.getOutline()
-            returnObj["active"] = course.getActive()
-            returnObj["conduct_id"] = conduct.getConductId()
-            returnObj["trainer_id"] = conduct.getTrainerId()
-            returnObj["capacity"] = conduct.getCapacity()
-            returnObj["start_date"] = conduct.getStartDate()
-            returnObj["end_date"] = conduct.getEndDate()
-            returnObj["start_register"] = conduct.getStartRegister()
-            returnObj["end_register"] = conduct.getEndRegister()
-            returnObj["status"] = result[2]
-
-            returnArray.append(returnObj)
-        
-        return jsonify(
-            {
-                "code" : 200,
-                "data": returnArray
-            }
-        )
-    
-    else:
-        return jsonify(
-            {
-                "code" : 404,
-                "message":"Oops no course exists"
-            }
-        ),404
-
-# Get all courses that a user has completed by learner id
+# Get all completed Courses User has by learner_id
 def getAllCompletedCoursesByUserId(data):
     userId = data["learnerId"]
     resultList = db.session.query(LMSUser.name, LMSConduct, LMSCourse).filter(LMSCourse.course_id == LMSConduct.course_id, LMSConduct.trainer_id == LMSUser.user_id, LMSEnrolment.conduct_id == LMSConduct.conduct_id, LMSEnrolment.learner_id == userId, LMSEnrolment.status == "Complete").group_by(LMSEnrolment.conduct_id).all()
