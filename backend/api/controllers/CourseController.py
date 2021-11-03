@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 
 from ..data_access.lms_user import LMSUser
 from ..data_access.lms_conduct import LMSConduct
@@ -170,6 +171,59 @@ def getAllCompletedCoursesByUserId(data):
             }
         ),404
 
+# Get all Courses a User has not Enrolled In
+#def getAllCoursesUserHasNotEnrolledIn(data):
+
+
+
+
+# Get all Courses that are conducted by trainer_id
+def getAllCoursesConductedByTrainer(data):
+    userId = data["trainerId"]
+    resultList = db.session.query(LMSCourse, LMSConduct, LMSEnrolment, func.count(LMSEnrolment.learner_id)).filter(
+        LMSCourse.course_id == LMSConduct.course_id, 
+        LMSConduct.conduct_id == LMSEnrolment.conduct_id, 
+        LMSConduct.trainer_id == userId).group_by(LMSConduct.conduct_id).all()
+
+    returnArray = []
+
+    if len(resultList) > 0:
+        for result in resultList:
+            course = result[0]
+            conduct = result[1]
+
+            returnObj = {}
+            returnObj["course_id"] = course.getCourseId()
+            returnObj["conduct_id"] = conduct.getConductId()
+            returnObj["course_requisite_id"] = course.getCourseRequisiteId()
+            returnObj["course_code"] = course.getCourseCode()
+            returnObj["title"] = course.getTitle()
+            returnObj["outline"] = course.getOutline()
+            returnObj["badge"] = course.getBadge()
+            returnObj["trainer_id"] = conduct.getTrainerId()
+            returnObj["start_date"] = conduct.getStartDate()
+            returnObj["end_date"] = conduct.getEndDate()
+            returnObj["start_register"] = conduct.getStartRegister()
+            returnObj["end_register"] = conduct.getEndRegister()
+            returnObj["enrolment"] = result[3]
+            #enrolment
+
+            returnArray.append(returnObj)
+            
+        return jsonify(
+            {
+                "code" : 200,
+                "data": returnArray
+            }
+        )
+    
+    else:
+        return jsonify(
+            {
+                "code" : 404,
+                "message":"Oops no course exists"
+            }
+        ),404
 
 # Add a course
 def addACourse(data):
@@ -182,6 +236,69 @@ def addACourse(data):
             {
                 "code": 500,
                 "message": "An error occurred creating the course."
+            }
+        ), 500
+    return jsonify(
+        {
+            "code": 201,
+            "data": course.to_dict()
+        }
+    ), 201
+
+# Update Update Course by course_id
+def updateCourse(data):
+    if not all(key in data.keys() for
+                key in ("courseId", "courseRequisiteId", "courseCode", "title", "outline", "badge", "active")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    courseId = data["courseId"]
+    course = LMSCourse.query.filter_by(course_id=courseId).first()
+    if not course:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no such course was found"
+        }),404
+    else:
+        localCourse = db.session.merge(course)
+        
+        
+        
+        
+        
+        localCourse.course_requisite_id = courseRequisiteId = data["courseRequisiteId"]
+        localCourse.course_code = courseCode = data["courseCode"]
+        localCourse.title = data["title"]
+        localCourse.outline = data["outline"]
+        localCourse.badge = data["badge"]
+        localCourse.active = data["active"]
+        try:
+            db.session.add(localCourse)
+            db.session.commit()
+            return jsonify({
+                "code" : 200,
+                "data" : localCourse.to_dict()
+            }),200
+        except Exception as e:
+            print(str(e))
+            return jsonify({
+                "code" : 500,
+                "message": "Unable to commit to database."
+            }), 500
+
+
+# Add new Course Conduct
+def addCourseConduct(data):
+    course = LMSConduct(**data)
+    try:
+        db.session.add(course)
+        db.session.commit()
+    except:
+        return jsonify(
+            {
+                "code": 500,
+                "message": "An error occurred creating the class."
             }
         ), 500
     return jsonify(

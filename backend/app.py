@@ -61,6 +61,16 @@ def getEngineersThatAreEligibleForACourseWithPreReq():
 def getTrainersThatAreEligibleToTeachACourse():
     return userController.getTrainersThatAreEligibleToTeachACourse(request.get_json())
 
+# Get all Trainers that are conducting a Course by course_id
+@app.route("/gettrainersconductingacourse", methods=["POST"])
+def getTrainersConductingACourse():
+    return userController.getTrainersConductingACourse(request.get_json())
+
+# Get all Learners that are enrolled into a course by conduct_id
+@app.route("/getlearnersenrolledbyconduct", methods=["POST"])
+def getLearnersEnrolledByConduct():
+    return userController.getLearnersEnrolledByConduct(request.get_json())
+
 
 # Add a new user
 @app.route("/adduser",methods=["POST"])
@@ -175,24 +185,58 @@ def getAllCoursesAUserHasEnrolled():
 def getAllCompletedCoursesByUserId():
     return courseController.getAllCompletedCoursesByUserId(request.get_json())
 
+# Get all Courses a User has not Enrolled In
+# @app.route("/getallcoursesauserhasnotenrolledin", methods=["POST"])
+# def getAllCoursesUserHasNotEnrolledIn():
+#     return courseController.getAllCoursesUserHasNotEnrolledIn(request.get_json())
+
+# Get all Courses that are conducted by trainer_id
+@app.route("/getallcoursesconductedbytrainer", methods=["POST"])
+def getAllCoursesConductedByTrainer():
+    return courseController.getAllCoursesConductedByTrainer(request.get_json())
+
 # Add a course
 @app.route("/addacourse", methods=["POST"])
 def addACourse():
     return courseController.addACourse(request.get_json())
 
+# Update Update Course by course_id
+@app.route("/updateCourse", methods=["PUT"])
+def updateCourse():
+    return courseController.updateCourse(request.get_json())
+
+# Add new Course Conduct
+@app.route("/addcourseconduct", methods=["POST"])
+def addCourseConduct():
+    return courseController.addCourseConduct(request.get_json())
 
 
 
 # Enrolment Endpoints
+# Get all Self-Enrolment request (HR)
 @app.route("/getallselfenrolmentrequests")
 def getAllSelfEnrolmentRequests():
     return enrolmentController.getallSelfEnrolmentRequest()
 
+# Get all Self-Enrolment request by learner_id
+@app.route("/getlearnerselfenrolmentrequests", methods=["POST"])
+def getLearnerSelfEnrolmentRequests():
+    return enrolmentController.getLearnerSelfEnrolmentRequests(request.get_json())
 
+# Add new Enrolment
 @app.route("/addnewenrolment", methods=["POST"])
 def addNewEnrolment():
     return enrolmentController.addANewEnrolment(request.get_json())
 
+# Update Enrolment by learner_id and conduct_id
+@app.route("/updateenrolment", methods=["PUT"])
+def updateEnrolment():
+    return enrolmentController.updateEnrolment(request.get_json())
+
+# Delete an Enrolment request by learner_id and conduct_id
+@app.route("/deleteenrolment", methods=["DELETE"])
+def deleteEnrolment():
+    return enrolmentController.deleteEnrolment(request.get_json())
 
 
 if __name__ == '__main__':
