@@ -1,5 +1,10 @@
 from flask import Flask, request, jsonify
-from ..data_access.classes import LMSQuizAttempt, LMSQuizChoice, LMSQuizPerformance, LMSQuizQuestion, LMSSection, LMSUser
+from ..data_access.lms_quiz_attempt import LMSQuizAttempt
+from ..data_access.lms_quiz_choice import LMSQuizChoice
+from ..data_access.lms_quiz_performance import LMSQuizPerformance
+from ..data_access.lms_quiz_question import LMSQuizQuestion
+from ..data_access.lms_section import LMSSection
+from ..data_access.lms_user import LMSUser
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, case
 import json

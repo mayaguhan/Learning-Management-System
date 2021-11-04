@@ -1,6 +1,11 @@
 from flask import Flask, request, jsonify
 from sqlalchemy.sql.elements import Null
-from ..data_access.classes import LMSEnrolment, LMSSectionRequirement, LMSSection, LMSMaterial, MaterialVisit, LMSQuizAttempt
+from ..data_access.lms_enrolment import LMSEnrolment
+from ..data_access.lms_section_requirement import LMSSectionRequirement
+from ..data_access.lms_section import LMSSection
+from ..data_access.lms_material import LMSMaterial 
+from ..data_access.lms_material_visit import MaterialVisit 
+from ..data_access.lms_quiz_attempt import LMSQuizAttempt
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, case
 
