@@ -19,9 +19,6 @@ class LMSQuizChoice(db.Model):
     def getCorrect(self):
         return self.correct
     
-    def setCorrect(self, correct):
-        self.correct = correct
-    
     def setChoiceID(self,newID):
         self.quiz_choice_id = newID
 
