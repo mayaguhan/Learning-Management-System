@@ -383,6 +383,7 @@ class LMSQuizAttempt(db.Model):
     __tablename__ = "lms_quiz_attempt"
     quiz_attempt_id = db.Column(db.Integer, primary_key=True)
     learner_id = db.Column(db.Integer,db.ForeignKey(LMSUser.user_id))
+    conduct_id = db.Column(db.Integer,db.ForeignKey(LMSConduct.course_id))
     section_id = db.Column(db.Integer,db.ForeignKey(LMSSection.section_id))
     attempt_date = db.Column(db.DateTime)
     grade = db.Column(db.Integer)

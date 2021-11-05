@@ -18,35 +18,50 @@ class LMSUser(db.Model):
         return self.name
 
     def setName(self,new_name):
-        if new_name!="" and len(new_name)<=50:
-            self.name = new_name
-        else:
+        if type(new_name)!= str:
+            raise Exception("Invalid input")
+        elif new_name=="" or len(new_name)>50:
             raise Exception("Please input a valid name")
-    
+        else:
+            self.name = new_name
+            return self.name
+
     def getEmail(self):
         return self.email
 
     def setEmail(self,new_email):
-        if new_email!="" and len(new_email)<=50:
-            self.email = new_email
-        else:
+        if type(new_email)!= str:
+            raise Exception("Invalid input")
+        elif new_email=="" or len(new_email)>50:
             raise Exception("Please input a valid email")
+            
+        else:
+            self.email = new_email
+            return self.email
 
     def getSeniorityLevel(self):
         return self.seniority_level
 
     def setSeniorityLevel(self,new_seniority):
-        if new_seniority!="" and len(new_seniority)<=20:
-            self.seniority_level = new_seniority
-        else:
+        if type(new_seniority)!= str:
+            raise Exception("Invalid input")
+        elif new_seniority=="" or len(new_seniority)>20:
             raise Exception("Please input a valid seniority level")
+        else:
+            self.seniority_level = new_seniority
+            return self.seniority_level
 
     def getContact(self):
         return self.contact
 
     def setContact(self,new_contact):
-        if new_contact!="" and len(new_contact)<=20:
+        if type(new_contact)!= str:
+            raise Exception("Invalid input")
+        elif new_contact=="" or len(new_contact)>20:
+            raise Exception("Invalid contact")
+        else:
             self.contact = new_contact
+            return self.contact
     
     # 2 way translation
     def to_dict(self):

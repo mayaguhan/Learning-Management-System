@@ -29,28 +29,38 @@ class LMSSection(db.Model):
         return self.section_name
     
     def setSectionName(self,new_name):
-        if new_name!="" and len(new_name)<=50:
-            self.section_name = new_name
-        else:
+        if type(new_name)!= str:
+            raise Exception("Invalid input")
+        elif new_name=="" or len(new_name)>50:
             raise Exception("Please give a name to this section")
+        else:
+            self.section_name = new_name
+            return self.section_name
+            
 
     def getQuizDuration(self):
         return self.quiz_duration
     
     def setQuizDuration(self,new_duration):
-        if new_duration>0:
-            self.quiz_duration = new_duration
-        else:
+        if type(new_duration) != int:
+            raise Exception("Invalid input")
+        elif new_duration<0:
             raise Exception("Please give some time to your students.")
+        else:
+            self.quiz_duration = new_duration
+            return self.quiz_duration
 
     def getPassingGrade(self):
         return self.passing_grade
     
     def setPassingGrade(self,new_grade):
-        if new_grade>0:
-            self.passing_grade = new_grade
-        else:
+        if type(new_grade)!=int:
+            raise Exception("Invalid input")
+        if new_grade<=0:
             raise Exception("The passing grade has to be greater than 0")
+        else:
+            self.passing_grade = new_grade
+            return self.passing_grade
 
     
     # 2 way translation
