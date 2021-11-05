@@ -21,6 +21,9 @@ class LMSQuizChoice(db.Model):
     
     def setChoiceID(self,newID):
         self.quiz_choice_id = newID
+    
+    def getCorrect(self):
+        return self.correct
 
     def getQuestionID(self):
         return self.quiz_question_id
