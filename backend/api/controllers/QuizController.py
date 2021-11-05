@@ -6,7 +6,7 @@ from ..data_access.lms_quiz_question import LMSQuizQuestion
 from ..data_access.lms_section import LMSSection
 from ..data_access.lms_user import LMSUser
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, case
+from sqlalchemy import func, case, and_
 import json
 
 db = SQLAlchemy()
@@ -198,7 +198,7 @@ def getQuizPerformanceByQuizAtemptAndSectionId(data):
     sectionId = data["sectionId"]
     # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
     # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
-    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,LMSQuizChoice.choice,LMSQuizChoice.correct,LMSQuizPerformance.quiz_choice_id,LMSQuizChoice.quiz_question_id).select_from(LMSQuizChoice).join(LMSQuizPerformance,LMSQuizChoice.quiz_choice_id==LMSQuizPerformance.quiz_choice_id).filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId).order_by(LMSQuizQuestion.quiz_question_id).all()
+    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,LMSQuizChoice.choice,LMSQuizPerformance.quiz_choice_id,LMSQuizChoice.correct).select_from(LMSQuizChoice).join(LMSQuizPerformance,and_(LMSQuizChoice.quiz_choice_id==LMSQuizPerformance.quiz_choice_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId),isouter=True).filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizQuestion.section_id==sectionId).order_by(LMSQuizQuestion.quiz_question_id).all()
     if not quizPerformances:
         return jsonify({
             "code" : 404,
@@ -212,8 +212,8 @@ def getQuizPerformanceByQuizAtemptAndSectionId(data):
             individual["question_name"] = quizPerformance[1]
             individual["quiz_choice_id"] = quizPerformance[2]
             individual["choice"] = quizPerformance[3]
-            individual["correct"] = quizPerformance[4]
-            individual["chosen"] = quizPerformance[5]
+            individual["chosen"] = quizPerformance[4]
+            individual["correct"] = quizPerformance[5]
             returnArray.append(individual)
 
         return jsonify({
