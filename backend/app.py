@@ -181,6 +181,16 @@ def deleteMaterialById():
 def updateSection():
     return sectionController.updateSectionBySectionID(request.get_json())
 
+# Get all sections by section_id
+@app.route("/getallsectionsbyconductid", methods = ["POST"])
+def getallsectionsbyconductid():
+    return sectionController.getAllSectionsByConductId(request.get_json())
+
+# Get section information by section_id
+@app.route("/getsectioninformationbysectionid", methods = ["POST"])
+def getsectioninformationbysectionid():
+    return sectionController.getSectionInformationBySectionId(request.get_json())
+
 # Get all sections by conduct id and user id
 @app.route("/getallsectionsbyconductanduserid", methods = ["POST"])
 def getallsectionsbyconductanduserid():
