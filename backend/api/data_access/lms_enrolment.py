@@ -10,7 +10,7 @@ class LMSEnrolment(db.Model):
     conduct_id = db.Column(db.Integer,db.ForeignKey(LMSConduct.conduct_id), primary_key=True)
     self_enrolment = db.Column(db.SmallInteger())
     status = db.Column(db.VARCHAR(10))
-    
+    remarks = db.Column(db.VARCHAR(10))
 
     # Getter and setter methods
 
