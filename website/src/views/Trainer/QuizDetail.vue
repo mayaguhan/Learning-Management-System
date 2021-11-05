@@ -330,9 +330,9 @@ export default {
             let dataObj = { "sectionId": this.section_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.sectionDetail = response.data[0];
-                    this.quizDuration = response.data[0].quiz_duration;
-                    this.passingGrade = response.data[0].passing_grade;
+                    this.sectionDetail = response.data.data[0];
+                    this.quizDuration = response.data.data[0].quiz_duration;
+                    this.passingGrade = response.data.data[0].passing_grade;
                 })
         },
 
@@ -343,7 +343,7 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     // Groups question choices into question groups by question_id
-                    let questionArr = Object.values(response.data.reduce((result, 
+                    let questionArr = Object.values(response.data.data.reduce((result, 
                     { quiz_question_id, question_name, quiz_choice_id, choice, correct, answer_count }) => {
                         // Create new question group
                         if (!result[quiz_question_id]) result[quiz_question_id] = {
@@ -414,17 +414,17 @@ export default {
                     axios.post(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             // Retrieve new Quiz Question and adds 2 Choices
-                            let newQuizQuestionId = response.data[0].insertId
+                            let newQuizQuestionId = response.data.data[0].insertId
                             let addOptionEndPoint = this.apiLink + "/addnewquizoption";
                             let dataObj1 = { "quizQuestionId": newQuizQuestionId, "choice": "Choice B", "correct": 0 };
                             axios.post(addOptionEndPoint, dataObj1)
                                 .then((response) => {
-                                    console.log(response.data);
+                                    console.log(response.data.data);
                                 })
                             let dataObj2 = { "quizQuestionId": newQuizQuestionId, "choice": "Choice A", "correct": 1 };
                             axios.post(addOptionEndPoint, dataObj2)
                                 .then((response) => {
-                                    console.log(response.data);
+                                    console.log(response.data.data);
                                     this.getQuestionChoices();
                                     this.forceRerender();
                                 })
@@ -496,7 +496,7 @@ export default {
                     let dataObj = { "quizQuestionId": change.quiz_question_id, "choice": change.choice, "correct": change.correct };
                     axios.post(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
-                            console.log(response.data);
+                            console.log(response.data.data);
                         })
                 } else {
                     // Update Quiz Choice by quiz_choice_id
@@ -541,7 +541,7 @@ export default {
             let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.studentAttempts = response.data;
+                    this.studentAttempts = response.data.data;
                 })
         },
         // Get Quiz Attempt passing rate and attempt count by section_id
@@ -550,7 +550,7 @@ export default {
             let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.quizStats = response.data[0];
+                    this.quizStats = response.data.data[0];
                 })
         },
         // Get all Quiz Attempt by section_id
@@ -559,7 +559,7 @@ export default {
             let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.quizAttempts = response.data;
+                    this.quizAttempts = response.data.data;
                 })
         },
         formatDate(date) {  
@@ -574,7 +574,7 @@ export default {
                 .then((response) => {
                     console.log(response);
                     // Groups question choices into question groups by question_id
-                    let questionArr = Object.values(response.data.reduce((result, 
+                    let questionArr = Object.values(response.data.data.reduce((result, 
                     { quiz_question_id, question_name, quiz_choice_id, choice, chosen, correct }) => {
                         // Create new question group
                         if (!result[quiz_question_id]) result[quiz_question_id] = {

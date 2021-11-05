@@ -144,23 +144,23 @@ export default {
             return updatedS3WithEndpoint;
         },
 
-        // Get a Course Conducted information by conduct_id
+        // Get a Single Course Conducted information by conduct_id
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.courseDetail = response.data[0];
-                    this.getEnrolStudents(response.data[0].course_id, response.data[0].course_requisite_id)
+                    this.courseDetail = response.data.data[0];
+                    this.getEnrolStudents(response.data.data[0].course_id, response.data.data[0].course_requisite_id)
                 })
         },
         // Get all Sections by conduct_id (Trainer)
         getCourseSections() {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid";
+            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid"; // Not up yet
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.sections = response.data;
+                    this.sections = response.data.data;
                 })
         },
 
@@ -174,7 +174,7 @@ export default {
             let dataObj = { "sectionId": section_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.materials = response.data;
+                    this.materials = response.data.data;
             })
         },
 
@@ -189,7 +189,7 @@ export default {
             let dataObj = { "courseId": course_id}
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.enrolStudents = response.data;
+                    this.enrolStudents = response.data.data;
                 })
         },
 

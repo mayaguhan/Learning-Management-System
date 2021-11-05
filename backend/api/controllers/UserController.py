@@ -200,7 +200,7 @@ def getTrainersConductingACourse(data):
             LMSUser.user_id == LMSConduct.trainer_id, 
             LMSConduct.course_id == LMSCourse.course_id, 
             LMSConduct.start_register <= datetime.today(),
-            LMSConduct.end_register >= datetime.today(),
+            LMSConduct.end_date >= datetime.today(),
             LMSUser.seniority_level == "Senior Engineer",
             LMSConduct.course_id == courseId).all()
 

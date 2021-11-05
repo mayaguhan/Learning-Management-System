@@ -63,15 +63,18 @@
                           {{row.item.trainer_count}} 
                         </td>
                         <td>
-                            {{ formatDate(row.item.start_date) }}
+                          {{row.item.trainer_all - row.item.trainer_count}} 
                         </td>
                         <td>
-                            {{ formatDate(row.item.end_date) }}
+                          {{row.item.trainer_all}} 
+                        </td>
+                        <td>
+                          {{getActiveStatus(row.item.active)}} 
                         </td>
                         <td width="10">
                           <!-- Enrol Course Dialog -->
                           <v-btn color="primary" @click.stop="$set(selectedCourse, row.item.course_id, true), getCourseTrainer(row.item.course_id)">
-                            View Trainers
+                            View Classes
                           </v-btn>
                           <v-dialog v-model="selectedCourse[row.item.course_id]" scrollable max-width="1200" :key="row.item.course_id">
                             <v-card>
@@ -85,7 +88,7 @@
 
                                 <!-- Assign Trainer Dialog -->
                                 <v-btn color="primary" @click.stop="$set(selectedAssign, row.item.course_id, true), getCourseAssign(row.item.course_id)">
-                                  View Eligible Trainers
+                                  View Trainers Eligible To Teach
                                 </v-btn>
                                 <v-dialog v-model="selectedAssign[row.item.course_id]" scrollable max-width="1200" :key="row.item.course_id">
                                   <v-card>
@@ -158,13 +161,14 @@
                                                   </v-form>
                                                   </v-card-text>
                                                   <v-card-actions>
-                                                    <v-btn class="primary" :disabled="!isFormValid" @click="assignTrainer(row.item.course_id, assign.item.user_id), selectedTrainer[assign.item.user_id]=false">
-                                                      Confirm 
-                                                    </v-btn>
                                                     <v-spacer></v-spacer>
-                                                    <v-btn @click="selectedTrainer[assign.item.user_id]=false">
+                                                    <v-btn color="blue darken-1" text @click="selectedTrainer[assign.item.user_id]=false">
                                                       Close
                                                     </v-btn>
+                                                    <v-btn color="blue darken-1" text :disabled="!isFormValid" @click="assignTrainer(row.item.course_id, assign.item.user_id), selectedTrainer[assign.item.user_id]=false">
+                                                      Confirm 
+                                                    </v-btn>
+  
                                                 </v-card-actions>
                                                 </v-card>
                                               </v-dialog>
@@ -188,17 +192,19 @@
                                         {{ row.item.contact }}
                                       </td>
                                       <td>
-                                        {{ row.item.remaining }}
+                                        {{ row.item.enrolments }} / {{ row.item.capacity }}
                                       </td>
                                       <td>
-                                        {{ formatDate(row.item.end_register) }} to <br>
-                                        {{ formatDate(row.item.start_date) }}
+                                        {{ formatDate(row.item.start_register) }} to <br>
+                                        {{ formatDate(row.item.end_register) }}
                                       </td>
                                       <td>
+                                        {{ formatDate(row.item.start_date) }} to <br>
                                         {{ formatDate(row.item.end_date) }}
                                       </td>
                                       <td>
-                                        {{ formatDate(row.item.end_date) }}
+                                        <span v-if="formatDate(new Date()) > formatDate(row.item.start_date) ">Started</span>
+                                        <span v-else>Registration</span>
                                       </td>
                                       <td>
                                         <router-link :to="{ name: 'HRCourseDetail', params: { conduct_id: row.item.conduct_id }}">
@@ -239,7 +245,9 @@
                                   <v-select v-model="row.item.course_requisite_id" :items="courses" :menu-props="{ top: true, offsetY: true }"
                                     label="Courses" item-text="course_requisite_id" item-value="course_requisite_id"></v-select>
 
-                                  <v-file-input v-model="newBadge" prepend-icon="mdi-camera" 
+                                  <v-switch v-model="row.item.active" inset ></v-switch>
+
+                                  <v-file-input v-model="editBadge" prepend-icon="mdi-camera" 
                                   accept="image/png, image/jpeg, image/bmp" label="Upload Badge Image" ></v-file-input>
                                 </v-form>
                               </v-card-text>
@@ -247,10 +255,10 @@
                                 <v-spacer></v-spacer>
 
                                 <v-btn color="blue darken-1" text :disabled="!editFormValid" 
-                                @click="selectedEdit[row.item.course_id]=false, editCourse(row.item), newBadge={}">
+                                @click="selectedEdit[row.item.course_id]=false, editCourse(row.item), editBadge={}">
                                   Edit
                                 </v-btn>
-                                <v-btn color="blue darken-1" text @click="selectedEdit[row.item.course_id]=false, newBadge={}">
+                                <v-btn color="blue darken-1" text @click="selectedEdit[row.item.course_id]=false, editBadge={}, getCoursesDetail(), forceRerender()">
                                   Close
                                 </v-btn>
                               </v-card-actions>
@@ -391,6 +399,7 @@ export default {
         selectedRequest: {},
         selectedTrainer: {},
         selectedEdit: {},
+        selectedEditCopy: {},
         enrolmentRemarks: "",
         assignStartDate: "",
         assignEndDate: "",
@@ -405,19 +414,24 @@ export default {
         courseFormValid: false,
         editFormValid: false,
         isFormValid: false,
-        newRequisite: 0,
+
+        newRequisite: null,
         newCourseCode: "",
         newTitle: "",
         newOutline: "",
+
         newBadge: {},
+        editBadge: {},
+        componentKey: 0,
 
         courses: [],
         searchCourses: '',
         headersCourses: [
             { text: 'Course Name', value: 'title', align: 'start', sortable: true},
-            { text: 'Trainers', value: 'trainer_count', filterable: false, sortable: true},
-            { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
-            { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
+            { text: 'Open Classes', value: 'trainer_count', filterable: false, sortable: true},
+            { text: 'Ongoing Classes', value: 'trainer_progress', filterable: false, sortable: true},
+            { text: 'Total Classes', value: 'trainer_all', filterable: false, sortable: true},
+            { text: 'Status', value: 'active', filterable: false, sortable: true},
             { text: '', value: 'actions', filterable: false, sortable: false},
             { text: '', value: 'actions', filterable: false, sortable: false}
         ],
@@ -434,10 +448,10 @@ export default {
         headersTrainers: [
             { text: 'Trainer', value: 'name', align: 'start', sortable: true},
             { text: 'Contact Details', value: 'contact_details', sortable: false},
-            { text: 'Available', value: 'remaining', align: 'start', sortable: true},
-            { text: 'Registration', value: 'end_register', align: 'start', sortable: true},
-            { text: 'Start Date', value: 'start_date', sortable: true},
-            { text: 'End Date', value: 'end_date', sortable: true},
+            { text: 'Enrolments', value: 'remaining', align: 'start', sortable: true},
+            { text: 'Registration Period', value: 'end_register', align: 'start', sortable: true},
+            { text: 'Class Period', value: 'start_date', sortable: true},
+            { text: 'Class Status', value: 'actions', sortable: false},
             { text: '', value: 'actions', sortable: false}
         ],
 
@@ -481,31 +495,44 @@ export default {
             let updatedS3WithEndpoint = this.s3Link + material_link;
             return updatedS3WithEndpoint;
         },
+        getActiveStatus(active) {
+          if (active == 1) {
+            return "Active";
+          } else {
+            return "Inactive";
+          }
+        },
         // Get all Courses
         getCoursesDetail() {
             let updatedApiWithEndpoint1 = this.apiLink + "/getallcourses";
             axios.get(updatedApiWithEndpoint1)
             .then((response) => {
-                this.courses = response.data;
+                this.courses = response.data.data;
             })
         },
 
         // Get all Users
         getEngineersDetail() {
-            let updatedApiWithEndpoint2 = this.apiLink + "/getusers";
-            axios.get(updatedApiWithEndpoint2)
+            let updatedApiWithEndpoint = this.apiLink + "/getusers";
+            axios.get(updatedApiWithEndpoint)
             .then((response) => {
-                this.engineers = response.data;
+                this.engineers = response.data.data;
             })
         },
 
         // Get all Trainers that are conducting a Course by course_id
         getCourseTrainer(course_id) {
-          let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
+          let updatedApiWithEndpoint = this.apiLink + "/gettrainersconductingacourse";
           let dataObj = { 'courseId' : course_id};
+          console.log(updatedApiWithEndpoint, dataObj);
           axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
-              this.trainers = response.data;
+              this.trainers = response.data.data;
+          })
+          .catch((error) => {
+            if (error) {
+              this.trainers = [];
+            }
           })
         },
 
@@ -515,23 +542,23 @@ export default {
           let dataObj = { 'courseId' : course_id};
           axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
-              this.assigns = response.data;
+              this.assigns = response.data.data;
           })
         },
 
         // Add new Course Conduct
         assignTrainer(course_id, trainer_id) {
-          // TO DO: 
-          let updatedApiWithEndpoint = this.apiLink + "/TBC";
-          let dataObj = { "courseId" : course_id, "trainerId": trainer_id, "capacity": this.newCapacity, 
-                          "startDate" : this.assignStartDate, "endDate":  this.assignEndDate, 
-                          "startRegister": this.assignStartRegister, "endRegister" : this.assignEndRegister };
+          let updatedApiWithEndpoint = this.apiLink + "/addcourseconduct";
+          let dataObj = { "course_id" : course_id, "trainer_id": trainer_id, "capacity": this.newCapacity, 
+                          "start_date" : this.assignStartDate, "end_date":  this.assignEndDate, 
+                          "start_register": this.assignStartRegister, "end_register" : this.assignEndRegister };
           console.log(updatedApiWithEndpoint, dataObj)
-          // let updatedApiWithEndpoint = this.apiLink + "/TBC";
-          // axios.put(updatedApiWithEndpoint, dataObj)
-          // .then((response) => {
-          //     console.log(response.data)
-          // })
+          axios.post(updatedApiWithEndpoint, dataObj)
+            .then((response) => {
+                console.log(response.data.data)
+                this.getCoursesDetail();
+                this.forceRerender();
+            })
           this.assignStartDate = '';
           this.assignEndDate = '';
           this.assignStartRegister = '';
@@ -544,80 +571,101 @@ export default {
           let updatedApiWithEndpoint = this.apiLink + "/getallselfenrolmentrequest";
           axios.get(updatedApiWithEndpoint)
           .then((response) => {
-              this.requests = response.data;
+              this.requests = response.data.data;
           })
         },
 
-        // Updates an enrolment by learner_id and conduct_id
+        // Update Enrolment by learner_id and conduct_id
         selfEnrolmentAction(request, action) {
           console.log(request, action)
-          // TO DO: 
-          let updatedApiWithEndpoint = this.apiLink + "/TBC";
+          let updatedApiWithEndpoint = this.apiLink + "/updateenrolment";
           let dataObj = { "learnerId" : request.learner_id, "conductId": request.conduct_id, "status" : action, "remarks": this.enrolmentRemarks };
           console.log(updatedApiWithEndpoint, dataObj)
-          // axios.put(updatedApiWithEndpoint, dataObj)
-          // .then((response) => {
-          //     console.log(response.data)
-          // })
+          axios.put(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+              console.log(response.data.data)
+              this.getEnrolmentRequest();
+              this.forceRerender();
+          })
           this.enrolmentRemarks = '';
         },
-        upload(file, str) {
-            var nameWithExtension = file['name']
-            var extensionArray = file['type'].split("/")
-            var extension = extensionArray[1]
 
-            var indexOfExtension = nameWithExtension.indexOf(extension);
-            var name = nameWithExtension.slice(0, indexOfExtension-1)
+        uploadBadge(file, courseDataObj) {
+            console.log(file, courseDataObj)
 
-            var content = "";
+            // var nameWithExtension = file['name']
+            // var extensionArray = file['type'].split("/")
+            // var extension = extensionArray[1]
+
+            // var indexOfExtension = nameWithExtension.indexOf(extension);
+            // var name = nameWithExtension.slice(0, indexOfExtension-1)
+
+            // var content = "";
             // var updatedApiWithEndpointM = this.apiLink + "/uploadfile";
 
-            let reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function () {
-                content = reader.result.split(',')[1];
-                let dataObj = {"courseId": str.toString(),"fileName": name, 
-                            "fileExtension": extension, "content": content };
-                console.log(dataObj);
-                // axios.post(updatedApiWithEndpointM, dataObj)
-                //     .then((response) => {
-                //         // Saving filepath to DB
-                //         console.log(response)
-                //     })
-            }
+            // let reader = new FileReader();
+            // reader.readAsDataURL(file);
+            // reader.onload = function () {
+            //     content = reader.result.split(',')[1];
+            //     let dataObj = {"courseId": courseDataObj.course_id.toString(),"fileName": name, 
+            //                 "fileExtension": extension, "content": content };
+            //     console.log(updatedApiWithEndpointM, dataObj);
+            //     axios.post(updatedApiWithEndpointM, dataObj)
+            //         .then((response) => {
+            //             console.log(response.data)
+            //             // courseDataObj['badge'] = response.data
+            //             // this.updateCourse(courseDataObj)
+
+            //         })
+            // }
+            // this.newBadge = {};
+            this.editBadge = {};
         },
 
-        // Add Course
+        // Add a Course
         addNewCourse() {
-          // TO DO:
-          console.log(this.newRequisite, this.newCourseCode, this.newTitle, this.newOutline, this.newBadge)
-
-
-
-
-
-          if (this.newBadge != {}) {
-            this.upload(this.newBadge, 100);
-          }
+          let updatedApiWithEndpoint = this.apiLink + "/addacourse";
+          let courseDataObj = { "course_requisite_id": this.newRequisite, "course_code" : this.newCourseCode, "title": this.newTitle, 
+                          "outline": this.newOutline, "badge" : "placeholder", "active":  1 };
+          console.log(updatedApiWithEndpoint, courseDataObj)
+          axios.post(updatedApiWithEndpoint, courseDataObj)
+            .then((response) => {
+                console.log(response.data.data);
+                if (this.newBadge.name != null) {
+                  courseDataObj["course_id"] = response.data.data.course_id
+                  this.uploadBadge(this.newBadge, courseDataObj);
+                }
+                this.getCoursesDetail();
+                this.forceRerender();
+            })
           this.newRequisite = 0;
           this.newCourseCode = "";
           this.newTitle = "";
           this.newOutline = "";
-          this.newBadge = {};
+        },
+
+        editCourse(course) {
+          let courseDataObj = { "course_id" : course.course_id, "course_requisite_id": course.course_requisite_id, 
+                                "course_code" : course.course_code, "title": course.title, "outline": course.outline,
+                                "active": course.active };
+          if (this.editBadge.name != null ) {
+              this.uploadBadge(this.editBadge, courseDataObj);
+          } else {
+              courseDataObj['badge'] = course.badge;
+              this.updateCourse(courseDataObj)
+          }
         },
 
         // Update Course by course_id
-        editCourse(course) {
-          // TO DO:
+        updateCourse(courseDataObj) {
+          let updatedApiWithEndpoint = this.apiLink + "/updatecourse";
+          console.log(updatedApiWithEndpoint, courseDataObj)
+          axios.put(updatedApiWithEndpoint, courseDataObj)
+          .then((response) => {
+              console.log(response.data.data)
 
 
-
-
-          console.log(course)
-          if (this.newBadge != {}) {
-            this.upload(this.newBadge, 100);
-          }
-          this.newBadge = {};
+          })
         },
 
         formatDate(date) {  

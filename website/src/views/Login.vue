@@ -71,12 +71,12 @@ export default {
                     console.log(response);
 
                     // Login OKAY
-                    if (response.status == 200 && response.data.length > 0){
-                        console.log(response.data[0].user_id);
+                    if (response.status == 200 && response.data.data.length > 0){
+                        console.log(response.data.data[0].user_id);
 
 
                         // Store required data in vuex store
-                        this.$store.commit('setUserId', response.data[0].user_id);
+                        this.$store.commit('setUserId', response.data.data[0].user_id);
                         this.$store.commit('setLogin', true);
                         this.$store.commit('setType', this.type);
                         
@@ -89,8 +89,11 @@ export default {
                         if (this.type == "learner"){
                             this.$router.push("/learnercourses");
                         }
-                        if (this.type == "trainer" && response.data[0].seniority_level == "Senior Engineer") {
+                        if (this.type == "trainer" && response.data.data[0].seniority_level == "Senior Engineer") {
                             this.$router.push("/trainercourses");
+                        }
+                        if (this.type == "hr" && response.data.data[0].seniority_level == "HR") {
+                            this.$router.push("/hrcourses");
                         }
                     } else {
                         this.styleObj.display = "block";

@@ -76,8 +76,7 @@ export default {
             let dataObj = { "trainerId": trainer_id }
             axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
-                console.log(response.data)
-                this.courses = response.data;
+                this.courses = response.data.data;
             })
         },
         formatDate(date) {  

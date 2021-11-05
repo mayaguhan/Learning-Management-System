@@ -89,7 +89,7 @@ export default {
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.courseDetail = response.data[0];
+                    this.courseDetail = response.data.data[0];
                 })
         },
         // Get all Sections by conduct_id and user_id (Learner)
@@ -98,7 +98,7 @@ export default {
             let dataObj = { "conductId": this.conduct_id, "learnerId": this.currentUserId } 
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    let sections = response.data;
+                    let sections = response.data.data;
                     console.log(sections);
                     let boldSection = false;
                     sections.forEach(section => {
@@ -121,7 +121,7 @@ export default {
             let dataObj = { "sectionId": section_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.materials = response.data;
+                    this.materials = response.data.data;
             })
         },
     },

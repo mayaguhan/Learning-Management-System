@@ -112,10 +112,10 @@ export default {
             }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.passingGrade = response.data[0]["passing_grade"];
-                    this.conductId = response.data[0]["conduct_id"];
-                    this.countdown = response.data[0]["quiz_duration"] * 60;
-                    this.sectionName = response.data[0]["section_name"];               
+                    this.passingGrade = response.data.data[0]["passing_grade"];
+                    this.conductId = response.data.data[0]["conduct_id"];
+                    this.countdown = response.data.data[0]["quiz_duration"] * 60;
+                    this.sectionName = response.data.data[0]["section_name"];               
                 }) 
         },
         // Add new Quiz attempt
@@ -124,8 +124,8 @@ export default {
             let dataObj = { "sectionId": this.section_id, "learnerId": this.currentUserId }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    console.log(response.data.insertId);
-                    this.quizAttemptId = response.data.insertId;
+                    console.log(response.data.data.insertId);
+                    this.quizAttemptId = response.data.data.insertId;
                 })
         },
         // Get Quiz's Question Performance by section_id
@@ -135,7 +135,7 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     // Groups question choices into question groups by question_id
-                    let questionArr = Object.values(response.data.reduce((result, 
+                    let questionArr = Object.values(response.data.data.reduce((result, 
                     { quiz_question_id, question_name, quiz_choice_id, choice, correct, answer_count }) => {
                         // Create new question group
                         if (!result[quiz_question_id]) result[quiz_question_id] = {

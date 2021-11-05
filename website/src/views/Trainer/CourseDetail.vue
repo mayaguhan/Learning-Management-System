@@ -29,7 +29,8 @@
 
         <h2>Course Content
             <!-- Toggle: Edit sections -->
-            <v-btn icon @click="toggleEdit=!toggleEdit, editAction('edit')" v-show="toggleEdit == false && formatDate(currentDate) < courseDetail.start_date">
+            <v-btn icon @click="toggleEdit=!toggleEdit, editAction('edit')" 
+            v-show="toggleEdit == false && formatDate(currentDate) < courseDetail.start_date">
                 <v-icon>mdi-pencil</v-icon>
             </v-btn>
         </h2>
@@ -56,7 +57,8 @@
                     </v-row>
                     <v-row>
                         <v-col>
-                            <v-text-field v-model="newQuizDuration" type="number" :rules="[rules.required, rules.durationMin, rules.durationMax]"
+                            <v-text-field v-model="newQuizDuration" type="number" 
+                            :rules="[rules.required, rules.durationMin, rules.durationMax]"
                             label="Quiz Duration" hint="Duration of the quiz" suffix="minutes"></v-text-field>
                         </v-col>
                     </v-row>
@@ -75,29 +77,31 @@
         </v-dialog>
 
         <!-- Save Section Edits -->
-        <v-btn class="primary mr-3 mb-3" @click="toggleEdit=!toggleEdit, saveEdit()" v-show="toggleEdit == true" :disabled="!isSaveValid">
+        <v-btn class="primary mr-3 mb-3" @click="toggleEdit=!toggleEdit, saveEdit()" 
+        v-show="toggleEdit == true" :disabled="!isSaveValid">
             Save
         </v-btn>
         <!-- Cancel Section Edits -->
-        <v-btn class="light mb-3"  @click="toggleEdit=!toggleEdit, editAction('cancel')" v-show="toggleEdit == true">
+        <v-btn class="light mb-3"  @click="toggleEdit=!toggleEdit, editAction('cancel')" 
+        v-show="toggleEdit == true">
             Cancel
         </v-btn>
         
         <template>
         <v-expansion-panels focusable :items="sections" :key="componentKey">
-            <v-expansion-panel v-for="(section, indexS) in sections" :key="section.course_id" @click="selectedSection = section.section_id, expandSection()">
+            <v-expansion-panel v-for="(section, indexS) in sections" :key="section.course_id">
                 <v-expansion-panel-header>
                     {{ section.section_name }}
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
                     <v-row v-show="toggleEdit == true">
                         <v-col cols=10>
-                            <v-text-field v-model="section.section_name" label="Section Name"  maxlength="50" ></v-text-field>
+                            <v-text-field v-model="section.section_name" label="Section Name" 
+                            maxlength="50" ></v-text-field>
                         </v-col>
                         <v-col cols=2>
-                            <v-text-field v-model="section.sequence" label="Section Sequence" type="number" :rules="[rules.required, rules.sequenceMin, sequenceChecker(section.sequence)]"
-                                ></v-text-field>
-                            <!-- <span> {{ sequenceChecker(section.sequence) }}</span> -->
+                            <v-text-field v-model="section.sequence" label="Section Sequence" type="number" 
+                            :rules="[rules.required, rules.sequenceMin, sequenceChecker(section.sequence)]"></v-text-field>
                         </v-col>
                     </v-row>
 
@@ -110,18 +114,19 @@
                             :value=" section.pass_count / section.learner_count * 100 ">
                         </v-progress-linear>
                         {{ section.pass_count }} / {{ section.learner_count }} Learners have passed this quiz <br>
-                        <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }" v-show="formatDate(currentDate) < courseDetail.start_date">
+                        <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }" 
+                        v-show="formatDate(currentDate) < courseDetail.start_date">
                             <v-btn class="primary mr-3">
                                 Manage Quiz
                             </v-btn>
                         </router-link><br>
                         <v-divider class="mt-3 mb-3"></v-divider>
                         <!-- Upload slide decks -->
-                        <b v-if="materials.length > 0">Learning Materials</b>
+                        <b v-if="section.materials.length > 0">Learning Materials</b>
                         <b v-else>This topic does not have any learning materials</b>
                         <br>
-                        <ul class="mt-3" v-for="(material, indexM) in materials" v-bind:key="material.material_id">
-                            <li class="mb-3" v-if="materials.length > 0" >
+                        <ul class="mt-3" v-for="(material, indexM) in section.materials" v-bind:key="material.material_id">
+                            <li class="mb-3" v-if="section.materials.length > 0" >
                                 <v-btn v-bind:href="s3link(material.link)" target="_blank">
                                     {{ material.file_name }}
                                 </v-btn>
@@ -221,9 +226,9 @@ export default {
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.courseDetail = response.data[0];
+                    this.courseDetail = response.data.data[0];
                     // To be removed
-                    this.courseDetail.start_date = "2021-10-31 12:00";
+                    this.courseDetail.start_date = "2021-11-31 12:00";
                 })
         },
         // Get all Sections by conduct_id (Trainer)
@@ -232,8 +237,106 @@ export default {
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.sections = response.data;
+                    // this.sections = response.data.data;
+                    console.log(response);
                 })
+        },
+        getCourseSections2() {
+            let array = [
+                {
+                    "section_id": 1,
+                    "section_name": "X101 - Lesson 1",
+                    "sequence": 1,
+                    "quiz_duration": 10,
+                    "passing_grade": 0,
+                    "pass_count": 4,
+                    "section_count": 3,
+                    "learner_count": 4,
+                    "material_id": 1,
+                    "file_name": "file",
+                    "link": "section1/Project Instructions.pdf",
+                },
+                {
+                    "section_id": 1,
+                    "section_name": "X101 - Lesson 1",
+                    "sequence": 1,
+                    "quiz_duration": 10,
+                    "passing_grade": 0,
+                    "pass_count": 4,
+                    "section_count": 3,
+                    "learner_count": 4,
+                    "material_id": 2,
+                    "file_name": "file",
+                    "link": "section1/Project Instructions.pdf",
+                },
+                {
+                    "section_id": 1,
+                    "section_name": "X101 - Lesson 1",
+                    "sequence": 1,
+                    "quiz_duration": 10,
+                    "passing_grade": 0,
+                    "pass_count": 4,
+                    "section_count": 3,
+                    "learner_count": 4,
+                    "material_id": 3,
+                    "file_name": "file",
+                    "link": "section1/Project Instructions.pdf",
+                },
+                {
+                    "section_id": 101,
+                    "section_name": "X101 - Lesson 2",
+                    "sequence": 2,
+                    "quiz_duration": 20,
+                    "passing_grade": 0,
+                    "pass_count": 4,
+                    "section_count": 3,
+                    "learner_count": 4,
+                    "material_id": 5,
+                    "file_name": "file",
+                    "link": "section1/Project Instructions.pdf",
+                },
+                {
+                    "section_id": 201,
+                    "section_name": "X101 - Lesson 3",
+                    "sequence": 3,
+                    "quiz_duration": 15,
+                    "passing_grade": 85,
+                    "pass_count": 4,
+                    "section_count": 3,
+                    "learner_count": 4,
+                    "material_id": 6,
+                    "file_name": "file",
+                    "link": "section1/Project Instructions.pdf",
+                },
+                {
+                    "section_id": 201,
+                    "section_name": "X101 - Lesson 3",
+                    "sequence": 3,
+                    "quiz_duration": 15,
+                    "passing_grade": 85,
+                    "pass_count": 4,
+                    "section_count": 3,
+                    "learner_count": 4,
+                    "material_id": 7,
+                    "file_name": "file",
+                    "link": "section1/Project Instructions.pdf",
+                }
+            ];
+            // Groups materials into sections by section_id
+            let sectionArr = Object.values(array.reduce((result, 
+            { section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, 
+                material_id, file_name, link }) => {
+                // Create section section
+                if (!result[section_id]) result[section_id] = {
+                    section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, materials: []
+                };
+                // Append material to section
+                result[section_id].materials.push({ material_id, file_name, link });
+                return result;
+                },{}
+            ));
+            console.log(sectionArr);
+            this.sections = sectionArr;
         },
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD hh:mm');
@@ -327,10 +430,10 @@ export default {
                     let deleteQuestionObj = { "sectionId": section.section_id  }
                     axios.post(deleteQuestionEndpoint, deleteQuestionObj)
                         .then((response) => {
-                            let questionCount = response.data.length;
+                            let questionCount = response.data.data.length;
                             if (questionCount > 0) {
                                 let questionCounter = 0;
-                                let sectionQuestions = response.data
+                                let sectionQuestions = response.data.data
                                 sectionQuestions.forEach(question => {
                                     // Delete Quiz Question by quiz_question_id
                                     let deleteChoiceEndpoint = this.apiLink + "/deletequizquestionbyquestionid";
@@ -383,7 +486,7 @@ export default {
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    let finalSection = response.data.reduce((a,b)=>a.sequence>b.sequence?a:b).section_id;
+                    let finalSection = response.data.data.reduce((a,b)=>a.sequence>b.sequence?a:b).section_id;
                     let finalSectionEndpoint = this.apiLink + "/updateallcoursesectionspassinggradebysectionid";
                     let finalSectionObj = { "conductId": this.conduct_id, "sectionId" : finalSection };
                     console.log(finalSectionEndpoint, finalSectionObj);
@@ -394,16 +497,16 @@ export default {
                 })
         },
         // Get all Materials by section_id
-        expandSection() {
-            if (this.selectedSection != null) {
-                let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
-                let dataObj = { "sectionId": this.selectedSection }
-                axios.post(updatedApiWithEndpoint, dataObj)
-                    .then((response) => {
-                        this.materials = response.data;
-                })
-            }
-        },
+        // expandSection() {
+        //     if (this.selectedSection != null) {
+        //         let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
+        //         let dataObj = { "sectionId": this.selectedSection }
+        //         axios.post(updatedApiWithEndpoint, dataObj)
+        //             .then((response) => {
+        //                 this.materials = response.data.data;
+        //         })
+        //     }
+        // },
         uploadFiles(section_id){
             for (var file in this.files){
                 console
@@ -434,7 +537,7 @@ export default {
                 axios.post(updatedApiWithEndpointM, dataObj)
                     .then((response) => {
                         // Saving filepath to DB
-                        let dataObj = { "sectionId": str, "fileName": name, "link":  response.data }
+                        let dataObj = { "sectionId": str, "fileName": name, "link":  response.data.data }
                         axios.post(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 console.log(response);
@@ -460,6 +563,8 @@ export default {
 
         // Calls method to get section details
         this.getCourseSections();
+
+        this.getCourseSections2();
     }
 }
 </script>

@@ -104,7 +104,7 @@ export default {
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.courseDetail = response.data[0];
+                    this.courseDetail = response.data.data[0];
                 })
         },
         // Get all Learners that are enrolled into a course by conduct_id
@@ -113,7 +113,7 @@ export default {
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.enrolledStudents = response.data;
+                    this.enrolledStudents = response.data.data;
                 })
         }
 

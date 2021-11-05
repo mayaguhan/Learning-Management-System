@@ -27,7 +27,7 @@ def retrieveUserIdByEmail():
     return userController.retrieveUserIdByEmail(request.get_json())
 
 # Get all Users
-@app.route("/users")
+@app.route("/getusers")
 def getAllUsers():
     return userController.getAllUsers()
 
@@ -37,7 +37,7 @@ def getASingleUser():
     return userController.getASingleUser(request.get_json())
 
 # Get all Users by seniority_level
-@app.route("/usersbyseniority", methods=["POST"])
+@app.route("/getallusersbysenioritylevel", methods=["POST"])
 def getUsersBySeniority():
     return userController.getUsersBySeniority(request.get_json())
 
@@ -61,17 +61,18 @@ def getEngineersThatAreEligibleForACourseWithPreReq():
 def getTrainersThatAreEligibleToTeachACourse():
     return userController.getTrainersThatAreEligibleToTeachACourse(request.get_json())
 
-  # Get all Trainers that are conducting a Course by course_id
+
+# Get all Trainers that are conducting a Course by course_id
 @app.route("/gettrainersconductingacourse", methods=["POST"])
 def getTrainersConductingACourse():
     return userController.getTrainersConductingACourse(request.get_json())
 
 # Get all Learners that are enrolled into a course by conduct_id
-@app.route("/getlearnersenrolledbyconduct", methods=["POST"])
+@app.route("/getalllearnersenrolledbyconductid", methods=["POST"])
 def getLearnersEnrolledByConduct():
     return userController.getLearnersEnrolledByConduct(request.get_json())
-  
-  
+
+
 # Get quiz attempt for a section
 @app.route("/getquizattemptforsection",methods=["POST"])
 def getquizattemptforsection():
@@ -217,7 +218,7 @@ def getASingleCourse():
     return courseController.getASingleCourse(request.get_json())
 
 # Get a Single Course Conducted information by conduct_id
-@app.route("/getcourseconductinformation", methods=["POST"])
+@app.route("/getcourseinfobyconductid", methods=["POST"])
 def getCourseConductInformation():
     return courseController.getCourseConductInformation(request.get_json())
 
@@ -227,7 +228,7 @@ def getAllCoursesAUserHasEnrolled():
     return courseController.getAllCoursesAUserHasEnrolled(request.get_json())
 
 # Get all in-progress Courses a User has by learner_id
-@app.route("/getallinprogresscoursesbyuserid", methods=["POST"])
+@app.route("/getallcoursesauserhasbystatus", methods=["POST"])
 def getAllInProgressCoursesByUserId():
     return courseController.getAllInProgressCoursesByUserId(request.get_json())
 
@@ -242,7 +243,7 @@ def getAllCoursesUserHasNotEnrolledIn():
     return courseController.getAllCoursesUserHasNotEnrolledIn(request.get_json())
 
 # Get all Courses that are conducted by trainer_id
-@app.route("/getallcoursesconductedbytrainer", methods=["POST"])
+@app.route("/getallcoursesthatareconductedbyuser", methods=["POST"])
 def getAllCoursesConductedByTrainer():
     return courseController.getAllCoursesConductedByTrainer(request.get_json())
 
@@ -251,8 +252,8 @@ def getAllCoursesConductedByTrainer():
 def addACourse():
     return courseController.addACourse(request.get_json())
 
-# Update Update Course by course_id
-@app.route("/updateCourse", methods=["PUT"])
+# Update Course by course_id
+@app.route("/updatecourse", methods=["PUT"])
 def updateCourse():
     return courseController.updateCourse(request.get_json())
 
@@ -265,7 +266,7 @@ def addCourseConduct():
 
 # Enrolment Endpoints
 # Get all Self-Enrolment request (HR)
-@app.route("/getallselfenrolmentrequests")
+@app.route("/getallselfenrolmentrequest")
 def getAllSelfEnrolmentRequests():
     return enrolmentController.getallSelfEnrolmentRequest()
 
