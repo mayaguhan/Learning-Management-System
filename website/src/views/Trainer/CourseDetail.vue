@@ -89,7 +89,7 @@
         
         <template>
         <v-expansion-panels focusable :items="sections" :key="componentKey">
-            <v-expansion-panel v-for="(section, indexS) in sections" :key="section.course_id">
+            <v-expansion-panel v-for="(section, indexS) in sections" :key="section.courseId">
                 <v-expansion-panel-header>
                     {{ section.section_name }}
                 </v-expansion-panel-header>
@@ -125,19 +125,19 @@
                         <b v-if="section.materials.length > 0">Learning Materials</b>
                         <b v-else>This topic does not have any learning materials</b>
                         <br>
-                        <ul class="mt-3" v-for="(material, indexM) in section.materials" v-bind:key="material.material_id">
-                            <li class="mb-3" v-if="section.materials.length > 0" >
-                                <v-btn v-bind:href="s3link(material.link)" target="_blank">
-                                    {{ material.file_name }}
-                                </v-btn>
-                                <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material, indexM)">
-                                    <v-icon>mdi-trash-can</v-icon>
-                                </v-btn>
-                            </li>
-                            <li v-else>
-                                <b>This section has no materials</b>
-                            </li>
-                        </ul>
+                        <div v-if="section.materials[0].file_name != null">
+                            <ul class="mt-3" v-for="(material, indexM) in section.materials" v-bind:key="material.materialId">
+                                <li class="mb-3">
+                                    <v-btn v-bind:href="s3link(material.link)" target="_blank">
+                                        {{ material.file_name }}
+                                    </v-btn>
+                                    <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material, indexM)">
+                                        <v-icon>mdi-trash-can</v-icon>
+                                    </v-btn>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-else>This topic does not have any learning materials yet</div>
                         <v-file-input v-model="files" counter multiple show-size label="Upload file" v-show="toggleEdit == true"></v-file-input>
                         <v-btn class="primary" v-show="toggleEdit == true" @click="uploadFiles(section.section_id)">
                             Upload
@@ -237,107 +237,23 @@ export default {
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    // this.sections = response.data.data;
-                    console.log(response);
+                    let sectionArr = Object.values(response.data.data.reduce((result, { 
+                        section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, 
+                        material_id, file_name, link }) => {
+                        // Create section section
+                        if (!result[section_id]) result[section_id] = {
+                            section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, materials: []
+                        };
+                        // Append material to section
+                        result[section_id].materials.push({ material_id, file_name, link });
+                        return result;
+                        },{}
+                    ));
+                    console.log(sectionArr);
+                    this.sections = sectionArr;
                 })
         },
-        getCourseSections2() {
-            let array = [
-                {
-                    "section_id": 1,
-                    "section_name": "X101 - Lesson 1",
-                    "sequence": 1,
-                    "quiz_duration": 10,
-                    "passing_grade": 0,
-                    "pass_count": 4,
-                    "section_count": 3,
-                    "learner_count": 4,
-                    "material_id": 1,
-                    "file_name": "file",
-                    "link": "section1/Project Instructions.pdf",
-                },
-                {
-                    "section_id": 1,
-                    "section_name": "X101 - Lesson 1",
-                    "sequence": 1,
-                    "quiz_duration": 10,
-                    "passing_grade": 0,
-                    "pass_count": 4,
-                    "section_count": 3,
-                    "learner_count": 4,
-                    "material_id": 2,
-                    "file_name": "file",
-                    "link": "section1/Project Instructions.pdf",
-                },
-                {
-                    "section_id": 1,
-                    "section_name": "X101 - Lesson 1",
-                    "sequence": 1,
-                    "quiz_duration": 10,
-                    "passing_grade": 0,
-                    "pass_count": 4,
-                    "section_count": 3,
-                    "learner_count": 4,
-                    "material_id": 3,
-                    "file_name": "file",
-                    "link": "section1/Project Instructions.pdf",
-                },
-                {
-                    "section_id": 101,
-                    "section_name": "X101 - Lesson 2",
-                    "sequence": 2,
-                    "quiz_duration": 20,
-                    "passing_grade": 0,
-                    "pass_count": 4,
-                    "section_count": 3,
-                    "learner_count": 4,
-                    "material_id": 5,
-                    "file_name": "file",
-                    "link": "section1/Project Instructions.pdf",
-                },
-                {
-                    "section_id": 201,
-                    "section_name": "X101 - Lesson 3",
-                    "sequence": 3,
-                    "quiz_duration": 15,
-                    "passing_grade": 85,
-                    "pass_count": 4,
-                    "section_count": 3,
-                    "learner_count": 4,
-                    "material_id": 6,
-                    "file_name": "file",
-                    "link": "section1/Project Instructions.pdf",
-                },
-                {
-                    "section_id": 201,
-                    "section_name": "X101 - Lesson 3",
-                    "sequence": 3,
-                    "quiz_duration": 15,
-                    "passing_grade": 85,
-                    "pass_count": 4,
-                    "section_count": 3,
-                    "learner_count": 4,
-                    "material_id": 7,
-                    "file_name": "file",
-                    "link": "section1/Project Instructions.pdf",
-                }
-            ];
-            // Groups materials into sections by section_id
-            let sectionArr = Object.values(array.reduce((result, 
-            { section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, 
-                material_id, file_name, link }) => {
-                // Create section section
-                if (!result[section_id]) result[section_id] = {
-                    section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, materials: []
-                };
-                // Append material to section
-                result[section_id].materials.push({ material_id, file_name, link });
-                return result;
-                },{}
-            ));
-            console.log(sectionArr);
-            this.sections = sectionArr;
-        },
+
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD hh:mm');
         },
@@ -358,7 +274,7 @@ export default {
         },
         addSectionForm() {
             this.sections.push({
-                "conduct_id": this.conduct_id, 
+                "conductId": this.conduct_id, 
                 "sequence": this.sections.length+1,
                 "section_name": this.newSectionName,
                 "quiz_duration": this.newQuizDuration,
@@ -390,7 +306,7 @@ export default {
                         // Add new Section
                         let updatedApiWithEndpoint = this.apiLink + "/addnewsection";
                         let dataObj = { "conductId": change.conduct_id, "sequence": sectionLength++, 
-                                        "sectionName": change.section_name, "quizDuration": change.quiz_duration, "passingGrade": 0 };                  
+                                        "section_name": change.section_name, "quiz_duration": change.quiz_duration, "passing_grade": 0 };                  
                         axios.post(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 this.getCourseSections();
@@ -404,8 +320,8 @@ export default {
                     } else {
                         // Update Section by section_id
                         let updatedApiWithEndpoint = this.apiLink + "/updatesectionbysectionid";
-                        let dataObj = { "sectionId": change.section_id, "sectionName": change.section_name, "sequence": change.sequence,
-                                        "quizDuration": change.quiz_duration, "passingGrade": change.passing_grade};
+                        let dataObj = { "sectionId": change.section_id, "section_name": change.section_name, "sequence": change.sequence,
+                                        "quiz_duration": change.quiz_duration, "passing_grade": change.passing_grade};
                         axios.put(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 console.log(response);
@@ -496,17 +412,6 @@ export default {
                         })
                 })
         },
-        // Get all Materials by section_id
-        // expandSection() {
-        //     if (this.selectedSection != null) {
-        //         let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
-        //         let dataObj = { "sectionId": this.selectedSection }
-        //         axios.post(updatedApiWithEndpoint, dataObj)
-        //             .then((response) => {
-        //                 this.materials = response.data.data;
-        //         })
-        //     }
-        // },
         uploadFiles(section_id){
             for (var file in this.files){
                 console
@@ -537,7 +442,7 @@ export default {
                 axios.post(updatedApiWithEndpointM, dataObj)
                     .then((response) => {
                         // Saving filepath to DB
-                        let dataObj = { "sectionId": str, "fileName": name, "link":  response.data.data }
+                        let dataObj = { "sectionId": str, "file_name": name, "link":  response.data.data }
                         axios.post(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 console.log(response);
@@ -563,8 +468,6 @@ export default {
 
         // Calls method to get section details
         this.getCourseSections();
-
-        this.getCourseSections2();
     }
 }
 </script>

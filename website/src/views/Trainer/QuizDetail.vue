@@ -26,7 +26,7 @@
 
         <p>
             Quiz Duration: 
-            <span v-show="toggleEditSection == false">{{ sectionDetail.quiz_duration }} minutes <br></span>
+            <span v-show="toggleEditSection == false"><b :v-model="sectionDetail.quiz_duration"></b>{{ sectionDetail.quiz_duration }} minutes <br></span>
             
             <v-text-field v-model="quizDuration" :rules="[rules.required, rules.durationMin, rules.durationMax]"
             v-show="toggleEditSection == true" type="number" label="Quiz Duration"  maxlength="4" ></v-text-field>
@@ -370,11 +370,13 @@ export default {
         saveSectionEdit() {
             // Update Section by section_id
             let updatedApiWithEndpoint = this.apiLink + "/updatesectionbysectionid";
-            let dataObj = { "sectionId": this.section_id, "sectionName": this.sectionDetail.section_name, "sequence": this.sectionDetail.sequence,
-                            "quizDuration": this.sectionDetail.quiz_duration, "passingGrade": this.sectionDetail.passing_grade};
+            let dataObj = { "section_id": this.section_id, "section_name": this.sectionDetail.section_name, "sequence": this.sectionDetail.sequence,
+                            "quiz_duration": this.quizDuration, "passing_grade": this.passingGrade};
             axios.put(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     console.log(response);
+                    this.getSectionDetail();
+                    this.forceRerender();
                 })
         },
 
@@ -414,7 +416,7 @@ export default {
                     axios.post(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             // Retrieve new Quiz Question and adds 2 Choices
-                            let newQuizQuestionId = response.data.data[0].insertId
+                            let newQuizQuestionId = response.data.data.quiz_question_id;
                             let addOptionEndPoint = this.apiLink + "/addnewquizoption";
                             let dataObj1 = { "quizQuestionId": newQuizQuestionId, "choice": "Choice B", "correct": 0 };
                             axios.post(addOptionEndPoint, dataObj1)
@@ -433,7 +435,7 @@ export default {
                     // Update Quiz Question by quiz_question_id
                     let updatedApiWithEndpoint = this.apiLink + "/updatequizquestionbyquestionid";
                     let dataObj = { "questionId" : change.quiz_question_id, "questionName" : change.question_name };
-                    axios.post(updatedApiWithEndpoint, dataObj)
+                    axios.put(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             console.log(response);
                         })
@@ -502,7 +504,7 @@ export default {
                     // Update Quiz Choice by quiz_choice_id
                     let updatedApiWithEndpoint = this.apiLink + "/updatequizchoicebychoiceid";
                     let dataObj = { "quizChoiceId" : change.quiz_choice_id, "choice" : change.choice, "correct": change.correct };
-                    axios.post(updatedApiWithEndpoint, dataObj)
+                    axios.put(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             console.log(response);
                         })

@@ -267,9 +267,8 @@
       },
       // Get all Trainers that are conducting a Course by course_id
       getCourseTrainer(course_id) {
-        let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
+        let updatedApiWithEndpoint = this.apiLink + "/gettrainersconductingacourse";
         let dataObj = { 'courseId' : course_id};
-        console.log(dataObj, course_id);
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
             this.trainers = response.data.data;

@@ -17,30 +17,27 @@
 
         <template>
         <v-expansion-panels focusable :items="sections">
-            <v-expansion-panel v-for="section in sections" :key="section.course_id" @click="expandSection(section.section_id)">
+            <v-expansion-panel v-for="section in sections" :key="section.course_id">
                 <v-expansion-panel-header :disabled="section.disabled">
                     <span v-if="section.boldSection==true"><b>{{ section.section_name }}</b></span>
                     <span v-else>{{ section.section_name }}</span>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <div v-if=" section.section_id != null">
-                        
-
-                        <!-- Upload slide decks -->
-                        <b>Topic's Slide Decks</b><br>
-                        <ul v-for="material in materials" v-bind:key="material.material_id">
-                            <li v-if="materials.length > 0" >
+                    
+                    <b>Topic's Slide Decks</b><br>
+                    <div v-if="section.materials[0].file_name != null">
+                        <b>Learning Materials</b>
+                        <ul v-for="material in section.materials" v-bind:key="material.material_id">
+                            <li>
                                 <v-btn v-bind:href="s3link(material.link)" target="_blank">
                                     {{ material.file_name }}
                                 </v-btn>
                             </li>
-                            <li v-else>
-                                <b>This section has no materials</b>
-                            </li>
                         </ul>
-                        <!-- TO DO: Method to upload new materials -->
-
                     </div>
+                    <div v-else>This topic does not have any learning materials</div>
+                    
+
                     <v-divider></v-divider>
 
                     <div v-if="section.best_grade !== null">
@@ -98,31 +95,36 @@ export default {
             let dataObj = { "conductId": this.conduct_id, "learnerId": this.currentUserId } 
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    let sections = response.data.data;
-                    console.log(sections);
+                    console.log(response.data.data)
+
+                    let sectionArr = Object.values(response.data.data.reduce((sectionResult, { 
+                        section_id, section_name, sequence, quiz_duration, passing_grade, best_grade, result, 
+                        material_id, file_name, link }) => {
+                        // Create section section
+                        if (!sectionResult[section_id]) sectionResult[section_id] = {
+                            section_id, section_name, sequence, quiz_duration, passing_grade, best_grade, result, materials: []
+                        };
+                        // Append material to section
+                        sectionResult[section_id].materials.push({ material_id, file_name, link });
+                        return sectionResult;
+                        },{}
+                    ));
+
                     let boldSection = false;
-                    sections.forEach(section => {
-                        if ((section.result == "No Attempt" && boldSection == false) || ((section.best_grade !== null) && (section.best_grade < section.passing_grade))) {
+                    sectionArr.forEach(section => {
+                        if ((section.best_grade == null && boldSection == false) || ((section.best_grade !== null) && (section.best_grade < section.passing_grade))) {
                             section["boldSection"] = true
                             boldSection = true;
-                        } else if (section.result == "No Attempt" && boldSection == true) {
+                        } else if (section.best_grade == null && boldSection == true) {
                             section["disabled"] = true
                         }
                     });
-                    console.log(sections);
-                    this.sections = sections;
+                    this.sections = sectionArr;
+                    // console.log(sectionArr);
                 })
         },
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD hh:mm');
-        },
-        expandSection(section_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
-            let dataObj = { "sectionId": section_id }
-            axios.post(updatedApiWithEndpoint, dataObj)
-                .then((response) => {
-                    this.materials = response.data.data;
-            })
         },
     },
     computed: {

@@ -7,6 +7,7 @@ from ..data_access.classes import LMSUser, LMSConduct, LMSCourse, LMSQuizAttempt
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import func
+from sqlalchemy import or_
 
 from ..data_access.lms_conduct import LMSConduct
 from ..data_access.lms_enrolment import LMSEnrolment
@@ -260,6 +261,7 @@ def getLearnersEnrolledByConduct(data):
     learnerList = db.session.query(LMSUser, LMSEnrolment, learnerProgressSubquery.c.progress).join(
         learnerProgressSubquery, learnerProgressSubquery.c.learner_id == LMSEnrolment.learner_id, isouter=True).filter(
             LMSUser.user_id == LMSEnrolment.learner_id, 
+            or_(LMSEnrolment.status == "Progress", LMSEnrolment.status == "Complete"), 
             LMSEnrolment.conduct_id == conductId).group_by(LMSEnrolment.learner_id).all()
 
     returnArray = []

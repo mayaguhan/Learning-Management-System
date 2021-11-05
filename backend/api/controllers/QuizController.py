@@ -11,6 +11,7 @@ import json
 
 db = SQLAlchemy()
 
+# Get all Quiz Attempt by section_id
 def getQuizAttemptForSection(data):
     if not("sectionId" in data.keys()):
         return jsonify({
@@ -61,6 +62,7 @@ def getQuizAttemptForSection(data):
                 "data" : returnArray
                 }),201
 
+# Get Quiz Attempt of each student who had taken the quiz by section_id
 def getStudentQuizAttemptBySectionId(data):
     if not("sectionId" in data.keys()):
         return jsonify({
@@ -111,6 +113,7 @@ def getStudentQuizAttemptBySectionId(data):
                 "data" : returnArray
                 }),201
 
+# Get Quiz Attempt passing rate and attempt count by section_id
 def getQuizAttemptPassingRateBySectionId(data):
     if not("sectionId" in data.keys()):
         return jsonify({
@@ -155,6 +158,7 @@ def getQuizAttemptPassingRateBySectionId(data):
                 "data" : returnArray
                 }),201
 
+# Get Quiz's Question Performance by section_id
 def getQuizQuestionPerformanceBySectionId(data):
     if not("sectionId" in data.keys()):
         return jsonify({
@@ -162,9 +166,15 @@ def getQuizQuestionPerformanceBySectionId(data):
             "message" : "Error, invalid input."
         }),500
     sectionId = data["sectionId"]
+
     # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
     # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
-    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,LMSQuizChoice.choice,LMSQuizChoice.correct,func.count(LMSQuizPerformance.quiz_choice_id)).select_from(LMSQuizQuestion).join(LMSQuizChoice,LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id).join(LMSQuizPerformance,LMSQuizChoice.quiz_choice_id==LMSQuizPerformance.quiz_choice_id).filter(LMSQuizQuestion.section_id==sectionId).group_by(LMSQuizQuestion.quiz_question_id).order_by(LMSQuizQuestion.quiz_question_id,LMSQuizChoice.quiz_choice_id).all()
+    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,LMSQuizChoice.choice,LMSQuizChoice.correct,func.count(LMSQuizPerformance.quiz_choice_id)).select_from(LMSQuizQuestion).join(
+        LMSQuizChoice,LMSQuizChoice.quiz_question_id==LMSQuizQuestion.quiz_question_id , isouter=True).join(
+            LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id, isouter=True).filter(
+                LMSQuizQuestion.section_id==sectionId).group_by(
+                    LMSQuizChoice.quiz_choice_id).order_by(
+                        LMSQuizQuestion.quiz_question_id,LMSQuizChoice.quiz_choice_id).all()
     if not quizPerformances:
         return jsonify({
             "code" : 404,
@@ -187,10 +197,11 @@ def getQuizQuestionPerformanceBySectionId(data):
                 "data" : returnArray
                 }),201
 
+# Get Learner's Quiz Performance by quiz_attempt_id and section_id
 def getQuizPerformanceByQuizAtemptAndSectionId(data):
     if not all(key in data.keys() for
                 key in ('sectionId', "attemptId")):
-                       return jsonify({
+                        return jsonify({
             "code" : 500,
             "message" : "Error, invalid input."
         }),500
@@ -220,6 +231,130 @@ def getQuizPerformanceByQuizAtemptAndSectionId(data):
                 "code" : 201,
                 "data" : returnArray
                 }),201
+
+# Add new Quiz Question
+def addQuizQuestion(data):
+    if not all(key in data.keys() for
+                key in ('sectionId', "questionName")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    question = LMSQuizQuestion(section_id=data["sectionId"],question_name=data["questionName"])
+    try:
+        db.session.add(question)
+        db.session.commit()
+    except Exception as e:
+        return jsonify(
+            {
+                "code": 500,
+                "error" : str(e),
+                "message": "An error occurred creating the question."
+            }
+        ), 500
+    return jsonify(
+        {
+            "code": 201,
+            "data": question.to_dict()
+        }
+    ), 201
+
+# Add new Quiz Choice
+def addQuizChoice(data):
+    if not all(key in data.keys() for
+                key in ('quizQuestionId', "choice", "correct")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    choice = LMSQuizChoice(quiz_question_id=data["quizQuestionId"],choice=data["choice"],correct=data["correct"])
+    try:
+        db.session.add(choice)
+        db.session.commit()
+    except Exception as e:
+        return jsonify(
+            {
+                "code": 500,
+                "error" : str(e),
+                "message": "An error occurred creating the choice."
+            }
+        ), 500
+    return jsonify(
+        {
+            "code": 201,
+            "data": choice.to_dict()
+        }
+    ), 201
+
+# Update Quiz Question by quiz_question_id
+def updateQuizQuestion(data):
+    if not all(key in data.keys() for
+                key in ('questionId', "questionName")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    questionId = data["questionId"]
+    quizQuestion = LMSQuizQuestion.query.filter_by(quiz_question_id=questionId).first()
+    if not quizQuestion:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no such question was found"
+        }),404
+    else:
+        localQuestion = db.session.merge(quizQuestion)
+        questionName = data["questionName"]
+        localQuestion.question_name = questionName
+        try:
+            db.session.add(localQuestion)
+            db.session.commit()
+            return jsonify({
+                "code" : 200,
+                "data" : localQuestion.to_dict()
+            }),200
+        except Exception as e:
+            print(str(e))
+            return jsonify({
+                "code" : 500,
+                "message": "Unable to commit to database."
+            }), 500
+
+# Update Quiz Choice by quiz_choice_id
+def updateQuizChoice(data):
+    if not all(key in data.keys() for
+                key in ('quizChoiceId', "choice","correct")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    quizChoiceId = data["quizChoiceId"]
+    quizChoice = LMSQuizChoice.query.filter_by(quiz_choice_id=quizChoiceId).first()
+    if not quizChoice:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no such choice was found"
+        }),404
+    else:
+        localQuizChoice = db.session.merge(quizChoice)
+        choice = data["choice"]
+        correct = data["correct"]
+        localQuizChoice.choice = choice
+        localQuizChoice.correct = correct
+        try:
+            db.session.add(localQuizChoice)
+            db.session.commit()
+            return jsonify({
+                "code" : 200,
+                "data" : localQuizChoice.to_dict()
+            }),200
+        except Exception as e:
+            print(str(e))
+            return jsonify({
+                "code" : 500,
+                "message": "Unable to commit to database."
+            }), 500
+
+# Delete Quiz Question by quiz_question_id
 def deleteQuizQuestionByID(data):
     if not("questionId" in data.keys()):
         return jsonify({
@@ -294,6 +429,7 @@ def deleteQuizQuestionByID(data):
                         "message": "Deletion Successful."
                     }), 201
 
+# Delete Quiz Choice by quiz_choice_id
 def deleteQuizChoiceByID(data):
     if not("quizChoiceId" in data.keys()):
         return jsonify({
@@ -303,12 +439,7 @@ def deleteQuizChoiceByID(data):
     quizChoiceId = data["quizChoiceId"]
     # delete quiz performance first due to foreign key dependence
     quizPerformance = LMSQuizPerformance.query.filter_by(quiz_choice_id=quizChoiceId).all()
-    if not quizPerformance:
-        return jsonify({
-            "code" : 404,
-            "message" : "Error, no such quiz performance was found"
-        }),404
-    else:
+    if quizPerformance:
         try:
             for performance in quizPerformance:
                 localPerformance = db.session.merge(performance)
@@ -322,62 +453,113 @@ def deleteQuizChoiceByID(data):
                 "error" : str(e),
                 "message": "Unable to commit to database."
             }), 500
-        quizChoice = LMSQuizChoice.query.filter_by(quiz_choice_id=quizChoiceId).all()
-        if not quizChoice:
+    quizChoice = LMSQuizChoice.query.filter_by(quiz_choice_id=quizChoiceId).all()
+    if not quizChoice:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no such quiz choice was found"
+        }),404
+    else:
+        try:
+            for choice in quizChoice:
+                localChoice = db.session.merge(choice)
+                db.session.delete(localChoice)
+                db.session.commit()
+                
+        except Exception as e:
+            print(str(e))
             return jsonify({
-                "code" : 404,
-                "message" : "Error, no such quiz choice was found"
-            }),404
-        else:
-            try:
-                for choice in quizChoice:
-                    localChoice = db.session.merge(choice)
-                    db.session.delete(localChoice)
-                    db.session.commit()
-                    
-            except Exception as e:
-                print(str(e))
-                return jsonify({
-                    "code" : 500,
-                    "error" : str(e),
-                    "message": "Unable to commit to database."
-                }), 500
-            return jsonify({
-                    "code" : 201,
-                    "message": "Deletion Successful."
-                }), 201
+                "code" : 500,
+                "error" : str(e),
+                "message": "Unable to commit to database."
+            }), 500
+        return jsonify({
+                "code" : 201,
+                "message": "Deletion Successful."
+            }), 201
 
-def getQuizPerformanceByQuizAttemptID(data):
-    if not ("attemptId" in data.keys()):
-                       return jsonify({
+# Add new Quiz attempt
+def addQuizAttempt(data):
+    if not all(key in data.keys() for
+                key in ('learnerId',"conductId", "sectionId")):
+                        return jsonify({
             "code" : 500,
             "message" : "Error, invalid input."
         }),500
-    attemptId = data["attemptId"]
-    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,
-    LMSQuizChoice.quiz_question_id,LMSQuizChoice.choice,LMSQuizChoice.correct).filter(LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id,LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==attemptId).all()
-    if not quizPerformances:
+    quizAttempt = LMSQuizAttempt()
+    quizAttempt.learner_id = data["learnerId"]
+    quizAttempt.conduct_id = data["conductId"]
+    quizAttempt.section_id = data["sectionId"]
+    try:
+        db.session.add(quizAttempt)
+        db.session.commit()
+    except Exception as e:
+        print(str(e))
+        return jsonify({
+            "code" : 500,
+            "message" : "An error occurred creating the attempt record"
+        }),500
+    return jsonify(
+        {
+            "code": 201,
+            "data": quizAttempt.to_dict()
+        }
+    ), 201
+
+# Add new Quiz Performance
+def addQuizPerformance(data):
+    if not all(key in data.keys() for
+                key in ('quizAttemptId', "questionId","quizChoiceId")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    quizPerformance = LMSQuizPerformance(quiz_attempt_id=data["quizAttemptId"],quiz_question_id=data["questionId"],quiz_choice_id=data["quizChoiceId"])
+    try:
+        db.session.add(quizPerformance)
+        db.session.commit()
+    except Exception as e:
+        print(str(e))
+        return jsonify({
+            "code" : 500,
+            "message" : "An error occurred creating the attempt performance record"
+        }),500
+    return jsonify(
+        {
+            "code": 201,
+            "data": quizPerformance.to_dict()
+        }
+    ), 201
+
+# Get all Quiz Question by section_id
+def getQuizQuestionsBySectionId(data):
+    if not ("sectionId" in data.keys()):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    sectionId = data["sectionId"]
+    quizQuestions = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name).filter(LMSQuizQuestion.section_id==sectionId).order_by(LMSQuizQuestion.quiz_question_id).all()
+    if not quizQuestions:
         return jsonify({
             "code" : 404,
-            "message" : "Error, no such performance data was found"
+            "message" : "Error, no such choice was found"
         }),404
-    quizPerformancesFormatted = []
-    for quizPerformance in quizPerformances:
-        performance = {}
-        performance["quiz_question_id"] = quizPerformance[0]
-        performance["question_name"] = quizPerformance[1]
-        performance["quiz_choice_id"] = quizPerformance[2]
-        performance["choice"] = quizPerformance[4]
-        performance["correct"] = quizPerformance[5]
-        quizPerformancesFormatted.append(performance)
+    quizQuestionsFormatted = []
+    for quizQuestion in quizQuestions:
+        question = {}
+        question["quiz_question_id"] = quizQuestion[0]
+        question["question_name"] = quizQuestion[1]
+        quizQuestionsFormatted.append(question)
     return jsonify({
         "code" : 201,
-        "data" : quizPerformancesFormatted
+        "data" : quizQuestionsFormatted
     }),201
 
+# Get all Quiz Question and Quiz Choices by section_id
 def getQuizQuestionsAndChoicesBySectionId(data):
     if not ("sectionId" in data.keys()):
-                       return jsonify({
+                        return jsonify({
             "code" : 500,
             "message" : "Error, invalid input."
         }),500
@@ -403,9 +585,10 @@ def getQuizQuestionsAndChoicesBySectionId(data):
         "data" : quizQuestionsFormatted
     }),201
 
+# Get all correct Quiz Choices for a Quiz by section_id
 def getAllCorrectQuizChoicesBySectionId(data):
     if not ("sectionId" in data.keys()):
-                       return jsonify({
+                return jsonify({
             "code" : 500,
             "message" : "Error, invalid input."
         }),500
@@ -432,216 +615,36 @@ def getAllCorrectQuizChoicesBySectionId(data):
         "data" : quizQuestionsFormatted
     }),201
 
-def getQuizQuestionsBySectionId(data):
-    if not ("sectionId" in data.keys()):
-                       return jsonify({
+# Get Quiz Performance by quiz_attempt_id
+def getQuizPerformanceByQuizAttemptID(data):
+    if not ("attemptId" in data.keys()):
+                        return jsonify({
             "code" : 500,
             "message" : "Error, invalid input."
         }),500
-    sectionId = data["sectionId"]
-    quizQuestions = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name).filter(LMSQuizQuestion.section_id==sectionId).order_by(LMSQuizQuestion.quiz_question_id).all()
-    if not quizQuestions:
+    attemptId = data["attemptId"]
+    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,
+    LMSQuizChoice.quiz_question_id,LMSQuizChoice.choice,LMSQuizChoice.correct).filter(LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id,LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==attemptId).all()
+    if not quizPerformances:
         return jsonify({
             "code" : 404,
-            "message" : "Error, no such choice was found"
+            "message" : "Error, no such performance data was found"
         }),404
-    quizQuestionsFormatted = []
-    for quizQuestion in quizQuestions:
-        question = {}
-        question["quiz_question_id"] = quizQuestion[0]
-        question["question_name"] = quizQuestion[1]
-        quizQuestionsFormatted.append(question)
+    quizPerformancesFormatted = []
+    for quizPerformance in quizPerformances:
+        performance = {}
+        performance["quiz_question_id"] = quizPerformance[0]
+        performance["question_name"] = quizPerformance[1]
+        performance["quiz_choice_id"] = quizPerformance[2]
+        performance["choice"] = quizPerformance[4]
+        performance["correct"] = quizPerformance[5]
+        quizPerformancesFormatted.append(performance)
     return jsonify({
         "code" : 201,
-        "data" : quizQuestionsFormatted
+        "data" : quizPerformancesFormatted
     }),201
 
-def updateQuizChoice(data):
-    if not all(key in data.keys() for
-                key in ('quizChoiceId', "choice","correct")):
-                       return jsonify({
-            "code" : 500,
-            "message" : "Error, invalid input."
-        }),500
-    quizChoiceId = data["quizChoiceId"]
-    quizChoice = LMSQuizChoice.query.filter_by(quiz_question_id=quizChoiceId).first()
-    if not quizChoice:
-        return jsonify({
-            "code" : 404,
-            "message" : "Error, no such choice was found"
-        }),404
-    else:
-        localQuizChoice = db.session.merge(quizChoice)
-        choice = data["choice"]
-        correct = data["correct"]
-        localQuizChoice.choice = choice
-        localQuizChoice.correct = correct
-        try:
-            db.session.add(localQuizChoice)
-            db.session.commit()
-            return jsonify({
-                "code" : 200,
-                "data" : localQuizChoice.to_dict()
-            }),200
-        except Exception as e:
-            print(str(e))
-            return jsonify({
-                "code" : 500,
-                "message": "Unable to commit to database."
-            }), 500
-
-def updateQuizQuestion(data):
-    if not all(key in data.keys() for
-                key in ('questionId', "questionName")):
-                       return jsonify({
-            "code" : 500,
-            "message" : "Error, invalid input."
-        }),500
-    questionId = data["questionId"]
-    quizQuestion = LMSQuizQuestion.query.filter_by(quiz_question_id=questionId).first()
-    if not quizQuestion:
-        return jsonify({
-            "code" : 404,
-            "message" : "Error, no such question was found"
-        }),404
-    else:
-        localQuestion = db.session.merge(quizQuestion)
-        questionName = data["questionName"]
-        localQuestion.question_name = questionName
-        try:
-            db.session.add(localQuestion)
-            db.session.commit()
-            return jsonify({
-                "code" : 200,
-                "data" : localQuestion.to_dict()
-            }),200
-        except Exception as e:
-            print(str(e))
-            return jsonify({
-                "code" : 500,
-                "message": "Unable to commit to database."
-            }), 500
-
-def addQuizAttempt(data):
-    if not all(key in data.keys() for
-                key in ('learnerId',"conductId", "sectionId")):
-                       return jsonify({
-            "code" : 500,
-            "message" : "Error, invalid input."
-        }),500
-    quizAttempt = LMSQuizAttempt()
-    quizAttempt.learner_id = data["learnerId"]
-    quizAttempt.conduct_id = data["conductId"]
-    quizAttempt.section_id = data["sectionId"]
-    try:
-        db.session.add(quizAttempt)
-        db.session.commit()
-    except Exception as e:
-        print(str(e))
-        return jsonify({
-            "code" : 500,
-            "message" : "An error occurred creating the attempt record"
-        }),500
-    return jsonify(
-        {
-            "code": 201,
-            "data": quizAttempt.to_dict()
-        }
-    ), 201
-
-def addQuizPerformance(data):
-    if not all(key in data.keys() for
-                key in ('quizAttemptId', "questionId","quizChoiceId")):
-                       return jsonify({
-            "code" : 500,
-            "message" : "Error, invalid input."
-        }),500
-    quizPerformance = LMSQuizPerformance(quiz_attempt_id=data["quizAttemptId"],quiz_question_id=data["questionId"],quiz_choice_id=data["quizChoiceId"])
-    try:
-        db.session.add(quizPerformance)
-        db.session.commit()
-    except Exception as e:
-        print(str(e))
-        return jsonify({
-            "code" : 500,
-            "message" : "An error occurred creating the attempt performance record"
-        }),500
-    return jsonify(
-        {
-            "code": 201,
-            "data": quizPerformance.to_dict()
-        }
-    ), 201
-
-def addQuizChoice(data):
-    if not all(key in data.keys() for
-                key in ('quizQuestionId', "choice", "correct")):
-                       return jsonify({
-            "code" : 500,
-            "message" : "Error, invalid input."
-        }),500
-    choice = LMSQuizChoice(quiz_question_id=data["quizQuestionId"],choice=data["choice"],correct=data["correct"])
-    try:
-        db.session.add(choice)
-        db.session.commit()
-    except Exception as e:
-        return jsonify(
-            {
-                "code": 500,
-                "error" : str(e),
-                "message": "An error occurred creating the choice."
-            }
-        ), 500
-    return jsonify(
-        {
-            "code": 201,
-            "data": choice.to_dict()
-        }
-    ), 201
-
-
-def addQuizQuestion(data):
-    if not all(key in data.keys() for
-                key in ('sectionId', "questionName")):
-                       return jsonify({
-            "code" : 500,
-            "message" : "Error, invalid input."
-        }),500
-    question = LMSQuizQuestion(section_id=data["sectionId"],question_name=data["questionName"])
-    try:
-        db.session.add(question)
-        db.session.commit()
-    except Exception as e:
-        return jsonify(
-            {
-                "code": 500,
-                "error" : str(e),
-                "message": "An error occurred creating the question."
-            }
-        ), 500
-    return jsonify(
-        {
-            "code": 201,
-            "data": question.to_dict()
-        }
-    ), 201
-
-
-# def getQuizAttempyByID(data):
-#     quizAttemptID = data["attemptId"]
-#     quiz_attempt = LMSQuizAttempt.query.filter_by(quiz_attempt_id=quizAttemptID).first()
-#     if quiz_attempt:
-#         return jsonify({
-#             "code" : 200,
-#             "data" : quiz_attempt.to_dict()
-#         }),200
-#     else:
-#         return jsonify({
-#             "code" : 404,
-#             "message" : "Error, no such attempt was found"
-#         }),404
-
-
+# Update Quiz attempt with grade
 def updateQuizAttemptGrade(data):
     grade = data["grade"]
     quizAttemptID = data["attemptId"]
@@ -652,10 +655,18 @@ def updateQuizAttemptGrade(data):
             "message" : "Error, no such attempt was found"
         }),404
     else:
-        quiz_attempt.grade=grade
-        db.session.commit()
-        return jsonify({
-            "code" : 200,
-            "data" : quiz_attempt.to_dict()
-        }),200
-    
+        try:
+            localQuiz = db.session.merge(quiz_attempt)
+            localQuiz.grade = grade
+
+            db.session.add(localQuiz)
+            db.session.commit()
+
+            return jsonify({
+                "code" : 200,
+                "data" : localQuiz.to_dict()
+            }),200
+        except Exception:
+            return jsonify({
+                "message": "Unable to commit to database."
+            }), 500

@@ -428,6 +428,7 @@ def getAllCoursesConductedByTrainer(data):
     resultList = db.session.query(LMSCourse, LMSConduct, LMSEnrolment, func.count(LMSEnrolment.learner_id)).filter(
         LMSCourse.course_id == LMSConduct.course_id, 
         LMSConduct.conduct_id == LMSEnrolment.conduct_id, 
+        or_(LMSEnrolment.status == "Progress", LMSEnrolment.status == "Complete"),
         LMSConduct.trainer_id == userId).group_by(LMSConduct.conduct_id).all()
 
     returnArray = []

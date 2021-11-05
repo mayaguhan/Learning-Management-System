@@ -15,7 +15,7 @@
         </router-link>
         <br>
 
-        <v-dialog v-model="dialog" max-width="600px">
+        <v-dialog v-model="dialog" max-width="800px">
             <template v-slot:activator="{ on, attrs }">
                 <v-btn color="primary mt-3" dark v-bind="attrs" v-on="on">
                     Enrol Students
@@ -89,18 +89,6 @@
                         
                     </div>
                     <v-divider></v-divider>
-
-                    <div v-if="section.best_grade !== null">
-                        <b>Best Grade: {{ section.best_grade }} / 100</b>
-                    </div>
-                    <v-divider></v-divider>
-                    <!-- <div style="padding-top:5px">
-                        <router-link :to="{ name: 'Quiz', params: { section_id: section.section_id }}">
-                            <v-btn depressed small color="#0062E4">
-                                <span style="color: white">Attempt Quiz</span> 
-                            </v-btn>
-                        </router-link>
-                    </div> -->
                 </v-expansion-panel-content>
             </v-expansion-panel>
         </v-expansion-panels>
@@ -192,10 +180,10 @@ export default {
                     this.enrolStudents = response.data.data;
                 })
         },
-
+        // Add new Enrolment
         enrolStudent(learner_id){
             let updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
-            let dataObj = { "learnerId": learner_id, "conductId": this.conduct_id, "selfEnrolment": 0, "status": "Progress"}
+            let dataObj = { "learner_id": learner_id, "conduct_id": this.conduct_id, "self_enrolment": 0, "status": "Progress"}
 
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
