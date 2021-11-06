@@ -29,11 +29,20 @@
                         <!-- Upload slide decks -->
                         <b>Topic's Slide Decks</b><br>
                         <ul v-for="material in materials" v-bind:key="material.material_id">
-                            <li v-if="materials.length > 0" >
-                                <v-btn v-bind:href="s3link(material.link)" target="_blank">
+                            <li class="mb-3" v-if="materials.length > 0" >
+                                <div v-if="material.link.includes('youtube')">
+                                    <video-embed css="embed-responsive-16by9" :src="material.link"></video-embed>
+                                </div>
+
+                                <v-btn v-else v-bind:href="s3link(material.link)" target="_blank">
                                     {{ material.file_name }}
                                 </v-btn>
+
+                                <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material.material_id, indexM)">
+                                    <v-icon>mdi-trash-can</v-icon>
+                                </v-btn>
                             </li>
+
                             <li v-else>
                                 <b>This section has no materials</b>
                             </li>

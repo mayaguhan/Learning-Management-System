@@ -1,5 +1,8 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import Embed from 'v-video-embed'
+
+Vue.use(Embed);
 
 
 Vue.use(Vuex);
@@ -50,7 +53,6 @@ export default new Vuex.Store({
         // }
     }
 })
-
 
 // To access the state variables in components
 //  import { mapState } from 'vuex';
