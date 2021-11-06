@@ -158,6 +158,39 @@ def updateEnrolment(data):
                 "message": "Unable to commit to database."
             }), 500
 
+# Mark course as complete
+def updateCourseAsComplete(data):
+    if not all(key in data.keys() for
+                key in ('learnerId', "conductId")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    learnerId = data["learnerId"]
+    conductId = data["conductId"]
+    enrolment = LMSEnrolment.query.filter_by(learner_id=learnerId, conduct_id=conductId).first()
+    if not enrolment:
+        return jsonify({
+            "code" : 404,
+            "message" : "Error, no such enrolment was found"
+        }),404
+    else:
+        localEnrolment = db.session.merge(enrolment)
+        localEnrolment.status = "Complete"
+        try:
+            db.session.add(localEnrolment)
+            db.session.commit()
+            return jsonify({
+                "code" : 200,
+                "data" : localEnrolment.to_dict()
+            }),200
+        except Exception as e:
+            print(str(e))
+            return jsonify({
+                "code" : 500,
+                "message": "Unable to commit to database."
+            }), 500
+
 
 # Delete an Enrolment request by learner_id and conduct_id
 def deleteEnrolment(data):
