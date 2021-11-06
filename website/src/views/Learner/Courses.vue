@@ -234,6 +234,9 @@
           .then((response) => {
             this.coursesNotEnrolled = response.data.data;
           })
+          .catch((error) => {
+            console.log(error, "No courses found")
+          })
       },
       // Get all in-progress Courses a User has by learner_id
       getCoursesProgress() {
@@ -243,6 +246,9 @@
           .then((response) => {
             this.coursesProgress = response.data.data;
           })
+          .catch((error) => {
+            console.log(error, "No courses found")
+          })
       },
       // Get all completed courses that a user has by learner id
       getCoursesCompleted() {
@@ -251,6 +257,9 @@
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
             this.coursesCompleted = response.data.data;
+          })
+          .catch((error) => {
+            console.log(error, "No courses found")
           })
       },
       // Get all Self-Enrolment request by learner_id
@@ -264,6 +273,9 @@
 
 
           })
+          .catch((error) => {
+            console.log(error, "No enrolments found")
+          })
       },
       // Get all Trainers that are conducting a Course by course_id
       getCourseTrainer(course_id) {
@@ -272,6 +284,9 @@
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
             this.trainers = response.data.data;
+          })
+          .catch((error) => {
+            console.log(error, "No trainers found")
           })
       },
       formatDate(date) {  

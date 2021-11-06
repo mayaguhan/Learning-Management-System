@@ -35,8 +35,14 @@ def getAllSectionsByConductAndUserId(data):
         func.max(LMSQuizAttempt.grade),
         LMSMaterial.material_id,
         LMSMaterial.file_name, 
-        LMSMaterial.link
-        ).select_from(LMSSection).join(LMSQuizAttempt,LMSSection.section_id==LMSQuizAttempt.section_id,isouter=True).join(LMSMaterial,LMSMaterial.section_id==LMSSection.section_id,isouter=True).filter(LMSSection.conduct_id==conductId,LMSEnrolment.learner_id==learnerId).group_by(LMSSection.section_id, LMSMaterial.material_id).order_by(LMSSection.sequence).all()
+        LMSMaterial.link,
+        MaterialVisit.material_id
+        ).select_from(LMSSection).join(
+            LMSQuizAttempt,LMSSection.section_id==LMSQuizAttempt.section_id,isouter=True).join(
+            LMSMaterial,LMSMaterial.section_id==LMSSection.section_id,isouter=True).join(
+            MaterialVisit,MaterialVisit.material_id==LMSMaterial.material_id,isouter=True).filter(
+                LMSSection.conduct_id==conductId,LMSEnrolment.learner_id==learnerId).group_by(
+                    LMSSection.section_id, LMSMaterial.material_id).order_by(LMSSection.sequence).all()
     if not sections:
         return jsonify({
             "code" : 404,
@@ -55,6 +61,10 @@ def getAllSectionsByConductAndUserId(data):
             individual["material_id"] = section[6]
             individual["file_name"] = section[7]
             individual["link"] = section[8]
+            if (section[9] is not None):
+                individual["visit"] = 1
+            else:
+                individual["visit"] = 0
             # float(quizAttempt[2])
             returnArray.append(individual)
         print(returnArray)
@@ -84,7 +94,7 @@ def getAllSectionsByConductId(data):
 
     sectionsInformation = db.session.query(LMSSection, LMSMaterial, func.count(passCountSubquery.c.section_id)).join(
         passCountSubquery, passCountSubquery.c.section_id==LMSSection.section_id, isouter=True).join(
-            LMSMaterial, LMSMaterial.section_id==LMSSection.section_id).filter(
+            LMSMaterial, LMSMaterial.section_id==LMSSection.section_id, isouter=True).filter(
                 LMSSection.conduct_id==conductId).group_by(
                     LMSSection.section_id, LMSMaterial.material_id).order_by(LMSSection.sequence).all()
 
@@ -99,15 +109,23 @@ def getAllSectionsByConductId(data):
             individual = {}
             section = result[0]
             material = result[1]
+            material_id = None
+            file_name = None
+            link = None
+
+            if (material is not None):
+                material_id = material.getMaterialID()
+                file_name = material.getFileName()
+                link = material.getLink()
 
             individual["section_id"] = section.getSectionID()
             individual["section_name"] = section.getSectionName()
             individual["sequence"] = section.getSequence()
             individual["quiz_duration"] = section.getQuizDuration()
             individual["passing_grade"] = section.getPassingGrade()
-            individual["material_id"] = material.getMaterialID()
-            individual["file_name"] = material.getFileName()
-            individual["link"] = material.getLink()
+            individual["material_id"] = material_id
+            individual["file_name"] = file_name
+            individual["link"] = link
             individual["pass_count"] = result[2]
             individual["section_count"] = sectionCount
             individual["learner_count"] = learnerCount
@@ -173,13 +191,13 @@ def addNewSection(data):
 # Update Section by section_id
 def updateSectionBySectionID(data):
     if not all(key in data.keys() for
-                key in ('section_id', 'section_name',
-                        'sequence', 'quiz_duration',"passing_grade")):
+                key in ('sectionId', 'sectionName',
+                        'sequence', 'quizDuration',"passingGrade")):
                         return jsonify({
             "code" : 500,
             "message" : "Error, inavlid input."
         }),500
-    sectionId = data["section_id"]
+    sectionId = data["sectionId"]
     section = LMSSection.query.filter_by(section_id=sectionId).first()
     if not section:
         return jsonify({
@@ -189,10 +207,10 @@ def updateSectionBySectionID(data):
     else:
         try:
             localSection = db.session.merge(section)
-            localSection.section_name = data["section_name"]
+            localSection.section_name = data["sectionName"]
             localSection.sequence = data["sequence"]
-            localSection.quiz_duration = data["quiz_duration"]
-            localSection.passing_grade = data["passing_grade"]
+            localSection.quiz_duration = data["quizDuration"]
+            localSection.passing_grade = data["passingGrade"]
 
             db.session.add(localSection)
             db.session.commit()
@@ -208,7 +226,7 @@ def updateSectionBySectionID(data):
 
 # Update all course section's passing grade by section_id
 def updateSectionPassingGrade(data):
-    section_id = data["section_id"]
+    section_id = data["sectionId"]
     section = LMSSection.query.filter_by(section_id=section_id).first()
     if not section:
         return jsonify({
@@ -221,7 +239,7 @@ def updateSectionPassingGrade(data):
         db.session.add(localSectionFinal)
         db.session.commit()
 
-        conduct_id = data["conduct_id"]
+        conduct_id = data["conductId"]
         sections = LMSSection.query.filter(LMSSection.conduct_id==conduct_id, LMSSection.section_id!=section_id).all()
 
         if sections:
@@ -369,6 +387,22 @@ def deleteMaterialByMaterialID(data):
         }),404
     else:
         try:
+            # material_visit due to foreign key dependence
+            materialVisit = MaterialVisit.query.filter_by(material_id=materialId).all()
+            if materialVisit:
+                    try:
+                        for visit in materialVisit:
+                            localPerformance = db.session.merge(visit)
+                            db.session.delete(localPerformance)
+                            db.session.commit()
+                            
+                    except Exception as e:
+                        print(str(e))
+                        return jsonify({
+                            "code" : 500,
+                            "error" : str(e),
+                            "message": "Unable to commit to database."
+                        }), 500
             localMaterial = db.session.merge(material)
             db.session.delete(localMaterial)
             db.session.commit()

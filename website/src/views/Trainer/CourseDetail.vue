@@ -30,7 +30,7 @@
         <h2>Course Content
             <!-- Toggle: Edit sections -->
             <v-btn icon @click="toggleEdit=!toggleEdit, editAction('edit')" 
-            v-show="toggleEdit == false && formatDate(currentDate) < courseDetail.start_date">
+            v-show="toggleEdit == false && formatDate(currentDate) < formatDate(courseDetail.start_date)">
                 <v-icon>mdi-pencil</v-icon>
             </v-btn>
         </h2>
@@ -114,7 +114,7 @@
                             :value=" section.pass_count / section.learner_count * 100 ">
                         </v-progress-linear>
                         {{ section.pass_count }} / {{ section.learner_count }} Learners have passed this quiz <br>
-                        <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id } }" 
+                        <router-link :to="{ name: 'QuizDetail', params: { section_id: section.section_id, conduct_id: conduct_id } }" 
                         v-show="formatDate(currentDate) < courseDetail.start_date">
                             <v-btn class="primary mr-3">
                                 Manage Quiz
@@ -128,17 +128,18 @@
                         <div v-if="section.materials[0].file_name != null">
                             <ul class="mt-3" v-for="(material, indexM) in section.materials" v-bind:key="material.materialId">
                                 <li class="mb-3">
+                                    {{ material.file_name }}<br>
                                     <div v-if="material.link.includes('youtube')">
-                                    <video-embed css="embed-responsive-16by9" :src="material.link"></video-embed>
-                                </div>
+                                        <video-embed css="embed-responsive-16by9" :src="material.link"></video-embed>
+                                    </div>
 
-                                <v-btn v-else v-bind:href="s3link(material.link)" target="_blank">
-                                    {{ material.file_name }}
-                                </v-btn>
+                                    <v-btn v-else v-bind:href="s3link(material.link)" target="_blank">
+                                        {{ material.file_name }}
+                                    </v-btn>
 
-                                <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material.material_id, indexM)">
-                                    <v-icon>mdi-trash-can</v-icon>
-                                </v-btn>
+                                    <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material.material_id, indexM)">
+                                        <v-icon>mdi-trash-can</v-icon>
+                                    </v-btn>
                                 </li>
                             </ul>
                         </div>
@@ -180,10 +181,6 @@
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
-
-
-                        
-
                     </div>
                     <div v-else>
                         <b>You have to save your edits before you create a new quiz or upload materials.</b>
@@ -267,21 +264,18 @@ export default {
             let updatedS3WithEndpoint = this.s3Link + material_link;
             return updatedS3WithEndpoint;
         },
-
         change() {
-
-                this.$refs.youtube.src = "https://www.youtube.com/watch?v=nqwQpXoSN7Q";
-            },
-
-        // Get a Course Conducted information by conduct_id
+            this.$refs.youtube.src = "https://www.youtube.com/watch?v=nqwQpXoSN7Q";
+        },
+        // Get a Single Course Conducted information by conduct_id
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.courseDetail = response.data.data[0];
-                    // To be removed
-                    this.courseDetail.start_date = "2021-11-31 12:00";
+                    // Enable this to toggle edit
+                    // this.courseDetail.start_date = "2021-11-31 12:00";
                 })
         },
         // Get all Sections by conduct_id (Trainer)
@@ -302,8 +296,10 @@ export default {
                         return result;
                         },{}
                     ));
-                    console.log(sectionArr);
                     this.sections = sectionArr;
+                })
+                .catch((error) => {
+                    console.log(error, "No sections found")
                 })
         },
 
@@ -358,8 +354,8 @@ export default {
                     if (change.section_id == null) {
                         // Add new Section
                         let updatedApiWithEndpoint = this.apiLink + "/addnewsection";
-                        let dataObj = { "conductId": change.conduct_id, "sequence": sectionLength++, 
-                                        "section_name": change.section_name, "quiz_duration": change.quiz_duration, "passing_grade": 0 };                  
+                        let dataObj = { "conduct_id": this.conduct_id, "sequence": sectionLength++, 
+                                        "section_name": change.section_name, "quiz_duration": change.quiz_duration, "passing_grade": 0 };               
                         axios.post(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 this.getCourseSections();
@@ -373,8 +369,8 @@ export default {
                     } else {
                         // Update Section by section_id
                         let updatedApiWithEndpoint = this.apiLink + "/updatesectionbysectionid";
-                        let dataObj = { "sectionId": change.section_id, "section_name": change.section_name, "sequence": change.sequence,
-                                        "quiz_duration": change.quiz_duration, "passing_grade": change.passing_grade};
+                        let dataObj = { "sectionId": change.section_id, "sectionName": change.section_name, "sequence": change.sequence,
+                                        "quizDuration": change.quiz_duration, "passingGrade": change.passing_grade};
                         axios.put(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 console.log(response);
@@ -388,10 +384,6 @@ export default {
             }
             this.deleteSectionId.forEach(section => {
                 if (section.section_id != null) {
-                    // TO DO: Delete all material related to the section
-
-                    // get all materials in this section
-
                     this.selectedSection = section.section_id;
                     this.expandSection();
 
@@ -399,8 +391,7 @@ export default {
                     if (materialCount > 0) {
                         let materialCounter = 0;
                         this.materials.forEach(material => {
-                        // delete material by material_id
-
+                        // Delete Material by material_id
                         let updatedApiWithEndpoint = this.apiLink + "/deletematerialbymaterialid";
                         let dataObj = { "materialId" : material.material_id };
                             axios.delete(updatedApiWithEndpoint, { data: dataObj })
@@ -446,15 +437,14 @@ export default {
             });
             this.deleteSectionId = [];
 
-            //delete materials by material_id
-
+            // Delete Material by material_id
             this.deleteMaterialId.forEach(material_id => {
                 if (material_id != null) {
                 let updatedApiWithEndpoint = this.apiLink + "/deletematerialbymaterialid";
                 let dataObj = { "materialId" : material_id };
                     axios.delete(updatedApiWithEndpoint, { data: dataObj })
                         .then((response) => {
-                    console.log(response);
+                            console.log(response);
                         })
                     }
                 });
@@ -493,7 +483,6 @@ export default {
                     let finalSection = response.data.data.reduce((a,b)=>a.sequence>b.sequence?a:b).section_id;
                     let finalSectionEndpoint = this.apiLink + "/updateallcoursesectionspassinggradebysectionid";
                     let finalSectionObj = { "conductId": this.conduct_id, "sectionId" : finalSection };
-                    console.log(finalSectionEndpoint, finalSectionObj);
                     axios.put(finalSectionEndpoint, finalSectionObj)
                         .then((response) => {
                             console.log(response);
@@ -553,8 +542,6 @@ export default {
         deleteMaterial(material_id, indexM) {
             this.materials.splice(indexM, 1);
             this.deleteMaterialId.push(material_id);
-            console.log("Deleting Material: " + material_id);
-            console.log(this.deleteMaterialId);
         },
     },
     created() {

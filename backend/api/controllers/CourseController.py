@@ -425,11 +425,22 @@ def getAllCoursesUserHasNotEnrolledIn(data):
 # Get all Courses that are conducted by trainer_id
 def getAllCoursesConductedByTrainer(data):
     userId = data["trainerId"]
-    resultList = db.session.query(LMSCourse, LMSConduct, LMSEnrolment, func.count(LMSEnrolment.learner_id)).filter(
-        LMSCourse.course_id == LMSConduct.course_id, 
-        LMSConduct.conduct_id == LMSEnrolment.conduct_id, 
-        or_(LMSEnrolment.status == "Progress", LMSEnrolment.status == "Complete"),
-        LMSConduct.trainer_id == userId).group_by(LMSConduct.conduct_id).all()
+    enrolmentsSubquery = db.session.query(LMSEnrolment.conduct_id, func.count(LMSEnrolment.learner_id).label('enrolments')).filter(
+        or_(LMSEnrolment.status == "Progress", LMSEnrolment.status == "Complete")).group_by(LMSEnrolment.conduct_id).subquery()
+    # return jsonify(
+    #     {
+    #         "code" : 200,
+    #         "data": enrolmentsSubquery
+    #     }
+    # )
+    # resultList = db.session.query(LMSCourse, LMSConduct, enrolmentsSubquery.c.enrolments).join(
+    #     enrolmentsSubquery, enrolmentsSubquery.c.conduct_id == LMSConduct.conduct_id, isouter=True).filter(
+    #         LMSConduct.trainer_id == userId).all()
+
+    resultList = db.session.query(LMSCourse, LMSConduct, enrolmentsSubquery.c.enrolments).select_from(LMSConduct).join(
+        enrolmentsSubquery, enrolmentsSubquery.c.conduct_id == LMSConduct.conduct_id, isouter=True).filter(
+            LMSCourse.course_id == LMSConduct.course_id,
+            LMSConduct.trainer_id == userId).all()
 
     returnArray = []
 
@@ -452,7 +463,7 @@ def getAllCoursesConductedByTrainer(data):
             returnObj["end_date"] = conduct.getEndDate()
             returnObj["start_register"] = conduct.getStartRegister()
             returnObj["end_register"] = conduct.getEndRegister()
-            returnObj["enrolment"] = result[3]
+            returnObj["enrolments"] = result[2]
 
             returnArray.append(returnObj)
             

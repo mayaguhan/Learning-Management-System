@@ -332,7 +332,7 @@ def updateQuizChoice():
 
 
 # Delete Quiz Question by quiz_question_id
-@app.route("/deletequizquestionbyid", methods=["DELETE"])
+@app.route("/deletequizquestionbyquestionid", methods=["DELETE"])
 def deletequizquestionbyid():
     return quizController.deleteQuizQuestionByID(request.get_json())
 

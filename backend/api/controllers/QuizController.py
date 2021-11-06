@@ -362,59 +362,23 @@ def deleteQuizQuestionByID(data):
             "message" : "Error, invalid input."
         }),500
     questionId = data["questionId"]
-    # delete quiz performance first due to foreign key dependence
-    quizPerformance = LMSQuizPerformance.query.filter_by(quiz_question_id=questionId).all()
-    if not quizPerformance:
+
+    # Check whether quiz question exists
+    quizQuestion = LMSQuizQuestion.query.filter_by(quiz_question_id=questionId).all()
+    if not quizQuestion:
         return jsonify({
             "code" : 404,
-            "message" : "Error, no such quiz performance was found"
+            "message" : "Error, no such quiz question was found"
         }),404
     else:
         try:
-            for performance in quizPerformance:
-                localPerformance = db.session.merge(performance)
-                db.session.delete(localPerformance)
-                db.session.commit()
-                
-        except Exception as e:
-            print(str(e))
-            return jsonify({
-                "code" : 500,
-                "error" : str(e),
-                "message": "Unable to commit to database."
-            }), 500
-        quizChoice = LMSQuizChoice.query.filter_by(quiz_question_id=questionId).all()
-        if not quizChoice:
-            return jsonify({
-                "code" : 404,
-                "message" : "Error, no such quiz choice was found"
-            }),404
-        else:
-            try:
-                for choice in quizChoice:
-                    localChoice = db.session.merge(choice)
-                    db.session.delete(localChoice)
-                    db.session.commit()
-                    
-            except Exception as e:
-                print(str(e))
-                return jsonify({
-                    "code" : 500,
-                    "error" : str(e),
-                    "message": "Unable to commit to database."
-                }), 500
-                # delete quiz performance first due to foreign key dependence
-            quizQuestion = LMSQuizQuestion.query.filter_by(quiz_question_id=questionId).all()
-            if not quizQuestion:
-                return jsonify({
-                    "code" : 404,
-                    "message" : "Error, no such quiz question was found"
-                }),404
-            else:
+            # delete quiz performance first due to foreign key dependence
+            quizPerformance = LMSQuizPerformance.query.filter_by(quiz_question_id=questionId).all()
+            if quizPerformance:
                 try:
-                    for question in quizQuestion:
-                        localQuestion = db.session.merge(question)
-                        db.session.delete(localQuestion)
+                    for performance in quizPerformance:
+                        localPerformance = db.session.merge(performance)
+                        db.session.delete(localPerformance)
                         db.session.commit()
                         
                 except Exception as e:
@@ -424,26 +388,27 @@ def deleteQuizQuestionByID(data):
                         "error" : str(e),
                         "message": "Unable to commit to database."
                     }), 500
-                return jsonify({
-                        "code" : 201,
-                        "message": "Deletion Successful."
-                    }), 201
 
-# Delete Quiz Choice by quiz_choice_id
-def deleteQuizChoiceByID(data):
-    if not("quizChoiceId" in data.keys()):
-        return jsonify({
-            "code" : 500,
-            "message" : "Error, invalid input."
-        }),500
-    quizChoiceId = data["quizChoiceId"]
-    # delete quiz performance first due to foreign key dependence
-    quizPerformance = LMSQuizPerformance.query.filter_by(quiz_choice_id=quizChoiceId).all()
-    if quizPerformance:
-        try:
-            for performance in quizPerformance:
-                localPerformance = db.session.merge(performance)
-                db.session.delete(localPerformance)
+            # delete quiz choice second due to foreign key dependence
+            quizChoice = LMSQuizChoice.query.filter_by(quiz_question_id=questionId).all()
+            if quizChoice:
+                try:
+                    for choice in quizChoice:
+                        localChoice = db.session.merge(choice)
+                        db.session.delete(localChoice)
+                        db.session.commit()
+                        
+                except Exception as e:
+                    print(str(e))
+                    return jsonify({
+                        "code" : 500,
+                        "error" : str(e),
+                        "message": "Unable to commit to database."
+                    }), 500
+
+            for question in quizQuestion:
+                localQuestion = db.session.merge(question)
+                db.session.delete(localQuestion)
                 db.session.commit()
                 
         except Exception as e:
@@ -453,6 +418,20 @@ def deleteQuizChoiceByID(data):
                 "error" : str(e),
                 "message": "Unable to commit to database."
             }), 500
+        return jsonify({
+                "code" : 201,
+                "message": "Deletion Successful."
+            }), 201
+
+# Delete Quiz Choice by quiz_choice_id
+def deleteQuizChoiceByID(data):
+    if not("quizChoiceId" in data.keys()):
+        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    quizChoiceId = data["quizChoiceId"]
+
     quizChoice = LMSQuizChoice.query.filter_by(quiz_choice_id=quizChoiceId).all()
     if not quizChoice:
         return jsonify({
@@ -461,6 +440,30 @@ def deleteQuizChoiceByID(data):
         }),404
     else:
         try:
+            # delete quiz performance first due to foreign key dependence
+            quizPerformance = LMSQuizPerformance.query.filter_by(quiz_choice_id=quizChoiceId).all()
+            if quizPerformance:
+                try:
+                    for performance in quizPerformance:
+                        localPerformance = db.session.merge(performance)
+                        db.session.delete(localPerformance)
+                        db.session.commit()
+                        
+                except Exception as e:
+                    print(str(e))
+                    return jsonify({
+                        "code" : 500,
+                        "error" : str(e),
+                        "message": "Unable to commit to database."
+                    }), 500
+                        
+                except Exception as e:
+                    print(str(e))
+                    return jsonify({
+                        "code" : 500,
+                        "error" : str(e),
+                        "message": "Unable to commit to database."
+                    }), 500
             for choice in quizChoice:
                 localChoice = db.session.merge(choice)
                 db.session.delete(localChoice)

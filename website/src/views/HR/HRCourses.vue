@@ -509,6 +509,9 @@ export default {
             .then((response) => {
                 this.courses = response.data.data;
             })
+            .catch((error) => {
+              console.log(error, "No courses found")
+            })
         },
 
         // Get all Users
@@ -518,7 +521,10 @@ export default {
             .then((response) => {
                 this.engineers = response.data.data;
             })
-        },
+            .catch((error) => {
+              console.log(error, "No users found")
+            })
+          },
 
         // Get all Trainers that are conducting a Course by course_id
         getCourseTrainer(course_id) {
@@ -534,6 +540,9 @@ export default {
               this.trainers = [];
             }
           })
+          .catch((error) => {
+            console.log(error, "No trainers found")
+          })
         },
 
         // Get all Trainers eligible to teach a Course by course_id
@@ -543,6 +552,9 @@ export default {
           axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
               this.assigns = response.data.data;
+          })
+          .catch((error) => {
+            console.log(error, "No trainers found")
           })
         },
 
@@ -572,6 +584,9 @@ export default {
           axios.get(updatedApiWithEndpoint)
           .then((response) => {
               this.requests = response.data.data;
+          })
+          .catch((error) => {
+            console.log(error, "No enrolments found")
           })
         },
 

@@ -101,7 +101,7 @@ export default {
         // Snackbar
         snackbar: false,
         text: 'My timeout is set to 2000.',
-        timeout: 2000,
+        timeout: 100000,
     }),
     methods: {
         // Get Section information by section_id
@@ -180,9 +180,17 @@ export default {
             }
             axios.put(quizAttemptEndPoint, quizAttemptObj)
                 .then((response) => {
-                    console.log(studentScore);
                     console.log(response);
                     if (studentScore >= this.passingGrade) {
+                        // Update Enrolment as complete by learner_id and conduct_id
+                        if (this.passingGrade != 0) {
+                            let completeCourseEndpoint = this.apiLink + "/updatecourseascomplete";
+                            let completeCourseObj = { "learnerId": this.currentUserId, "conductId": this.conductId }
+                            axios.put(completeCourseEndpoint, completeCourseObj)
+                                .then((response) => {
+                                    console.log(response)
+                                })
+                        }
                         this.text = `You passed! You got ${studentScore}/100`;
                     }
                     else {

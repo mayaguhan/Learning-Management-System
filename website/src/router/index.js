@@ -75,7 +75,7 @@ const routes = [
     }
   },
   {
-    path: '/trainerquizdetail/:section_id',
+    path: '/trainerquizdetail/:section_id/:conduct_id',
     name: 'QuizDetail',
     component: () =>import('../views/Trainer/QuizDetail.vue'),
     props: true,

@@ -115,6 +115,9 @@ export default {
                 .then((response) => {
                     this.enrolledStudents = response.data.data;
                 })
+                .catch((error) => {
+                    console.log(error, "No learners found")
+                })
         }
 
     },

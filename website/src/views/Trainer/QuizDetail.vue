@@ -8,7 +8,7 @@
             <v-form v-model="isSaveValid">
                 Quiz Information
                 <!-- Toggle: Edit Section -->
-                <v-btn icon @click="toggleEditSection=!toggleEditSection" v-show="toggleEditSection == false">
+                <v-btn icon @click="toggleEditSection=!toggleEditSection" v-show="toggleEditSection == false && formatDate(currentDate) < formatDate(courseDetail.start_date)">
                     <v-icon>mdi-pencil</v-icon>
                 </v-btn>
                 <!-- Save Section Edit -->
@@ -42,7 +42,7 @@
             Quiz Questions
             <!-- Toggle: Edit Questions -->
             <v-btn icon @click="toggleEditQuestion=!toggleEditQuestion, editAction('edit')" 
-            v-show="toggleEditQuestion == false">
+            v-show="toggleEditQuestion == false && formatDate(currentDate) < formatDate(courseDetail.start_date) && formatDate(currentDate) < formatDate(courseDetail.start_date)">
                 <v-icon>mdi-pencil</v-icon>
             </v-btn>
 
@@ -85,7 +85,9 @@
                                     v-show="toggleEditChoice == true" label="Question Choice" maxlength="100" ></v-text-field>
                                 </v-col>
                                 <v-col cols="2">
-                                    <p v-show="quizStats.total_attempt != 0">{{ (questionChoice.answer_count / quizStats.total_attempt * 100).toFixed(2) }}% Chose this answer</p>
+                                    <div v-if="quizStats.total_attempt > 0">
+                                        {{ (questionChoice.answer_count / quizStats.total_attempt * 100).toFixed(2) }}% Chose this answer
+                                    </div>
                                 </v-col>
                                 <v-col cols="2">
                                     <v-switch v-model="questionChoice.correct" v-show="toggleEditChoice == true" label="Correct"></v-switch>
@@ -254,7 +256,8 @@ import moment from "moment";
 export default {
     name: "QuizDetail",
     props: {
-        section_id: parseInt({ type: Number })
+        section_id: parseInt({ type: Number }), 
+        conduct_id: parseInt({ type: Number })
     },
     computed: {
         apiLink(){
@@ -263,7 +266,9 @@ export default {
     },
     data: () => ({
         currentUserId: 1, // To be replaced with user_id of logged in user
+        currentDate: new Date(),
         toggleEditSection: false,
+        courseDetail: {}, 
         sectionDetail: {},
         
         toggleEditQuestion: false,
@@ -278,7 +283,7 @@ export default {
         editChoices: [],
 
         studentAttempts: [],
-        quizStats: {},
+        quizStats: { "pass_count": 0, "total_attempt": 0, "pass_rate": 0 },
         quizAttempts: [],
         questionPerformance: [],
 
@@ -318,12 +323,25 @@ export default {
         isSaveValid: false,
         quizDuration: 0,
         passingGrade: 0,
+        enrolments: 0,
         componentKey: 0
     }),
     methods: {
         forceRerender() {
             this.componentKey += 1;
         },
+        // Get a Course Conducted information by conduct_id
+        getCourseDetail() {
+            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
+            let dataObj = { "conductId": this.conduct_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.courseDetail = response.data.data[0];
+                    // Enable this to toggle edit
+                    // this.courseDetail.start_date = "2021-11-31 12:00";
+                })
+        },  
+
         // Get Section information by section_id
         getSectionDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getsectioninfobysectionid";
@@ -333,6 +351,7 @@ export default {
                     this.sectionDetail = response.data.data[0];
                     this.quizDuration = response.data.data[0].quiz_duration;
                     this.passingGrade = response.data.data[0].passing_grade;
+                    this.enrolments = response.data.data[0].enrolments;
                 })
         },
 
@@ -359,6 +378,9 @@ export default {
                     });
                     this.questions = questionArr;
                 })
+                .catch((error) => {
+                    console.log(error, "No questions found")
+                })
         },
         choiceColour: function (correct) {
             const color = correct == 0 ? 'red' : 'green';
@@ -370,8 +392,9 @@ export default {
         saveSectionEdit() {
             // Update Section by section_id
             let updatedApiWithEndpoint = this.apiLink + "/updatesectionbysectionid";
-            let dataObj = { "section_id": this.section_id, "section_name": this.sectionDetail.section_name, "sequence": this.sectionDetail.sequence,
-                            "quiz_duration": this.quizDuration, "passing_grade": this.passingGrade};
+            let dataObj = { "sectionId": this.section_id, "sectionName": this.sectionDetail.section_name, "sequence": this.sectionDetail.sequence,
+                            "quizDuration": this.quizDuration, "passingGrade": this.passingGrade};
+            
             axios.put(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     console.log(response);
@@ -545,6 +568,9 @@ export default {
                 .then((response) => {
                     this.studentAttempts = response.data.data;
                 })
+                .catch((error) => {
+                    console.log(error, "No quiz attempts found")
+                })
         },
         // Get Quiz Attempt passing rate and attempt count by section_id
         getQuizStats() {
@@ -554,6 +580,9 @@ export default {
                 .then((response) => {
                     this.quizStats = response.data.data[0];
                 })
+                .catch((error) => {
+                    console.log(error, "No quiz attempts found")
+                })
         },
         // Get all Quiz Attempt by section_id
         getQuizAttempts() {
@@ -562,6 +591,9 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.quizAttempts = response.data.data;
+                })
+                .catch((error) => {
+                    console.log(error, "No quiz attempts found")
                 })
         },
         formatDate(date) {  
@@ -589,9 +621,15 @@ export default {
                     ));
                     this.attemptQuestions = questionArr;
                 })
+                .catch((error) => {
+                    console.log(error, "No quiz performances found")
+                })
         }
     },
     created() {
+        // Calls method to get course details
+        this.getCourseDetail(this.conduct_id);
+
         // Calls method to get section details
         this.getSectionDetail();
 

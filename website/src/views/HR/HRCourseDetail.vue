@@ -6,88 +6,89 @@
         <p>
             Start Date: {{ formatDate(courseDetail.start_date) }} <br>
             End Date: {{ formatDate(courseDetail.end_date) }} <br>
-        </p>
-
-        <router-link :to="{ name: 'EnrolledStudent', params: { conduct_id: conduct_id } }">
-            <v-btn class="primary">
-                View Enrolled Students
-            </v-btn>
-        </router-link>
-        <br>
-
-        <v-dialog v-model="dialog" max-width="800px">
-            <template v-slot:activator="{ on, attrs }">
-                <v-btn color="primary mt-3" dark v-bind="attrs" v-on="on">
-                    Enrol Students
+            Registration Start Date: {{ formatDate(courseDetail.start_register) }} <br>
+            Registration End Date: {{ formatDate(courseDetail.end_register) }} <br>
+            Enrolled Students: {{ courseDetail.enrolments }} / {{ courseDetail.capacity }} <br>
+            <router-link :to="{ name: 'EnrolledStudent', params: { conduct_id: conduct_id } }">
+                <v-btn class="primary">
+                    View Enrolled Students
                 </v-btn>
-            </template>
-            <v-card>
-                <v-card-title>
-                    Enrol Students
-                </v-card-title>
-                <v-card-text>
-                    <v-data-table :headers="headers" :items="enrolStudents" :search="search" :key="componentKey">
-                    <template v-slot:item="row">
-                        <tr>
-                            <td>
-                                {{ row.item.name }}
-                            </td>
-                            <td>
-                                {{ row.item.seniority_level }}
-                            </td>
-                            <td>
-                                {{ row.item.email }} <br>
-                                {{ row.item.contact }}
-                            </td>
-                            <td width="10">
-                                <v-btn class="primary" @click="enrolStudent(row.item.user_id)">
-                                    Enrol
-                                </v-btn>
-                            </td>
-                        </tr>
-                    </template>
-                    </v-data-table>
-                </v-card-text>
-            </v-card>
-        </v-dialog>
+            </router-link><br>
 
-        <!-- <router-link :to="{ name: 'EnrolStudent', params: { conduct_id: conduct_id, course_id: courseDetail.course_id } }"> -->
-        
-        <!-- </router-link>  -->
+            <v-dialog v-model="dialog" max-width="800px">
+                <template v-slot:activator="{ on, attrs }">
+                    <v-btn color="primary mt-3" dark v-bind="attrs" v-on="on">
+                        Enrol Students
+                    </v-btn>
+                </template>
+                <v-card>
+                    <v-card-title>
+                        Enrol Students
+                    </v-card-title>
+                    <v-card-text>
+                        <v-data-table :headers="headers" :items="enrolStudents" :search="search" :key="componentKey">
+                        <template v-slot:item="row">
+                            <tr>
+                                <td>
+                                    {{ row.item.name }}
+                                </td>
+                                <td>
+                                    {{ row.item.seniority_level }}
+                                </td>
+                                <td>
+                                    {{ row.item.email }} <br>
+                                    {{ row.item.contact }}
+                                </td>
+                                <td width="10">
+                                    <v-btn class="primary" @click="enrolStudent(row.item.user_id)">
+                                        Enrol
+                                    </v-btn>
+                                </td>
+                            </tr>
+                        </template>
+                        </v-data-table>
+                    </v-card-text>
+                </v-card>
+            </v-dialog>
+
+        </p>
 
         <h2>Course Description</h2>
         <p>
             {{ courseDetail.outline }}
         </p>
 
-        <h2>Course Content</h2>
+        <h2>Course Requisites</h2>
+        <span v-if="courseDetail.course_requisite_id > 0">
+            {{ courseDetail.cr_course_code }} - {{ courseDetail.cr_title }}
+        </span>
+        <span v-else>This course has no pre-requisites.</span>
 
+        <h2>Course Content</h2>
         <template>
         <v-expansion-panels focusable :items="sections">
-            <v-expansion-panel v-for="section in sections" :key="section.course_id" @click="expandSection(section.section_id)">
-                <v-expansion-panel-header :disabled="section.disabled">
-                    <span v-if="section.boldSection==true"><b>{{ section.section_name }}</b></span>
-                    <span v-else>{{ section.section_name }}</span>
+            <v-expansion-panel v-for="section in sections" :key="section.courseId">
+                <v-expansion-panel-header>
+                    {{ section.section_name }}
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <div v-if=" section.section_id != null">
+                    <b>Topic's Slide Decks</b><br>
+                    <b>Learning Materials</b>
+                    <div v-if="section.materials[0].file_name != null">
+                        <ul class="mb-3" v-for="material in section.materials" v-bind:key="material.material_id">
+                            <li>
+                                {{ material.file_name }}<br>
+                                <div v-if="material.link.includes('youtube')">
+                                    <video-embed css="embed-responsive-16by9" :src="material.link"></video-embed>
+                                </div>
 
-                        <!-- Display materials -->
-
-                        <!-- Upload slide decks -->
-                        <b>Topic's Slide Decks</b><br>
-                        <ul v-for="material in materials" v-bind:key="material.material_id">
-                            <li v-if="materials.length > 0" >
-                                <v-btn v-bind:href="s3link(material.link)" target="_blank">
+                                <v-btn v-else v-bind:href="s3link(material.link)" target="_blank">
                                     {{ material.file_name }}
                                 </v-btn>
                             </li>
-                            <li v-else>
-                                <b>This section has no materials</b>
-                            </li>
                         </ul>
-                        
                     </div>
+                    <div v-else>This topic does not have any learning materials</div>
                     <v-divider></v-divider>
                 </v-expansion-panel-content>
             </v-expansion-panel>
@@ -144,26 +145,31 @@ export default {
         },
         // Get all Sections by conduct_id (Trainer)
         getCourseSections() {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid"; // Not up yet
+            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid";
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.sections = response.data.data;
+                    let sectionArr = Object.values(response.data.data.reduce((result, { 
+                        section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, 
+                        material_id, file_name, link }) => {
+                        // Create section section
+                        if (!result[section_id]) result[section_id] = {
+                            section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, materials: []
+                        };
+                        // Append material to section
+                        result[section_id].materials.push({ material_id, file_name, link });
+                        return result;
+                        },{}
+                    ));
+                    this.sections = sectionArr;
+                })
+                .catch((error) => {
+                    console.log(error, "No sections found")
                 })
         },
 
         formatDate(date) {  
             return moment(date).format('yyyy-MM-DD hh:mm');
-        },
-        
-        // Retrieves all materials of a section
-        expandSection(section_id) {
-            let updatedApiWithEndpoint = this.apiLink + "/retrieveallmaterialsinasection";
-            let dataObj = { "sectionId": section_id }
-            axios.post(updatedApiWithEndpoint, dataObj)
-                .then((response) => {
-                    this.materials = response.data.data;
-            })
         },
 
         // Get all Engineers that are eligible for a course by course id
@@ -178,6 +184,9 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.enrolStudents = response.data.data;
+                })
+                .catch((error) => {
+                    console.log(error, "No trainers found")
                 })
         },
         // Add new Enrolment
