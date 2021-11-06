@@ -191,19 +191,18 @@ def getTrainersThatAreEligibleToTeachACourse(data):
 def getTrainersConductingACourse(data):
     courseId = data["courseId"]
 
-    enrolmentsSubquery = db.session.query(LMSConduct.conduct_id, (func.count(LMSEnrolment.learner_id)).label('enrolments')).filter(
-        LMSConduct.conduct_id == LMSEnrolment.conduct_id,
-        LMSConduct.course_id == courseId).group_by(LMSConduct.course_id, LMSConduct.trainer_id).subquery()
+    enrolmentsSubquery = db.session.query(LMSEnrolment.conduct_id, (func.count(LMSEnrolment.learner_id)).label('enrolments')).filter(
+        LMSConduct.conduct_id == LMSEnrolment.conduct_id).group_by(LMSConduct.course_id, LMSConduct.trainer_id).subquery()
 
-    trainerList = db.session.query(LMSUser, LMSConduct, enrolmentsSubquery.c.enrolments).join(
+    trainerList = db.session.query(LMSUser, LMSConduct, enrolmentsSubquery.c.enrolments).select_from(LMSConduct).join(
         enrolmentsSubquery, enrolmentsSubquery.c.conduct_id == LMSConduct.conduct_id, isouter=True).filter(
             LMSUser.user_id == LMSConduct.trainer_id, 
             LMSConduct.course_id == LMSCourse.course_id, 
             LMSConduct.start_register <= datetime.today(),
-            LMSConduct.end_register >= datetime.today(),
+            LMSConduct.end_date >= datetime.today(),
             LMSUser.seniority_level == "Senior Engineer",
             LMSConduct.course_id == courseId).all()
-
+    print(trainerList)
     returnArray = []
     if len(trainerList) > 0:
         for result in trainerList:
