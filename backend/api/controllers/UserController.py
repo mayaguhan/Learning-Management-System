@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from sqlalchemy.sql.elements import or_
 from ..data_access.lms_user import LMSUser
 from ..data_access.lms_conduct import LMSConduct
 from ..data_access.lms_enrolment import LMSEnrolment
@@ -6,7 +7,7 @@ from ..data_access.lms_course import LMSCourse
 from ..data_access.classes import LMSUser, LMSConduct, LMSCourse, LMSQuizAttempt, LMSSection
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from ..data_access.lms_conduct import LMSConduct
 from ..data_access.lms_enrolment import LMSEnrolment
@@ -248,35 +249,30 @@ def getTrainersConductingACourse(data):
 def getLearnersEnrolledByConduct(data):
     conductId = data["conductId"]
     sectionCount = len(db.session.query(LMSSection.section_id).filter(LMSSection.conduct_id == conductId).all())
-
+    conductSubQuery = db.session.query(LMSConduct.conduct_id,func.count(LMSSection.section_id).label("section_count")).filter(LMSConduct.conduct_id==LMSSection.conduct_id).group_by(LMSConduct.conduct_id).subquery()
     progressCount = db.session.query(LMSQuizAttempt.learner_id).filter(
         LMSQuizAttempt.section_id == LMSSection.section_id, 
         LMSQuizAttempt.grade >= LMSSection.passing_grade, 
         LMSSection.conduct_id == conductId).group_by(LMSQuizAttempt.learner_id, LMSQuizAttempt.section_id).subquery()
 
-    learnerProgressSubquery = db.session.query(progressCount.c.learner_id, (func.count(progressCount.c.learner_id)).label('progress')).group_by(progressCount.c.learner_id).subquery()
-
-    learnerList = db.session.query(LMSUser, LMSEnrolment, learnerProgressSubquery.c.progress).join(
-        learnerProgressSubquery, learnerProgressSubquery.c.learner_id == LMSEnrolment.learner_id, isouter=True).filter(
-            LMSUser.user_id == LMSEnrolment.learner_id, 
-            LMSEnrolment.conduct_id == conductId).group_by(LMSEnrolment.learner_id).all()
+    learnerList = db.session.query(LMSUser.user_id,LMSUser.name,LMSUser.email,LMSUser.seniority_level,LMSUser.contact,func.count(progressCount.c.learner_id).label("progress"),conductSubQuery.c.section_count).select_from(LMSEnrolment).join(progressCount,progressCount.c.learner_id==LMSEnrolment.learner_id,isouter=True).filter(LMSUser.user_id==LMSEnrolment.learner_id,LMSEnrolment.conduct_id==conductSubQuery.c.conduct_id,or_(LMSEnrolment.status=="Progress",LMSEnrolment.status=="Complete"),LMSEnrolment.conduct_id==conductId).group_by(LMSEnrolment.learner_id).all()
+    # learnerList = db.session.query(LMSUser, LMSEnrolment, learnerProgressSubquery.c.progress).join(
+    #     learnerProgressSubquery, learnerProgressSubquery.c.learner_id == LMSEnrolment.learner_id, isouter=True).filter(
+    #         LMSUser.user_id == LMSEnrolment.learner_id, 
+    #         LMSEnrolment.conduct_id == conductId).group_by(LMSEnrolment.learner_id).all()
 
     returnArray = []
     if len(learnerList) > 0:
         for result in learnerList:
-            user = result[0]
-            progress = 0
-            if (result[2] is not None):
-                progress = result[2]
 
             returnObj = {}
-            returnObj["user_id"] = user.getUserId()
-            returnObj["name"] = user.getName()
-            returnObj["email"] = user.getEmail()
-            returnObj["seniority_level"] = user.getSeniorityLevel()
-            returnObj["contact"] = user.getContact()
-            returnObj["progress"] = progress
-            returnObj["section_count"] = sectionCount
+            returnObj["user_id"] = result[0]
+            returnObj["name"] = result[1]
+            returnObj["email"] = result[2]
+            returnObj["seniority_level"] = result[3]
+            returnObj["contact"] = result[4]
+            returnObj["progress"] = result[5]
+            returnObj["section_count"] = result[6]
             returnArray.append(returnObj)
 
         return jsonify(
