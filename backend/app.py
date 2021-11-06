@@ -220,6 +220,18 @@ def updateSection():
 
 
 # Get all sections by conduct id and user id
+@app.route("/getsectioninformationbysectionid", methods=["POST"])
+def getsectioninformationbysectionid():
+    return sectionController.getSectionInformationBySectionId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Get all sections by conduct id and user id
+@app.route("/getallsectionsbyconductid", methods=["POST"])
+def getallsectionsbyconductid():
+    return sectionController.getAllSectionsByConductId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Get all sections by conduct id and user id
 @app.route("/getallsectionsbyconductanduserid", methods=["POST"])
 def getallsectionsbyconductanduserid():
     return sectionController.getAllSectionsByConductAndUserId(request.get_json())  # noqa: E402, F401, E501
@@ -336,7 +348,7 @@ def addNewEnrolment():
 def updateEnrolment():
     return enrolmentController.updateEnrolment(request.get_json())
 
-# Update Enrolment by learner_id and conduct_id
+# Update Enrolment to be marked as completed
 @app.route("/updatecourseascomplete", methods=["PUT"])
 def updateCourseAsComplete():
     return enrolmentController.updateCourseAsComplete(request.get_json())

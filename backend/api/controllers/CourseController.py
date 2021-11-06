@@ -368,6 +368,7 @@ def getAllCoursesUserHasNotEnrolledIn(data):
                 LMSCourse.active == 1).order_by(trainerSubquery.c.trainer_count.desc()).all()
 
     returnArray = []
+    print(len(courseList))
     if len(courseList) > 0:
         for result in courseList:
             course = result[0]
@@ -512,7 +513,13 @@ def updateCourse(data):
 
 # Add new Course Conduct
 def addCourseConduct(data):
-    course = LMSConduct(**data)
+    if not all(key in data.keys() for
+                key in ("courseId", "trainerId", "capacity", "startDate", "endDate", "startRegister", "endRegister")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    course = LMSConduct(course_id= data["courseId"],trainer_id=data["trainerId"],capacity=data["capacity"],start_date=data["startDate"],end_date=data["endDate"],start_register=data["startRegister"],end_register=data["endRegister"])
     try:
         db.session.add(course)
         db.session.commit()

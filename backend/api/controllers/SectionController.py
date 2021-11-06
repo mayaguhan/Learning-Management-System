@@ -34,7 +34,7 @@ def getAllSectionsByConductId(data):
     sectionidSubQuery = db.session.query(LMSQuizAttempt.section_id).filter(LMSQuizAttempt.section_id==LMSSection.section_id,LMSQuizAttempt.grade>=LMSSection.passing_grade).group_by(LMSQuizAttempt.learner_id,LMSQuizAttempt.section_id).subquery()
     countSubQuery = db.session.query(func.count(LMSSection.section_id).label("section_count")).filter(LMSSection.conduct_id==conductId).subquery()
     learnerCountSubQuery = db.session.query(func.count(LMSEnrolment.learner_id).label("learner_count")).filter(or_(LMSEnrolment.status=="Pending",LMSEnrolment.status=="Complete"),LMSEnrolment.conduct_id==conductId).subquery()
-    sectionsInformation = db.session.query(LMSSection.section_id,LMSSection.section_name,LMSSection.sequence,LMSSection.quiz_duration,LMSSection.passing_grade,func.count(sectionidSubQuery.c.section_id).label("pass_count"),countSubQuery.c.section_count,learnerCountSubQuery.c.learner_count).filter(LMSSection.conduct_id==conductId).group_by(LMSSection.section_id).order_by(LMSSection.sequence).all()
+    sectionsInformation = db.session.query(LMSSection.section_id,LMSSection.section_name,LMSSection.sequence,LMSSection.quiz_duration,LMSSection.passing_grade,func.count(sectionidSubQuery.c.section_id).label("pass_count"),countSubQuery.c.section_count,learnerCountSubQuery.c.learner_count,LMSMaterial.material_id,LMSMaterial.file_name,LMSMaterial.link).select_from(LMSSection).join(sectionidSubQuery,LMSSection.section_id==sectionidSubQuery.c.section_id,isouter=True).join(LMSMaterial,LMSSection.section_id==LMSMaterial.section_id,isouter=True).filter(LMSSection.conduct_id==conductId).group_by(LMSSection.section_id,LMSMaterial.material_id).order_by(LMSSection.sequence).all()
     if not sectionsInformation:
         return jsonify({
             "code" : 404,
@@ -113,7 +113,7 @@ def getAllSectionsByConductAndUserId(data):
             ],
             else_="Fail"
         )
-        ).select_from(LMSSection).join(LMSQuizAttempt,LMSSection.section_id==LMSQuizAttempt.section_id,isouter=True).filter(LMSSection.conduct_id==conductId,LMSEnrolment.learner_id==learnerId).group_by(LMSSection.section_id).order_by(LMSSection.sequence).all()
+        ).select_from(LMSSection).join(LMSQuizAttempt,LMSSection.section_id==LMSQuizAttempt.section_id,isouter=True).join(LMSMaterial,LMSSection.section_id==LMSMaterial.section_id,isouter=True).filter(LMSSection.conduct_id==conductId,LMSEnrolment.learner_id==learnerId).group_by(LMSSection.section_id,LMSMaterial.material_id).order_by(LMSSection.sequence).all()
     if not sections:
         return jsonify({
             "code" : 404,
