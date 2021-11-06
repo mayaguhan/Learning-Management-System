@@ -184,6 +184,10 @@ def addNewEnrolment():
 def updateEnrolment():
     return enrolmentController.updateEnrolment(request.get_json())
 
+# Update Enrolment by learner_id and conduct_id
+@app.route("/updatecourseascomplete", methods=["PUT"])
+def updateCourseAsComplete():
+    return enrolmentController.updateCourseAsComplete(request.get_json())
 
 # Delete an Enrolment request by learner_id and conduct_id
 @app.route("/deleteenrolment", methods=["DELETE"])
