@@ -68,42 +68,23 @@ export default {
 
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) =>{
-                    console.log(response);
-
                     // Login OKAY
-                    if (response.status == 200 && response.data.data.length > 0){
-                        console.log(response.data.data[0].user_id);
-
-
+                    if (response.data.code == 200){
                         // Store required data in vuex store
-                        this.$store.commit('setUserId', response.data.data[0].user_id);
+                        this.$store.commit('setUserId', response.data.user_id);
                         this.$store.commit('setLogin', true);
                         this.$store.commit('setType', this.type);
-                        
-                        // Check if it is updated
-                        // console.log(this.$store.state.userId);
-                        // console.log(this.$store.state.login);
-                        // console.log(this.$store.state.type);
-
 
                         if (this.type == "learner"){
                             this.$router.push("/learnercourses");
                         }
-                        if (this.type == "trainer" && response.data.data[0].seniority_level == "Senior Engineer") {
+                        if (this.type == "trainer" && response.data.seniority_level == "Senior Engineer") {
                             this.$router.push("/trainercourses");
-                        }
-                        if (this.type == "hr" && response.data.data[0].seniority_level == "HR") {
-                            this.$router.push("/hrcourses");
                         }
                     } else {
                         this.styleObj.display = "block";
                     }
-
                 })
-
-
-            
-
         }
     },
     computed: {

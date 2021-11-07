@@ -88,7 +88,6 @@ export default {
         //
     },
     data: () => ({
-        currentUserId: 12, // To be replaced with user_id of logged in user
         quizAttemptId: 0,
         conductId: 0,
         sectionName: "",
@@ -101,7 +100,7 @@ export default {
         // Snackbar
         snackbar: false,
         text: 'My timeout is set to 2000.',
-        timeout: 100000,
+        timeout: 5000,
     }),
     methods: {
         // Get Section information by section_id
@@ -123,7 +122,7 @@ export default {
         // Add new Quiz attempt
         addQuizAttempt() {
             let updatedApiWithEndpoint = this.apiLink + "/addnewquizattempt ";
-            let dataObj = { "sectionId": this.section_id, "learnerId": this.currentUserId, "conductId": this.conductId }
+            let dataObj = { "sectionId": this.section_id, "learnerId": this.getUserId, "conductId": this.conductId }
             console.log(updatedApiWithEndpoint, dataObj);
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
@@ -159,6 +158,15 @@ export default {
             var totalScore = 0;
             var correctAnswer = 0;
             this.questions.forEach(answer => {
+                // Add new Quiz Performance
+                let updatedApiWithEndpoint = this.apiLink + "/addnewquizperformance ";
+                let dataObj = { "quizAttemptId" : this.quizAttemptId, "questionId" : answer.quiz_question_id, "quizChoiceId" : answer["selectedAnswer"]}
+                console.log(updatedApiWithEndpoint, dataObj);
+                axios.post(updatedApiWithEndpoint, dataObj)
+                    .then((response) => {
+                        console.log("Added performance:", response.data.data)
+                    })
+
                 answer.question_choices.forEach(choice => {
                     if (choice.correct == 1){
                         correctAnswer = choice.quiz_choice_id;
@@ -185,7 +193,7 @@ export default {
                         // Update Enrolment as complete by learner_id and conduct_id
                         if (this.passingGrade != 0) {
                             let completeCourseEndpoint = this.apiLink + "/updatecourseascomplete";
-                            let completeCourseObj = { "learnerId": this.currentUserId, "conductId": this.conductId }
+                            let completeCourseObj = { "learnerId": this.getUserId, "conductId": this.conductId }
                             axios.put(completeCourseEndpoint, completeCourseObj)
                                 .then((response) => {
                                     console.log(response)
@@ -209,6 +217,9 @@ export default {
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
+        },
+        getUserId() {
+            return this.$store.state.userId;
         },
         // Timer
         formatedCountdown() {

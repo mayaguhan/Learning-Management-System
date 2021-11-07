@@ -49,8 +49,6 @@ import moment from "moment";
 export default {
     name: 'TrainerCourses',
     data: () => ({
-        currentUserId: 2, // To be replaced with user_id of logged in user
-
         courses: [],
         search: '',
         headers: [
@@ -67,7 +65,9 @@ export default {
         apiLink(){
             return this.$store.state.apiLink;
         },
-        
+        getUserId() {
+            return this.$store.state.userId;
+        }
     },
     methods: {
         // Get all Courses that are conducted by trainer_id
@@ -88,7 +88,7 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCoursesDetail(this.currentUserId);
+        this.getCoursesDetail(this.getUserId);
 
     }
 }

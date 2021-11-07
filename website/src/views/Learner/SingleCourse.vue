@@ -78,8 +78,6 @@ export default {
         conduct_id: parseInt({ type: Number })
     },
     data: () => ({
-        currentUserId: 12, // To be replaced with user_id of logged in user
-
         courseDetail: {},
         sections: [],
         materials: [],
@@ -103,11 +101,11 @@ export default {
         },
         // Get all Sections by conduct_id and user_id (Learner)
         getCourseSections() {
-            let updatedApiWithEndpoint = this.apiLink + "/getallsectionsbyconductanduserid";
-            let dataObj = { "conductId": this.conduct_id, "learnerId": this.currentUserId } 
+            let updatedApiWithEndpoint = this.apiLambda + "/getallsectionsbyconductanduserid";
+            let dataObj = { "conductId": this.conduct_id, "learnerId": this.getUserId } 
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    let sectionArr = Object.values(response.data.data.reduce((sectionResult, { 
+                    let sectionArr = Object.values(response.data.reduce((sectionResult, { 
                         section_id, section_name, sequence, quiz_duration, passing_grade, best_grade, result, 
                         material_id, file_name, link, visit }) => {
                         // Create section section
@@ -147,7 +145,7 @@ export default {
         // Add new Visited Material
         addMaterialVisit(material) {
             let updatedApiWithEndpoint = this.apiLink + "/addnewmaterialvisit";
-            let dataObj = { "learnerId" : this.currentUserId, "conductId" : this.conduct_id, "materialId" : material.material_id };
+            let dataObj = { "learnerId" : this.getUserId, "conductId" : this.conduct_id, "materialId" : material.material_id };
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     console.log(response.data.data)
@@ -163,9 +161,15 @@ export default {
         apiLink(){
             return this.$store.state.apiLink;
         },
+        apiLambda() {
+            return this.$store.state.apiLambda;
+        },
         s3Link(){
             return this.$store.state.s3Link;
         },
+        getUserId() {
+            return this.$store.state.userId;
+        }
     },
     created() {
         // Calls method to get course details

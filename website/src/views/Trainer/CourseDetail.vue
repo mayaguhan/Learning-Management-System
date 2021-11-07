@@ -126,7 +126,7 @@
                         <b v-else>This topic does not have any learning materials</b>
                         <br>
                         <div v-if="section.materials[0].file_name != null">
-                            <ul class="mt-3" v-for="(material, indexM) in section.materials" v-bind:key="material.materialId">
+                            <ul class="mt-3" v-for="material in section.materials" v-bind:key="material.materialId">
                                 <li class="mb-3">
                                     {{ material.file_name }}<br>
                                     <div v-if="material.link.includes('youtube')">
@@ -137,7 +137,7 @@
                                         {{ material.file_name }}
                                     </v-btn>
 
-                                    <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material.material_id, indexM)">
+                                    <v-btn icon v-show="toggleEdit == true" @click="deleteMaterial(material.material_id)">
                                         <v-icon>mdi-trash-can</v-icon>
                                     </v-btn>
                                 </li>
@@ -208,8 +208,6 @@ export default {
         conduct_id: parseInt({ type: Number })
     },
     data: () => ({
-        currentUserId: 2, // To be replaced with user_id of logged in user
-
         files: {},
         content: "",
         file_name: "",
@@ -252,6 +250,9 @@ export default {
         apiLink(){
             return this.$store.state.apiLink;
         },
+        apiLambda() {
+            return this.$store.state.apiLambda;
+        },
         s3Link(){
             return this.$store.state.s3Link;
         },
@@ -271,6 +272,7 @@ export default {
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
             let dataObj = { "conductId": this.conduct_id }
+            console.log(updatedApiWithEndpoint, dataObj);
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.courseDetail = response.data.data[0];
@@ -280,11 +282,12 @@ export default {
         },
         // Get all Sections by conduct_id (Trainer)
         getCourseSections() {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid";
+            let updatedApiWithEndpoint = this.apiLambda + "/getsectionsbyconductid";
             let dataObj = { "conductId": this.conduct_id }
+            console.log(updatedApiWithEndpoint, dataObj);
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    let sectionArr = Object.values(response.data.data.reduce((result, { 
+                    let sectionArr = Object.values(response.data.reduce((result, { 
                         section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, 
                         material_id, file_name, link }) => {
                         // Create section section
@@ -360,7 +363,7 @@ export default {
                             .then((response) => {
                                 this.getCourseSections();
                                 this.forceRerender();
-                                console.log(response);
+                                console.log(response.data);
                                 if (changeCounter == changes.length) {
                                     // Update last sequence in course to be 85
                                     this.updatePassingGrade();
@@ -392,16 +395,20 @@ export default {
                         let materialCounter = 0;
                         this.materials.forEach(material => {
                         // Delete Material by material_id
-                        let updatedApiWithEndpoint = this.apiLink + "/deletematerialbymaterialid";
+                        let updatedApiWithEndpoint = this.apiLink + "/deletematerialbyid";
                         let dataObj = { "materialId" : material.material_id };
-                            axios.delete(updatedApiWithEndpoint, { data: dataObj })
-                                .then((response) => {
-                                    console.log(response);
-                                    materialCounter++
-                                    if (materialCounter == materialCount) {
+                        console.log(updatedApiWithEndpoint, dataObj)
+                        axios.delete(updatedApiWithEndpoint, { data: dataObj })
+                            .then((response) => {
+                                console.log(response);
+                                materialCounter++;
+                                if (materialCounter == materialCount) {
                                     this.deleteSectionChecker(section.section_id);
-                                            }
-                                        })       
+                                }
+                            })
+                            .catch((error) => {
+                                console.log(error, "Error in deleting material")
+                            })    
                         });
                     }
 
@@ -440,7 +447,7 @@ export default {
             // Delete Material by material_id
             this.deleteMaterialId.forEach(material_id => {
                 if (material_id != null) {
-                let updatedApiWithEndpoint = this.apiLink + "/deletematerialbymaterialid";
+                let updatedApiWithEndpoint = this.apiLink + "/deletematerialbyid";
                 let dataObj = { "materialId" : material_id };
                     axios.delete(updatedApiWithEndpoint, { data: dataObj })
                         .then((response) => {
@@ -497,32 +504,36 @@ export default {
         },
         upload(file, str) {
             // Api Link for upload
-            var updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
+            let updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
+
             // Uploading to S3
-            var nameWithExtension = file['name']
-            var extensionArray = file['type'].split("/")
-            var extension = extensionArray[1]
+            let nameWithExtension = file['name']
+            let extensionArray = file['type'].split("/")
+            let extension = extensionArray[1]
 
-            var indexOfExtension = nameWithExtension.indexOf(extension);
-            var name = nameWithExtension.slice(0, indexOfExtension-1)
+            let indexOfExtension = nameWithExtension.indexOf(extension);
+            let name = nameWithExtension.slice(0, indexOfExtension-1)
 
-            var content = "";
-            var updatedApiWithEndpointM = this.apiLink + "/uploadfile";
+            let content = "";
+            // var uploadS3Endpoint = this.apiLink + "/uploadfile";
+            let uploadS3Endpoint = "https://wsphrnze6b.execute-api.us-east-1.amazonaws.com/beta/uploadfile";
 
             let reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = function () {
-                // this.expandSection(section_id);
                 content = reader.result.split(',')[1];
                 let dataObj = {"sectionNumber": str.toString(),"fileName": name, 
                             "fileExtension": extension, "content": content };
-                axios.post(updatedApiWithEndpointM, dataObj)
+                console.log("Uploading to S3", uploadS3Endpoint, dataObj);
+                axios.post(uploadS3Endpoint, dataObj)
                     .then((response) => {
                         // Saving filepath to DB
-                        let dataObj = { "sectionId": str, "file_name": name, "link":  response.data.data }
+                        let dataObj = { "sectionId": str, "fileName": name, "link": response.data }
                         axios.post(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
-                                console.log(response);
+                                console.log(response.data.data);
+                                // this.getCourseSections();
+                                // this.forceRerender();
                             })
                     })
             }
@@ -531,16 +542,16 @@ export default {
         addVideoMaterial(section_id) {
             var updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
             let dataObj = { "sectionId": section_id, "fileName": this.file_name, "link":  this.link }
-                axios.post(updatedApiWithEndpoint, dataObj)
-                    .then((response) => {
-                        console.log(response);
-                    })
-
-
+            console.log(updatedApiWithEndpoint, dataObj);
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    console.log(response.data.data);
+                    // this.getCourseSections();
+                    // this.forceRerender();
+                })
         },
         
-        deleteMaterial(material_id, indexM) {
-            this.materials.splice(indexM, 1);
+        deleteMaterial(material_id) {
             this.deleteMaterialId.push(material_id);
         },
     },

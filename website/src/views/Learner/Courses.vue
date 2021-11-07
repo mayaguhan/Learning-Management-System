@@ -2,13 +2,13 @@
   <div>
     <v-tabs>
       <v-tab @click="allcourses = true; myprogress = false; inProgress = false; completed = false; myRequests = false">All Courses</v-tab>
-      <v-tab @click="myprogress = true; allcourses = false; inProgress= true; completed = false; myRequests = false">My Progress</v-tab>
-      <v-tab @click="myRequests= true; myprogress = false; allcourses = false; inProgress= false; completed = false">Requests</v-tab>
+      <v-tab @click="myprogress = true; allcourses = false; inProgress= true; completed = false; myRequests = false, getCoursesProgress()">My Progress</v-tab>
+      <v-tab @click="myRequests= true; myprogress = false; allcourses = false; inProgress= false; completed = false, getSelfEnrolmentRequest()">Requests</v-tab>
     </v-tabs>
 
     <v-tabs v-if="myprogress">
-        <v-tab @click="inProgress = true; completed = false">In Progress</v-tab>
-        <v-tab @click="completed = true; inProgress = false">Completed</v-tab>
+        <v-tab @click="inProgress = true; completed = false, getCoursesProgress()">In Progress</v-tab>
+        <v-tab @click="completed = true; inProgress = false, getCoursesCompleted()">Completed</v-tab>
     </v-tabs>
 
     <div>
@@ -162,7 +162,26 @@
       </div>
 
       <!-- My Requests Content -->
-
+      <div v-if="myRequests">
+        <v-data-table :headers="headersRequests" :items="courseRequests">
+          <template v-slot:item="row">
+            <tr>
+              <td>
+                {{ row.item.course_code }} - {{ row.item.title }} 
+              </td>
+              <td>
+                {{ formatDate(row.item.start_date) }}
+              </td>
+              <td>
+                {{ formatDate(row.item.end_date) }}
+              </td>
+              <td>
+                {{ row.item.status }}
+              </td>
+            </tr>
+          </template>
+        </v-data-table>
+      </div>
     </div>
   </div>
 </template>
@@ -175,8 +194,6 @@
     name:"Courses",
     data () {
       return {
-        currentUserId: 12, // To be replaced with user_id of logged in user
-
         allcourses: true,
         myprogress: false,
         inProgress: false,
@@ -185,10 +202,16 @@
         dialog: false, 
         search: '',
 
+        coursesNotEnrolledInCheck: false,
+        coursesProgressCheck: false,
+        coursesCompletedCheck: false,
+        selfEnrolmentRequestCheck: false,
+
         coursesNotEnrolled: [],
         coursesProgress: [],
         coursesCompleted: [],
         trainers: [],
+        courseRequests: [],
         
         selectedCourse: {},
         
@@ -222,60 +245,75 @@
           { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
           { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
           { text: '', value: 'actions', filterable: false, sortable: false}
+        ],
+        headersRequests: [
+          { text: 'Course', value: 'title', align: 'start', sortable: true},
+          { text: 'Start Date', value: 'start_date', filterable: false, sortable: true},
+          { text: 'End Date', value: 'end_date', filterable: false, sortable: true},
+          { text: 'Status', value: 'status', filterable: false, sortable: true}
         ]
       }
     },
     methods: {
       // Get all Courses a User has not Enrolled In
       getCoursesNotEnrolledIn() {
-        let updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
-        let dataObj = { 'learnerId' : this.currentUserId};
-        axios.post(updatedApiWithEndpoint, dataObj)
-          .then((response) => {
-            this.coursesNotEnrolled = response.data.data;
-          })
-          .catch((error) => {
-            console.log(error, "No courses found")
-          })
+        if (this.coursesNotEnrolledInCheck == false) {
+          let updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
+          let dataObj = { 'learnerId' : this.getUserId};
+          axios.post(updatedApiWithEndpoint, dataObj)
+            .then((response) => {
+              this.coursesNotEnrolled = response.data.data;
+            })
+            .catch((error) => {
+              console.log(error, "No courses found")
+            })
+        }
+        this.coursesNotEnrolledInCheck = false;
       },
       // Get all in-progress Courses a User has by learner_id
       getCoursesProgress() {
-        let dataObj = { 'learnerId' : this.currentUserId};
-        let updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasbystatus";
-        axios.post(updatedApiWithEndpoint, dataObj)
-          .then((response) => {
-            this.coursesProgress = response.data.data;
-          })
-          .catch((error) => {
-            console.log(error, "No courses found")
-          })
+        if (this.coursesProgressCheck == false) {
+          let dataObj = { 'learnerId' : this.getUserId};
+          let updatedApiWithEndpoint = this.apiLambda + "/getallcoursesauserhasbystatus";
+          axios.post(updatedApiWithEndpoint, dataObj)
+            .then((response) => {
+              this.coursesProgress = response.data;
+            })
+            .catch((error) => {
+              console.log(error, "No courses found")
+            })
+        }
+        this.coursesProgressCheck = true;
       },
       // Get all completed courses that a user has by learner id
       getCoursesCompleted() {
-        let dataObj = { 'learnerId' : this.currentUserId};
-        let updatedApiWithEndpoint = this.apiLink + "/getallcompletedcoursesbyuserid";
-        axios.post(updatedApiWithEndpoint, dataObj)
-          .then((response) => {
-            this.coursesCompleted = response.data.data;
-          })
-          .catch((error) => {
-            console.log(error, "No courses found")
-          })
+        if (this.coursesCompletedCheck == false) {
+          let dataObj = { 'learnerId' : this.getUserId};
+          let updatedApiWithEndpoint = this.apiLink + "/getallcompletedcoursesbyuserid";
+          axios.post(updatedApiWithEndpoint, dataObj)
+            .then((response) => {
+              this.coursesCompleted = response.data.data;
+            })
+            .catch((error) => {
+              console.log(error, "No courses found")
+            })
+        }
+        this.coursesCompletedCheck = true;
       },
       // Get all Self-Enrolment request by learner_id
       getSelfEnrolmentRequest() {
-        let dataObj = { 'learnerId' : this.currentUserId};
-        let updatedApiWithEndpoint = this.apiLink + "/getlearnerselfenrolmentrequests";
-        axios.post(updatedApiWithEndpoint, dataObj)
-          .then((response) => {
-            console.log(response.data.data);
-            // TO DO: Display self-enrolment requests
-
-
-          })
-          .catch((error) => {
-            console.log(error, "No enrolments found")
-          })
+        if (this.selfEnrolmentRequestCheck == false) {
+          let dataObj = { 'learnerId' : this.getUserId};
+          let updatedApiWithEndpoint = this.apiLink + "/getlearnerselfenrolmentrequests";
+          axios.post(updatedApiWithEndpoint, dataObj)
+            .then((response) => {
+              this.courseRequests = response.data.data;
+            })
+            .catch((error) => {
+              console.log(error, "No enrolments found")
+            })
+        }
+        this.selfEnrolmentRequestCheck = false;
       },
       // Get all Trainers that are conducting a Course by course_id
       getCourseTrainer(course_id) {
@@ -295,7 +333,7 @@
       // Add new Enrolment
       addEnrolment(conduct_id, courseName) {
         let updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
-        let dataObj = { "learner_id" : this.currentUserId, "conduct_id": conduct_id, "self_enrolment": 1, "status" : "Request" };
+        let dataObj = { "learner_id" : this.getUserId, "conduct_id": conduct_id, "self_enrolment": 1, "status" : "Request" };
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
             console.log(response.data.code);
@@ -308,6 +346,7 @@
             }
         })
         console.log(conduct_id);
+        this.getSelfEnrolmentRequest();
       },
       doesNotMeetReq(course_requisite_id_para){
         if (course_requisite_id_para == null) {
@@ -322,15 +361,18 @@
       }
     },
     computed: {
-        apiLink(){
+        apiLink() {
             return this.$store.state.apiLink;
+        },
+        apiLambda() {
+            return this.$store.state.apiLambda;
+        },
+        getUserId() {
+            return this.$store.state.userId;
         }
     },
     created() {
       this.getCoursesNotEnrolledIn();
-      this.getCoursesProgress();
-      this.getCoursesCompleted();
-      this.getSelfEnrolmentRequest()
     },
   }
 </script>
