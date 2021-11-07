@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://" + "admin" + ":" + "#EW9%_ntPg8_-dt9" + "@" + "spm-bidding-cats.cbm12hznxdej.us-east-1.rds.amazonaws.com:3306" + "/" + "lms"  # noqa: E402, F401, E501
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_size': 100, 'pool_recycle': 280}
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_size': 100, 'pool_recycle': 280}  # noqa: E402, F401, E501
 
 db = SQLAlchemy(app)
 
@@ -86,9 +86,6 @@ def addUser():
     return userController.addUser(request.get_json())
 
 
-
-
-
 # COURSE ENDPOINTS
 
 # Get all courses
@@ -144,6 +141,7 @@ def getAllCoursesConductedByTrainer():
 def addACourse():
     return courseController.addACourse(request.get_json())
 
+
 # Update Course by course_id
 @app.route("/updatecourse", methods=["PUT"])
 def updateCourse():
@@ -154,9 +152,6 @@ def updateCourse():
 @app.route("/addcourseconduct", methods=["POST"])
 def addCourseConduct():
     return courseController.addCourseConduct(request.get_json())
-
-
-
 
 
 # ENROLMENT ENDPOINTS
@@ -189,13 +184,11 @@ def updateEnrolment():
 def updateCourseAsComplete():
     return enrolmentController.updateCourseAsComplete(request.get_json())
 
+
 # Delete an Enrolment request by learner_id and conduct_id
 @app.route("/deleteenrolment", methods=["DELETE"])
 def deleteEnrolment():
     return enrolmentController.deleteEnrolment(request.get_json())
-
-
-
 
 
 # SECTION ENDPOINTS
@@ -215,7 +208,7 @@ def getallsectionsbyconductId():
 # Get Section information by section_id
 @app.route("/getsectioninfobysectionid", methods=["POST"])
 def getSectionInformationBySectionId():
-    return sectionController.getSectionInformationBySectionId(request.get_json())
+    return sectionController.getSectionInformationBySectionId(request.get_json())  # noqa: E402, F401, E501
 
 
 # Add new Section
@@ -270,9 +263,6 @@ def deleteMaterialById():
 @app.route("/addnewmaterialvisit", methods=["POST"])
 def addNewMaterialVisit():
     return sectionController.addNewMaterialVisit(request.get_json())
-
-
-
 
 
 # QUIZ ENDPOINTS
@@ -376,7 +366,7 @@ def getAllCorrectQuizChoicesBySectionId():
 # Get Quiz Performance by quiz_attempt_id
 @app.route("/getquizperformancebyattemptid", methods=["POST"])
 def getQuizPerformanceByAttemptId():
-    return quizController.getQuizPerformanceByQuizAttemptID(request.get_json())
+    return quizController.getQuizPerformanceByQuizAttemptID(request.get_json())  # noqa: E402, F401, E501
 
 
 # Update Quiz attempt with grade
