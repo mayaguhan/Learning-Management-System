@@ -11,8 +11,7 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://" + "admin" + ":" + "#EW9%_ntPg8_-dt9" + "@" + "spm-bidding-cats.cbm12hznxdej.us-east-1.rds.amazonaws.com:3306" + "/" + "lms"  # noqa: E402, F401, E501
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_size': 100,
-                                           'pool_recycle': 280}
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_size': 100, 'pool_recycle': 280}  # noqa: E402, F401, E501
 
 db = SQLAlchemy(app)
 
@@ -28,7 +27,7 @@ def retrieveUserIdByEmail():
 
 
 # Get all Users
-@app.route("/users")
+@app.route("/getusers")
 def getAllUsers():
     return userController.getAllUsers()
 
@@ -40,7 +39,7 @@ def getASingleUser():
 
 
 # Get all Users by seniority_level
-@app.route("/usersbyseniority", methods=["POST"])
+@app.route("/getallusersbysenioritylevel", methods=["POST"])
 def getUsersBySeniority():
     return userController.getUsersBySeniority(request.get_json())
 
@@ -76,51 +75,9 @@ def getTrainersConductingACourse():
 
 
 # Get all Learners that are enrolled into a course by conduct_id
-@app.route("/getlearnersenrolledbyconduct", methods=["POST"])
+@app.route("/getalllearnersenrolledbyconductid", methods=["POST"])
 def getLearnersEnrolledByConduct():
     return userController.getLearnersEnrolledByConduct(request.get_json())
-
-
-# Get quiz attempt for a section
-@app.route("/getquizattemptforsection", methods=["POST"])
-def getquizattemptforsection():
-    return quizController.getQuizAttemptForSection(request.get_json())
-
-
-# Get student quiz attempt by section id
-@app.route("/getstudentquizattemptbysectionid", methods=["POST"])
-def getstudentquizattemptbysectionid():
-    return quizController.getStudentQuizAttemptBySectionId(request.get_json())
-
-
-# Get quiz attempt by section id
-@app.route("/getquizattemptpassingratebysectionid", methods=["POST"])
-def getquizattemptpassingratebysectionid():
-    return quizController.getQuizAttemptPassingRateBySectionId(request.get_json())  # noqa: E402, F401, E501
-
-
-# Get quiz performance by section id
-@app.route("/getquizquestionperformancebysectionid", methods=["POST"])
-def getquizquestionperformancebysectionid():
-    return quizController.getQuizQuestionPerformanceBySectionId(request.get_json())  # noqa: E402, F401, E501
-
-
-# Get quiz performance by attempt and section id
-@app.route("/getquizperformancebyattemptandsectionid", methods=["POST"])
-def getquizperformancebyattemptandsectionid():
-    return quizController.getQuizPerformanceByQuizAtemptAndSectionId(request.get_json())  # noqa: E402, F401, E501
-
-
-# Delete quiz question by quiz question id
-@app.route("/deletequizquestionbyid", methods=["DELETE"])
-def deletequizquestionbyid():
-    return quizController.deleteQuizQuestionByID(request.get_json())
-
-
-# Delete quiz choice by quiz choice id
-@app.route("/deletequizchoicebyid", methods=["DELETE"])
-def deletequizchoicebyid():
-    return quizController.deleteQuizChoiceByID(request.get_json())
 
 
 # Add a new user
@@ -128,131 +85,6 @@ def deletequizchoicebyid():
 def addUser():
     return userController.addUser(request.get_json())
 
-
-# Get quiz performance by quiz attempt id
-@app.route("/getquizperformancebyattemptid", methods=["POST"])
-def getQuizPerformanceByAttemptId():
-    return quizController.getQuizPerformanceByQuizAttemptID(request.get_json())
-
-
-# Get quiz questions by section id
-@app.route("/addquizattempt", methods=["POST"])
-def addQuizAttempt():
-    return quizController.addQuizAttempt(request.get_json())
-
-
-# Get quiz questions by section id
-@app.route("/getallcorrectquizchoicesbysectionid", methods=["POST"])
-def getAllCorrectQuizChoicesBySectionId():
-    return quizController.getAllCorrectQuizChoicesBySectionId(request.get_json())  # noqa: E402, F401, E501
-
-
-# Get quiz questions by section id
-@app.route("/getquizquestionsandchoicesbysectionid", methods=["POST"])
-def getQuizQuestionsAndChoicesBySectionId():
-    return quizController.getQuizQuestionsAndChoicesBySectionId(request.get_json())  # noqa: E402, F401, E501
-
-
-# Get quiz questions by section id
-@app.route("/getquizquestionsbysectionid", methods=["POST"])
-def getQuizQuestionsBySectionId():
-    return quizController.getQuizQuestionsBySectionId(request.get_json())
-
-
-# Get material by section id
-@app.route("/getmaterialsbysectionid", methods=["POST"])
-def getMaterialBySectionId():
-    return sectionController.getMaterialsBySectionID(request.get_json())
-
-
-# Udpate quiz choice
-@app.route("/updatequizchoice", methods=["POST"])
-def updateQuizChoice():
-    return quizController.updateQuizChoice(request.get_json())
-
-
-# Update quiz question
-@app.route("/updatequizquestion", methods=["POST"])
-def updateQuizQuestion():
-    return quizController.updateQuizQuestion(request.get_json())
-
-
-# Add quiz performance
-@app.route("/addnewquizperformance", methods=["POST"])
-def addQuizPerformance():
-    return quizController.addQuizPerformance(request.get_json())
-
-
-# Add quiz choice
-@app.route("/addnewchoice", methods=["POST"])
-def addChoice():
-    return quizController.addQuizChoice(request.get_json())
-
-
-# Add quiz quesion
-@app.route("/addquizquestion", methods=["POST"])
-def addQuestion():
-    return quizController.addQuizQuestion(request.get_json())
-
-
-# Add new material visit
-@app.route("/addnewmaterialvisit", methods=["POST"])
-def addNewMaterialVisit():
-    return sectionController.addNewMaterialVisit(request.get_json())
-
-
-# Add new material
-@app.route("/addnewmaterial", methods=["POST"])
-def addNewMaterial():
-    return sectionController.addNewMaterial(request.get_json())
-
-
-# Delete material by ID
-@app.route("/deletematerialbyid", methods=["DELETE"])
-def deleteMaterialById():
-    return sectionController.deleteMaterialByMaterialID(request.get_json())
-
-
-# Update section details
-@app.route("/updatesection", methods=["POST"])
-def updateSection():
-    return sectionController.updateSectionBySectionID(request.get_json())
-
-
-# Get all sections by conduct id and user id
-@app.route("/getsectioninformationbysectionid", methods=["POST"])
-def getsectioninformationbysectionid():
-    return sectionController.getSectionInformationBySectionId(request.get_json())  # noqa: E402, F401, E501
-
-
-# Get all sections by conduct id and user id
-@app.route("/getallsectionsbyconductid", methods=["POST"])
-def getallsectionsbyconductid():
-    return sectionController.getAllSectionsByConductId(request.get_json())  # noqa: E402, F401, E501
-
-
-# Get all sections by conduct id and user id
-@app.route("/getallsectionsbyconductanduserid", methods=["POST"])
-def getallsectionsbyconductanduserid():
-    return sectionController.getAllSectionsByConductAndUserId(request.get_json())  # noqa: E402, F401, E501
-
-
-# Delete section by ID
-# @app.route("/deletesectionbyid",methods = ["DELETE"])
-# def deleteSectionByID():
-#     return sectionController.deleteSectionBySectionID(request.get_json())
-# Update quiz attempt
-@app.route("/getquizattempt", methods=["POST"])
-def getQuizAttempt():
-    return quizController.getQuizAttempyByID(request.get_json())
-
-
-# Update quiz attempt
-@app.route("/updatequizattempt", methods=["PUT"])
-def updateAttempt():
-    print(request)
-    print(request.get_json())
-    return quizController.updateQuizAttemptGrade(request.get_json())
 
 
 # COURSE ENDPOINTS
@@ -270,7 +102,7 @@ def getASingleCourse():
 
 
 # Get a Single Course Conducted information by conduct_id
-@app.route("/getcourseconductinformation", methods=["POST"])
+@app.route("/getcourseinfobyconductid", methods=["POST"])
 def getCourseConductInformation():
     return courseController.getCourseConductInformation(request.get_json())
 
@@ -282,7 +114,7 @@ def getAllCoursesAUserHasEnrolled():
 
 
 # Get all in-progress Courses a User has by learner_id
-@app.route("/getallinprogresscoursesbyuserid", methods=["POST"])
+@app.route("/getallcoursesauserhasbystatus", methods=["POST"])
 def getAllInProgressCoursesByUserId():
     return courseController.getAllInProgressCoursesByUserId(request.get_json())
 
@@ -300,7 +132,7 @@ def getAllCoursesUserHasNotEnrolledIn():
 
 
 # Get all Courses that are conducted by trainer_id
-@app.route("/getallcoursesconductedbytrainer", methods=["POST"])
+@app.route("/getallcoursesthatareconductedbyuser", methods=["POST"])
 def getAllCoursesConductedByTrainer():
     return courseController.getAllCoursesConductedByTrainer(request.get_json())
 
@@ -311,8 +143,8 @@ def addACourse():
     return courseController.addACourse(request.get_json())
 
 
-# Update Update Course by course_id
-@app.route("/updateCourse", methods=["PUT"])
+# Update Course by course_id
+@app.route("/updatecourse", methods=["PUT"])
 def updateCourse():
     return courseController.updateCourse(request.get_json())
 
@@ -323,10 +155,10 @@ def addCourseConduct():
     return courseController.addCourseConduct(request.get_json())
 
 
-# Enrolment Endpoints
+# ENROLMENT ENDPOINTS
 
 # Get all Self-Enrolment request (HR)
-@app.route("/getallselfenrolmentrequests")
+@app.route("/getallselfenrolmentrequest")
 def getAllSelfEnrolmentRequests():
     return enrolmentController.getallSelfEnrolmentRequest()
 
@@ -348,15 +180,200 @@ def addNewEnrolment():
 def updateEnrolment():
     return enrolmentController.updateEnrolment(request.get_json())
 
-# Update Enrolment to be marked as completed
+# Update Enrolment by learner_id and conduct_id
 @app.route("/updatecourseascomplete", methods=["PUT"])
 def updateCourseAsComplete():
     return enrolmentController.updateCourseAsComplete(request.get_json())
+
 
 # Delete an Enrolment request by learner_id and conduct_id
 @app.route("/deleteenrolment", methods=["DELETE"])
 def deleteEnrolment():
     return enrolmentController.deleteEnrolment(request.get_json())
+
+
+# SECTION ENDPOINTS
+
+# Get all Sections by conduct_id and user_id (Learner)
+@app.route("/getallsectionsbyconductanduserid", methods=["POST"])
+def getallsectionsbyconductanduserid():
+    return sectionController.getAllSectionsByConductAndUserId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Get all Sections by conduct_id (Trainer)
+@app.route("/getsectionsbyconductid", methods=["POST"])
+def getallsectionsbyconductId():
+    return sectionController.getAllSectionsByConductId(request.get_json())
+
+
+# Get Section information by section_id
+@app.route("/getsectioninfobysectionid", methods=["POST"])
+def getSectionInformationBySectionId():
+    return sectionController.getSectionInformationBySectionId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Add new Section
+@app.route("/addnewsection", methods=["POST"])
+def addnewsection():
+    return sectionController.addNewSection(request.get_json())
+
+
+# Update Section by section_id
+@app.route("/updatesectionbysectionid", methods=["PUT"])
+def updateSection():
+    return sectionController.updateSectionBySectionID(request.get_json())
+
+
+# Update all course section's passing grade by section_id
+@app.route("/updateallcoursesectionspassinggradebysectionid", methods=["PUT"])
+def updatesectionPassinggrade():
+    return sectionController.updateSectionPassingGrade(request.get_json())
+
+
+# Delete Section by section_id
+@app.route("/deletesectionbysectionid", methods=["DELETE"])
+def deletesectionbysectionID():
+    return sectionController.deleteSectionBySectionID(request.get_json())
+
+
+# Add new Material
+@app.route("/addnewcoursematerial", methods=["POST"])
+def addNewMaterial():
+    return sectionController.addNewMaterial(request.get_json())
+
+
+# Get all Materials by section_id
+@app.route("/retrieveallmaterialsinasection", methods=["POST"])
+def getMaterialBySectionId():
+    return sectionController.getMaterialsBySectionID(request.get_json())
+
+
+# Get all Section Material by course_id
+@app.route("/getmaterialbycourseid", methods=["POST"])
+def getMaterialByCourseId():
+    return sectionController.getMaterialByCourseId(request.get_json())
+
+
+# Delete Material by material_id
+@app.route("/deletematerialbyid", methods=["DELETE"])
+def deleteMaterialById():
+    return sectionController.deleteMaterialByMaterialID(request.get_json())
+
+
+# Add new Visited Material
+@app.route("/addnewmaterialvisit", methods=["POST"])
+def addNewMaterialVisit():
+    return sectionController.addNewMaterialVisit(request.get_json())
+
+
+# QUIZ ENDPOINTS
+
+# Get all Quiz Attempt by section_id
+@app.route("/getallquizattemptbysection", methods=["POST"])
+def getquizattemptforsection():
+    return quizController.getQuizAttemptForSection(request.get_json())
+
+
+# Get Quiz Attempt of each student who had taken the quiz by section_id
+@app.route("/quizattemptofstudentbysection", methods=["POST"])
+def getstudentquizattemptbysectionid():
+    return quizController.getStudentQuizAttemptBySectionId(request.get_json())
+
+
+# Get Quiz Attempt passing rate and attempt count by section_id
+@app.route("/getquizpassingrateandattemptcountbysection", methods=["POST"])
+def getquizattemptpassingratebysectionid():
+    return quizController.getQuizAttemptPassingRateBySectionId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Get Quiz's Question Performance by section_id
+@app.route("/getquizquestionperformancebysection", methods=["POST"])
+def getquizquestionperformancebysectionid():
+    return quizController.getQuizQuestionPerformanceBySectionId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Get Learner's Quiz Performance by quiz_attempt_id and section_id
+@app.route("/getlearnerquizperformancebyquizattemptandsection", methods=["POST"])  # noqa: E402, F401, E501
+def getquizperformancebyattemptandsectionid():
+    return quizController.getQuizPerformanceByQuizAtemptAndSectionId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Add new Quiz Question
+@app.route("/addnewquizquestion", methods=["POST"])
+def addQuestion():
+    return quizController.addQuizQuestion(request.get_json())
+
+
+# Add new Quiz Choice
+@app.route("/addnewquizoption", methods=["POST"])
+def addChoice():
+    return quizController.addQuizChoice(request.get_json())
+
+
+# Update Quiz Question by quiz_question_id
+@app.route("/updatequizquestionbyquestionid", methods=["PUT"])
+def updateQuizQuestion():
+    return quizController.updateQuizQuestion(request.get_json())
+
+
+# Update Quiz Choice by quiz_choice_id
+@app.route("/updatequizchoicebychoiceid", methods=["PUT"])
+def updateQuizChoice():
+    return quizController.updateQuizChoice(request.get_json())
+
+
+# Delete Quiz Question by quiz_question_id
+@app.route("/deletequizquestionbyquestionid", methods=["DELETE"])
+def deletequizquestionbyid():
+    return quizController.deleteQuizQuestionByID(request.get_json())
+
+
+# Delete Quiz Choice by quiz_choice_id
+@app.route("/deletequizchoicebychoiceid", methods=["DELETE"])
+def deletequizchoicebyid():
+    return quizController.deleteQuizChoiceByID(request.get_json())
+
+
+# Add new Quiz attempt
+@app.route("/addnewquizattempt", methods=["POST"])
+def addQuizAttempt():
+    return quizController.addQuizAttempt(request.get_json())
+
+
+# Add new Quiz Performance
+@app.route("/addnewquizperformance", methods=["POST"])
+def addQuizPerformance():
+    return quizController.addQuizPerformance(request.get_json())
+
+
+# Get all Quiz Question by section_id
+@app.route("/getallquizquestionbysectionid", methods=["POST"])
+def getQuizQuestionsBySectionId():
+    return quizController.getQuizQuestionsBySectionId(request.get_json())
+
+
+# Get all Quiz Question and Quiz Choices by section_id
+@app.route("/getallquizquestionandchoicesbysectionid", methods=["POST"])
+def getQuizQuestionsAndChoicesBySectionId():
+    return quizController.getQuizQuestionsAndChoicesBySectionId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Get all correct Quiz Choices for a Quiz by section_id
+@app.route("/getallcorrectquizchoicesforquizbysection", methods=["POST"])
+def getAllCorrectQuizChoicesBySectionId():
+    return quizController.getAllCorrectQuizChoicesBySectionId(request.get_json())  # noqa: E402, F401, E501
+
+
+# Get Quiz Performance by quiz_attempt_id
+@app.route("/getquizperformancebyattemptid", methods=["POST"])
+def getQuizPerformanceByAttemptId():
+    return quizController.getQuizPerformanceByQuizAttemptID(request.get_json())  # noqa: E402, F401, E501
+
+
+# Update Quiz attempt with grade
+@app.route("/updatequizattemptwithgrade", methods=["PUT"])
+def updateAttempt():
+    return quizController.updateQuizAttemptGrade(request.get_json())
 
 
 if __name__ == '__main__':

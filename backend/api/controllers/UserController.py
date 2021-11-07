@@ -23,7 +23,8 @@ def retrieveUserIdByEmail(data):
         return jsonify(
             {
                 "code" : 200,
-                "user_id": user.getUserId()  
+                "user_id": user.getUserId(),
+                "seniority_level": user.getSeniorityLevel()  
             }
         ),200
     else:

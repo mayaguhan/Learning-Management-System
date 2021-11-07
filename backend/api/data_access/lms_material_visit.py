@@ -1,13 +1,14 @@
 from flask_sqlalchemy import SQLAlchemy
 from ..data_access.lms_material import LMSMaterial
-from ..data_access.lms_user import LMSUser
+from ..data_access.lms_enrolment import LMSEnrolment
 
 db = SQLAlchemy()
 
 class MaterialVisit(db.Model):
     __tablename__ = "lms_material_visit"
     material_id = db.Column(db.Integer,db.ForeignKey(LMSMaterial.material_id), primary_key=True)
-    learner_id = db.Column(db.Integer,db.ForeignKey(LMSUser.user_id),primary_key=True)
+    learner_id = db.Column(db.Integer,db.ForeignKey(LMSEnrolment.learner_id),primary_key=True)
+    conduct_id = db.Column(db.Integer,db.ForeignKey(LMSEnrolment.conduct_id),primary_key=True)
     
     # Getter and setter methods
     def getMaterialID(self):

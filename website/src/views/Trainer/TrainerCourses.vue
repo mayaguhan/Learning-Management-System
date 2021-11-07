@@ -14,7 +14,7 @@
                     {{row.item.course_code}} - {{row.item.title}} 
                 </td>
                 <td>
-                    {{ row.item.enrolment  }} / {{ row.item.capacity  }}
+                    {{ row.item.enrolments  }} / {{ row.item.capacity  }}
                 </td>
                 <td>
                     {{ formatDate(row.item.start_date) }}
@@ -49,8 +49,6 @@ import moment from "moment";
 export default {
     name: 'TrainerCourses',
     data: () => ({
-        currentUserId: 2, // To be replaced with user_id of logged in user
-
         courses: [],
         search: '',
         headers: [
@@ -67,7 +65,9 @@ export default {
         apiLink(){
             return this.$store.state.apiLink;
         },
-        
+        getUserId() {
+            return this.$store.state.userId;
+        }
     },
     methods: {
         // Get all Courses that are conducted by trainer_id
@@ -76,8 +76,10 @@ export default {
             let dataObj = { "trainerId": trainer_id }
             axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
-                console.log(response.data)
-                this.courses = response.data;
+                this.courses = response.data.data;
+            })
+            .catch((error) => {
+                console.log(error, "No courses found")
             })
         },
         formatDate(date) {  
@@ -86,7 +88,7 @@ export default {
     },
     created() {
         // Calls method to get course details
-        this.getCoursesDetail(this.currentUserId);
+        this.getCoursesDetail(this.getUserId);
 
     }
 }

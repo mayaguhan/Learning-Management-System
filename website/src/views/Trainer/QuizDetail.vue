@@ -8,7 +8,7 @@
             <v-form v-model="isSaveValid">
                 Quiz Information
                 <!-- Toggle: Edit Section -->
-                <v-btn icon @click="toggleEditSection=!toggleEditSection" v-show="toggleEditSection == false">
+                <v-btn icon @click="toggleEditSection=!toggleEditSection" v-show="toggleEditSection == false && formatDate(currentDate) < formatDate(courseDetail.start_date)">
                     <v-icon>mdi-pencil</v-icon>
                 </v-btn>
                 <!-- Save Section Edit -->
@@ -26,7 +26,7 @@
 
         <p>
             Quiz Duration: 
-            <span v-show="toggleEditSection == false">{{ sectionDetail.quiz_duration }} minutes <br></span>
+            <span v-show="toggleEditSection == false"><b :v-model="sectionDetail.quiz_duration"></b>{{ sectionDetail.quiz_duration }} minutes <br></span>
             
             <v-text-field v-model="quizDuration" :rules="[rules.required, rules.durationMin, rules.durationMax]"
             v-show="toggleEditSection == true" type="number" label="Quiz Duration"  maxlength="4" ></v-text-field>
@@ -42,7 +42,7 @@
             Quiz Questions
             <!-- Toggle: Edit Questions -->
             <v-btn icon @click="toggleEditQuestion=!toggleEditQuestion, editAction('edit')" 
-            v-show="toggleEditQuestion == false">
+            v-show="toggleEditQuestion == false && formatDate(currentDate) < formatDate(courseDetail.start_date) && formatDate(currentDate) < formatDate(courseDetail.start_date)">
                 <v-icon>mdi-pencil</v-icon>
             </v-btn>
 
@@ -85,7 +85,9 @@
                                     v-show="toggleEditChoice == true" label="Question Choice" maxlength="100" ></v-text-field>
                                 </v-col>
                                 <v-col cols="2">
-                                    <p v-show="quizStats.total_attempt != 0">{{ (questionChoice.answer_count / quizStats.total_attempt * 100).toFixed(2) }}% Chose this answer</p>
+                                    <div v-if="quizStats.total_attempt > 0">
+                                        {{ (questionChoice.answer_count / quizStats.total_attempt * 100).toFixed(2) }}% Chose this answer
+                                    </div>
                                 </v-col>
                                 <v-col cols="2">
                                     <v-switch v-model="questionChoice.correct" v-show="toggleEditChoice == true" label="Correct"></v-switch>
@@ -254,7 +256,8 @@ import moment from "moment";
 export default {
     name: "QuizDetail",
     props: {
-        section_id: parseInt({ type: Number })
+        section_id: parseInt({ type: Number }), 
+        conduct_id: parseInt({ type: Number })
     },
     computed: {
         apiLink(){
@@ -262,8 +265,9 @@ export default {
         },
     },
     data: () => ({
-        currentUserId: 1, // To be replaced with user_id of logged in user
+        currentDate: new Date(),
         toggleEditSection: false,
+        courseDetail: {}, 
         sectionDetail: {},
         
         toggleEditQuestion: false,
@@ -278,7 +282,7 @@ export default {
         editChoices: [],
 
         studentAttempts: [],
-        quizStats: {},
+        quizStats: { "pass_count": 0, "total_attempt": 0, "pass_rate": 0 },
         quizAttempts: [],
         questionPerformance: [],
 
@@ -318,32 +322,46 @@ export default {
         isSaveValid: false,
         quizDuration: 0,
         passingGrade: 0,
+        enrolments: 0,
         componentKey: 0
     }),
     methods: {
         forceRerender() {
             this.componentKey += 1;
         },
+        // Get a Course Conducted information by conduct_id
+        getCourseDetail() {
+            let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
+            let dataObj = { "conductId": this.conduct_id }
+            axios.post(updatedApiWithEndpoint, dataObj)
+                .then((response) => {
+                    this.courseDetail = response.data.data[0];
+                    // Enable this to toggle edit
+                    // this.courseDetail.start_date = "2021-11-31 12:00";
+                })
+        },  
+
         // Get Section information by section_id
         getSectionDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getsectioninfobysectionid";
             let dataObj = { "sectionId": this.section_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.sectionDetail = response.data[0];
-                    this.quizDuration = response.data[0].quiz_duration;
-                    this.passingGrade = response.data[0].passing_grade;
+                    this.sectionDetail = response.data.data[0];
+                    this.quizDuration = response.data.data[0].quiz_duration;
+                    this.passingGrade = response.data.data[0].passing_grade;
+                    this.enrolments = response.data.data[0].enrolments;
                 })
         },
 
-        // Get Quiz's Question Performance by section_id
+        // Get Quiz's Question Performance by section_id and quiz_attempt_id
         getQuestionChoices() {
             let updatedApiWithEndpoint = this.apiLink + "/getquizquestionperformancebysection";
             let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     // Groups question choices into question groups by question_id
-                    let questionArr = Object.values(response.data.reduce((result, 
+                    let questionArr = Object.values(response.data.data.reduce((result, 
                     { quiz_question_id, question_name, quiz_choice_id, choice, correct, answer_count }) => {
                         // Create new question group
                         if (!result[quiz_question_id]) result[quiz_question_id] = {
@@ -359,6 +377,9 @@ export default {
                     });
                     this.questions = questionArr;
                 })
+                .catch((error) => {
+                    console.log(error, "No questions found")
+                })
         },
         choiceColour: function (correct) {
             const color = correct == 0 ? 'red' : 'green';
@@ -371,10 +392,13 @@ export default {
             // Update Section by section_id
             let updatedApiWithEndpoint = this.apiLink + "/updatesectionbysectionid";
             let dataObj = { "sectionId": this.section_id, "sectionName": this.sectionDetail.section_name, "sequence": this.sectionDetail.sequence,
-                            "quizDuration": this.sectionDetail.quiz_duration, "passingGrade": this.sectionDetail.passing_grade};
+                            "quizDuration": this.quizDuration, "passingGrade": this.passingGrade};
+            
             axios.put(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     console.log(response);
+                    this.getSectionDetail();
+                    this.forceRerender();
                 })
         },
 
@@ -414,17 +438,17 @@ export default {
                     axios.post(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             // Retrieve new Quiz Question and adds 2 Choices
-                            let newQuizQuestionId = response.data[0].insertId
+                            let newQuizQuestionId = response.data.data.quiz_question_id;
                             let addOptionEndPoint = this.apiLink + "/addnewquizoption";
                             let dataObj1 = { "quizQuestionId": newQuizQuestionId, "choice": "Choice B", "correct": 0 };
                             axios.post(addOptionEndPoint, dataObj1)
                                 .then((response) => {
-                                    console.log(response.data);
+                                    console.log(response.data.data);
                                 })
                             let dataObj2 = { "quizQuestionId": newQuizQuestionId, "choice": "Choice A", "correct": 1 };
                             axios.post(addOptionEndPoint, dataObj2)
                                 .then((response) => {
-                                    console.log(response.data);
+                                    console.log(response.data.data);
                                     this.getQuestionChoices();
                                     this.forceRerender();
                                 })
@@ -433,7 +457,7 @@ export default {
                     // Update Quiz Question by quiz_question_id
                     let updatedApiWithEndpoint = this.apiLink + "/updatequizquestionbyquestionid";
                     let dataObj = { "questionId" : change.quiz_question_id, "questionName" : change.question_name };
-                    axios.post(updatedApiWithEndpoint, dataObj)
+                    axios.put(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             console.log(response);
                         })
@@ -496,13 +520,13 @@ export default {
                     let dataObj = { "quizQuestionId": change.quiz_question_id, "choice": change.choice, "correct": change.correct };
                     axios.post(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
-                            console.log(response.data);
+                            console.log(response.data.data);
                         })
                 } else {
                     // Update Quiz Choice by quiz_choice_id
                     let updatedApiWithEndpoint = this.apiLink + "/updatequizchoicebychoiceid";
                     let dataObj = { "quizChoiceId" : change.quiz_choice_id, "choice" : change.choice, "correct": change.correct };
-                    axios.post(updatedApiWithEndpoint, dataObj)
+                    axios.put(updatedApiWithEndpoint, dataObj)
                         .then((response) => {
                             console.log(response);
                         })
@@ -541,7 +565,10 @@ export default {
             let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.studentAttempts = response.data;
+                    this.studentAttempts = response.data.data;
+                })
+                .catch((error) => {
+                    console.log(error, "No quiz attempts found")
                 })
         },
         // Get Quiz Attempt passing rate and attempt count by section_id
@@ -550,7 +577,10 @@ export default {
             let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.quizStats = response.data[0];
+                    this.quizStats = response.data.data[0];
+                })
+                .catch((error) => {
+                    console.log(error, "No quiz attempts found")
                 })
         },
         // Get all Quiz Attempt by section_id
@@ -559,7 +589,10 @@ export default {
             let dataObj = { "sectionId": this.section_id  }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.quizAttempts = response.data;
+                    this.quizAttempts = response.data.data;
+                })
+                .catch((error) => {
+                    console.log(error, "No quiz attempts found")
                 })
         },
         formatDate(date) {  
@@ -574,7 +607,7 @@ export default {
                 .then((response) => {
                     console.log(response);
                     // Groups question choices into question groups by question_id
-                    let questionArr = Object.values(response.data.reduce((result, 
+                    let questionArr = Object.values(response.data.data.reduce((result, 
                     { quiz_question_id, question_name, quiz_choice_id, choice, chosen, correct }) => {
                         // Create new question group
                         if (!result[quiz_question_id]) result[quiz_question_id] = {
@@ -587,9 +620,15 @@ export default {
                     ));
                     this.attemptQuestions = questionArr;
                 })
+                .catch((error) => {
+                    console.log(error, "No quiz performances found")
+                })
         }
     },
     created() {
+        // Calls method to get course details
+        this.getCourseDetail(this.conduct_id);
+
         // Calls method to get section details
         this.getSectionDetail();
 
