@@ -22,7 +22,9 @@ class LMSMaterial(db.Model):
         return self.file_name
 
     def setFileName(self,new_name):
-        if new_name!="" and len(new_name)<=100:
+        if type(new_name)!= str:
+            raise Exception("Invalid Input")
+        elif new_name!="" and len(new_name)<=100:
             self.file_name = new_name
             return self.file_name
         else:
@@ -32,6 +34,8 @@ class LMSMaterial(db.Model):
         return self.link
     
     def setLink(self,new_link):
+        if type(new_link)!= str:
+            raise Exception("Invalid Input")
         if new_link!="" and len(new_link)<=200:
             self.link = new_link
             return self.link
