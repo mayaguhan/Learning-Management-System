@@ -179,6 +179,7 @@ def addNewEnrolment():
 def updateEnrolment():
     return enrolmentController.updateEnrolment(request.get_json())
 
+
 # Update Enrolment by learner_id and conduct_id
 @app.route("/updatecourseascomplete", methods=["PUT"])
 def updateCourseAsComplete():
@@ -292,7 +293,7 @@ def getquizquestionperformancebysectionid():
 
 
 # Get Learner's Quiz Performance by quiz_attempt_id and section_id
-@app.route("/getlearnerquizperformancebyquizattemptandsection", methods=["POST"])
+@app.route("/getlearnerquizperformancebyquizattemptandsection", methods=["POST"])  # noqa: E402, F401, E501
 def getquizperformancebyattemptandsectionid():
     return quizController.getQuizPerformanceByQuizAtemptAndSectionId(request.get_json())  # noqa: E402, F401, E501
 
