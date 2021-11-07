@@ -5,8 +5,6 @@ from datetime import timedelta,datetime
 
 class testLMSConduct(unittest.TestCase):
 
-    # Add Setup and TearDown
-
     def testGetCourseId(self):
         currentDate = datetime.now()
         conduct = LMSConduct(course_id=1,trainer_id=1,capacity=73,start_date=currentDate+timedelta(days=10),end_date = currentDate+timedelta(days=13), start_register = currentDate+timedelta(days=3),end_register = currentDate+timedelta(days=7))
