@@ -108,8 +108,6 @@ export default {
         conduct_id: parseInt({ type: Number })
     },
     data: () => ({
-        currentUserId: 1, // To be replaced with user_id of logged in user
-
         courseDetail: {},
         sections: [],
         materials: [],
@@ -213,7 +211,7 @@ export default {
         },
         s3Link(){
             return this.$store.state.s3Link;
-        },
+        }
     },
     created() {
         // Calls method to get course details

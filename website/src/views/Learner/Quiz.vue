@@ -88,7 +88,6 @@ export default {
         //
     },
     data: () => ({
-        currentUserId: 12, // To be replaced with user_id of logged in user
         quizAttemptId: 0,
         conductId: 0,
         sectionName: "",
@@ -123,7 +122,7 @@ export default {
         // Add new Quiz attempt
         addQuizAttempt() {
             let updatedApiWithEndpoint = this.apiLink + "/addnewquizattempt ";
-            let dataObj = { "sectionId": this.section_id, "learnerId": this.currentUserId, "conductId": this.conductId }
+            let dataObj = { "sectionId": this.section_id, "learnerId": this.getUserId, "conductId": this.conductId }
             console.log(updatedApiWithEndpoint, dataObj);
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
@@ -194,7 +193,7 @@ export default {
                         // Update Enrolment as complete by learner_id and conduct_id
                         if (this.passingGrade != 0) {
                             let completeCourseEndpoint = this.apiLink + "/updatecourseascomplete";
-                            let completeCourseObj = { "learnerId": this.currentUserId, "conductId": this.conductId }
+                            let completeCourseObj = { "learnerId": this.getUserId, "conductId": this.conductId }
                             axios.put(completeCourseEndpoint, completeCourseObj)
                                 .then((response) => {
                                     console.log(response)
@@ -218,6 +217,9 @@ export default {
     computed: {
         apiLink(){
             return this.$store.state.apiLink;
+        },
+        getUserId() {
+            return this.$store.state.userId;
         },
         // Timer
         formatedCountdown() {

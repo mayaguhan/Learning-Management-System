@@ -49,6 +49,7 @@ export default new Vuex.Store({
         getType(state){
             return state.type;
         }
+        
         // getMessage(state){
         //     return state.message;
         // }

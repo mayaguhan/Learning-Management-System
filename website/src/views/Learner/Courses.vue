@@ -194,8 +194,6 @@
     name:"Courses",
     data () {
       return {
-        currentUserId: 12, // To be replaced with user_id of logged in user
-
         allcourses: true,
         myprogress: false,
         inProgress: false,
@@ -261,7 +259,7 @@
       getCoursesNotEnrolledIn() {
         if (this.coursesNotEnrolledInCheck == false) {
           let updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasnotenrolledin";
-          let dataObj = { 'learnerId' : this.currentUserId};
+          let dataObj = { 'learnerId' : this.getUserId};
           axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
               this.coursesNotEnrolled = response.data.data;
@@ -275,7 +273,7 @@
       // Get all in-progress Courses a User has by learner_id
       getCoursesProgress() {
         if (this.coursesProgressCheck == false) {
-          let dataObj = { 'learnerId' : this.currentUserId};
+          let dataObj = { 'learnerId' : this.getUserId};
           let updatedApiWithEndpoint = this.apiLambda + "/getallcoursesauserhasbystatus";
           axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
@@ -290,7 +288,7 @@
       // Get all completed courses that a user has by learner id
       getCoursesCompleted() {
         if (this.coursesCompletedCheck == false) {
-          let dataObj = { 'learnerId' : this.currentUserId};
+          let dataObj = { 'learnerId' : this.getUserId};
           let updatedApiWithEndpoint = this.apiLink + "/getallcompletedcoursesbyuserid";
           axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
@@ -305,7 +303,7 @@
       // Get all Self-Enrolment request by learner_id
       getSelfEnrolmentRequest() {
         if (this.selfEnrolmentRequestCheck == false) {
-          let dataObj = { 'learnerId' : this.currentUserId};
+          let dataObj = { 'learnerId' : this.getUserId};
           let updatedApiWithEndpoint = this.apiLink + "/getlearnerselfenrolmentrequests";
           axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
@@ -335,7 +333,7 @@
       // Add new Enrolment
       addEnrolment(conduct_id, courseName) {
         let updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
-        let dataObj = { "learner_id" : this.currentUserId, "conduct_id": conduct_id, "self_enrolment": 1, "status" : "Request" };
+        let dataObj = { "learner_id" : this.getUserId, "conduct_id": conduct_id, "self_enrolment": 1, "status" : "Request" };
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
             console.log(response.data.code);
@@ -363,11 +361,14 @@
       }
     },
     computed: {
-        apiLink(){
+        apiLink() {
             return this.$store.state.apiLink;
         },
         apiLambda() {
             return this.$store.state.apiLambda;
+        },
+        getUserId() {
+            return this.$store.state.userId;
         }
     },
     created() {

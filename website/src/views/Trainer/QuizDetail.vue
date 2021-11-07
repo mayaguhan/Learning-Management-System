@@ -265,7 +265,6 @@ export default {
         },
     },
     data: () => ({
-        currentUserId: 1, // To be replaced with user_id of logged in user
         currentDate: new Date(),
         toggleEditSection: false,
         courseDetail: {}, 

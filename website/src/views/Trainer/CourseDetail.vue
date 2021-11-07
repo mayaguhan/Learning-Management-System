@@ -208,8 +208,6 @@ export default {
         conduct_id: parseInt({ type: Number })
     },
     data: () => ({
-        currentUserId: 2, // To be replaced with user_id of logged in user
-
         files: {},
         content: "",
         file_name: "",
