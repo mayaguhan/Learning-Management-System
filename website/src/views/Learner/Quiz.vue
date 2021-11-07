@@ -101,7 +101,7 @@ export default {
         // Snackbar
         snackbar: false,
         text: 'My timeout is set to 2000.',
-        timeout: 2000,
+        timeout: 100000,
     }),
     methods: {
         // Get Section information by section_id
@@ -112,20 +112,22 @@ export default {
             }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    this.passingGrade = response.data[0]["passing_grade"];
-                    this.conductId = response.data[0]["conduct_id"];
-                    this.countdown = response.data[0]["quiz_duration"] * 60;
-                    this.sectionName = response.data[0]["section_name"];               
+                    // Calls method to add a new quiz attempt
+                    this.passingGrade = response.data.data[0]["passing_grade"];
+                    this.conductId = response.data.data[0]["conduct_id"];
+                    this.countdown = response.data.data[0]["quiz_duration"] * 60;
+                    this.sectionName = response.data.data[0]["section_name"];
+                    this.addQuizAttempt();      
                 }) 
         },
         // Add new Quiz attempt
         addQuizAttempt() {
             let updatedApiWithEndpoint = this.apiLink + "/addnewquizattempt ";
-            let dataObj = { "sectionId": this.section_id, "learnerId": this.currentUserId }
+            let dataObj = { "sectionId": this.section_id, "learnerId": this.currentUserId, "conductId": this.conductId }
+            console.log(updatedApiWithEndpoint, dataObj);
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    console.log(response.data.insertId);
-                    this.quizAttemptId = response.data.insertId;
+                    this.quizAttemptId = response.data.data.quiz_attempt_id;
                 })
         },
         // Get Quiz's Question Performance by section_id
@@ -135,7 +137,7 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     // Groups question choices into question groups by question_id
-                    let questionArr = Object.values(response.data.reduce((result, 
+                    let questionArr = Object.values(response.data.data.reduce((result, 
                     { quiz_question_id, question_name, quiz_choice_id, choice, correct, answer_count }) => {
                         // Create new question group
                         if (!result[quiz_question_id]) result[quiz_question_id] = {
@@ -147,20 +149,16 @@ export default {
                         },{}
                     ));
                     this.questions = questionArr;
-                    console.log(questionArr);
                     this.questions.forEach(question => {
                         question["hyperlink"] = "#" + question.quiz_question_id;
                     });
-                    console.log(this.questions);
                 })
         },
         submit() {
             // Check the answer
             var totalScore = 0;
             var correctAnswer = 0;
-            let updatedApiWithEndpoint = this.apiLink + "/addnewquizperformance ";
             this.questions.forEach(answer => {
-                var dataObj = { "quizAttemptId": this.quizAttemptId, "questionId": answer.quiz_question_id, "quizChoiceId": answer.selectedAnswer };
                 answer.question_choices.forEach(choice => {
                     if (choice.correct == 1){
                         correctAnswer = choice.quiz_choice_id;
@@ -168,10 +166,7 @@ export default {
                 });
                 if (answer["selectedAnswer"] == correctAnswer) {
                     totalScore += 100 / (this.questions.length);
-                }
-                console.log(dataObj);
-                console.log(updatedApiWithEndpoint);
-                console.log(totalScore);      
+                }    
             });
             totalScore = totalScore.toFixed(2);
             this.updateGrade(totalScore);
@@ -183,11 +178,19 @@ export default {
                 "grade" : studentScore,
                 "attemptId" : this.quizAttemptId
             }
-            axios.post(quizAttemptEndPoint, quizAttemptObj)
+            axios.put(quizAttemptEndPoint, quizAttemptObj)
                 .then((response) => {
-                    console.log(studentScore);
                     console.log(response);
                     if (studentScore >= this.passingGrade) {
+                        // Update Enrolment as complete by learner_id and conduct_id
+                        if (this.passingGrade != 0) {
+                            let completeCourseEndpoint = this.apiLink + "/updatecourseascomplete";
+                            let completeCourseObj = { "learnerId": this.currentUserId, "conductId": this.conductId }
+                            axios.put(completeCourseEndpoint, completeCourseObj)
+                                .then((response) => {
+                                    console.log(response)
+                                })
+                        }
                         this.text = `You passed! You got ${studentScore}/100`;
                     }
                     else {
@@ -219,8 +222,6 @@ export default {
         // Calls method to get question choices
         this.getQuestionChoices();
 
-        // Calls method to add a new quiz attempt
-        this.addQuizAttempt();
     },
     // Timer
     mounted() {
@@ -230,9 +231,7 @@ export default {
         }, 1000)
     },
     watch: {
-        countdown: function(newValue, oldValue){
-            console.log("old value: ", oldValue);
-            console.log("new value: ", newValue)
+        countdown: function(newValue){
             if (newValue == 0) {
                 alert("Time's up, your answers have been automatically submitted.");
                 this.submit();   

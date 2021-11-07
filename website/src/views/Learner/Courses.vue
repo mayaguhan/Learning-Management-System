@@ -232,7 +232,10 @@
         let dataObj = { 'learnerId' : this.currentUserId};
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
-            this.coursesNotEnrolled = response.data;
+            this.coursesNotEnrolled = response.data.data;
+          })
+          .catch((error) => {
+            console.log(error, "No courses found")
           })
       },
       // Get all in-progress Courses a User has by learner_id
@@ -241,29 +244,49 @@
         let updatedApiWithEndpoint = this.apiLink + "/getallcoursesauserhasbystatus";
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
-            this.coursesProgress = response.data;
+            this.coursesProgress = response.data.data;
+          })
+          .catch((error) => {
+            console.log(error, "No courses found")
           })
       },
-      // Get all completed Courses User has by learner_id
+      // Get all completed courses that a user has by learner id
       getCoursesCompleted() {
         let dataObj = { 'learnerId' : this.currentUserId};
         let updatedApiWithEndpoint = this.apiLink + "/getallcompletedcoursesbyuserid";
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
-            console.log("Completed Courses", response.data);
-            this.coursesCompleted = response.data;
+            this.coursesCompleted = response.data.data;
+          })
+          .catch((error) => {
+            console.log(error, "No courses found")
           })
       },
-      // Get all requested Courses a User has by leanrner_id - TO-DO
-      
-      // Get all Trainers that are conducting a Course by course_id
-      getCourseTrainer(course_id) {
-        let updatedApiWithEndpoint = this.apiLink + "/retrievealltrainersconductingcourse";
-        let dataObj = { 'courseId' : course_id};
-        console.log(dataObj, course_id);
+      // Get all Self-Enrolment request by learner_id
+      getSelfEnrolmentRequest() {
+        let dataObj = { 'learnerId' : this.currentUserId};
+        let updatedApiWithEndpoint = this.apiLink + "/getlearnerselfenrolmentrequests";
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
-            this.trainers = response.data;
+            console.log(response.data.data);
+            // TO DO: Display self-enrolment requests
+
+
+          })
+          .catch((error) => {
+            console.log(error, "No enrolments found")
+          })
+      },
+      // Get all Trainers that are conducting a Course by course_id
+      getCourseTrainer(course_id) {
+        let updatedApiWithEndpoint = this.apiLink + "/gettrainersconductingacourse";
+        let dataObj = { 'courseId' : course_id};
+        axios.post(updatedApiWithEndpoint, dataObj)
+          .then((response) => {
+            this.trainers = response.data.data;
+          })
+          .catch((error) => {
+            console.log(error, "No trainers found")
           })
       },
       formatDate(date) {  
@@ -272,20 +295,17 @@
       // Add new Enrolment
       addEnrolment(conduct_id, courseName) {
         let updatedApiWithEndpoint = this.apiLink + "/addnewenrolment";
-        let dataObj = { "learnerId" : this.currentUserId, "conductId": conduct_id, "selfEnrolment": 1, "status" : "Request" };
+        let dataObj = { "learner_id" : this.currentUserId, "conduct_id": conduct_id, "self_enrolment": 1, "status" : "Request" };
         axios.post(updatedApiWithEndpoint, dataObj)
           .then((response) => {
-            console.log(response);
-            // TO DO: Display successful enrolment
-            if (response.status === 200) {
+            console.log(response.data.code);
+            if (response.data.code == 201) {
               this.getCoursesNotEnrolledIn();
-              alert(`You have successfully submitted the enrollment request for ${courseName}`);
+              alert(`You have successfully submitted the enrollment request for ${courseName}'s class`);
             }
             else {
               alert("Sorry, you have already enrolled into the class");
             }
-            
-            
         })
         console.log(conduct_id);
       },
@@ -309,7 +329,8 @@
     created() {
       this.getCoursesNotEnrolledIn();
       this.getCoursesProgress();
-      this.getCoursesCompleted();            
+      this.getCoursesCompleted();
+      this.getSelfEnrolmentRequest()
     },
   }
 </script>

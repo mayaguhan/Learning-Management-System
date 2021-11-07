@@ -1,6 +1,8 @@
+# from backend.api.data_access.classes import LMSConduct
 from flask_sqlalchemy import SQLAlchemy
 from ..data_access.lms_user import LMSUser
 from ..data_access.lms_section import LMSSection
+from ..data_access.lms_section import LMSConduct
 import datetime
 from datetime import datetime
 
@@ -11,6 +13,7 @@ class LMSQuizAttempt(db.Model):
     quiz_attempt_id = db.Column(db.Integer, primary_key=True)
     learner_id = db.Column(db.Integer,db.ForeignKey(LMSUser.user_id))
     section_id = db.Column(db.Integer,db.ForeignKey(LMSSection.section_id))
+    conduct_id = db.Column(db.Integer,db.ForeignKey(LMSConduct.conduct_id))
     attempt_date = db.Column(db.DateTime)
     grade = db.Column(db.Integer)
     

@@ -14,7 +14,7 @@
                     {{row.item.course_code}} - {{row.item.title}} 
                 </td>
                 <td>
-                    {{ row.item.enrolment  }} / {{ row.item.capacity  }}
+                    {{ row.item.enrolments  }} / {{ row.item.capacity  }}
                 </td>
                 <td>
                     {{ formatDate(row.item.start_date) }}
@@ -76,8 +76,10 @@ export default {
             let dataObj = { "trainerId": trainer_id }
             axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
-                console.log(response.data)
-                this.courses = response.data;
+                this.courses = response.data.data;
+            })
+            .catch((error) => {
+                console.log(error, "No courses found")
             })
         },
         formatDate(date) {  
