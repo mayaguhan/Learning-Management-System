@@ -28,7 +28,7 @@ class LMSQuizPerformance(db.Model):
     def getChoiceID(self):
         return self.quiz_choice_id
     
-    def setOptionID(self,newID):
+    def setChoiceID(self,newID):
         self.quiz_choice_id = newID
 
     
