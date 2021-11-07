@@ -12,8 +12,8 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state:{
         
-        // apiLink: "https://wsphrnze6b.execute-api.us-east-1.amazonaws.com/beta",
-        apiLink: "http://localhost:5000",
+        apiLambda: "https://wsphrnze6b.execute-api.us-east-1.amazonaws.com/beta",
+        apiLink: "http://3.93.111.142/backend",
         s3Link: "https://spmlmsteam2contentupload.s3.amazonaws.com/",
         userId: "",
         login: false,

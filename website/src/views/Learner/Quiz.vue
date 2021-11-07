@@ -101,7 +101,7 @@ export default {
         // Snackbar
         snackbar: false,
         text: 'My timeout is set to 2000.',
-        timeout: 100000,
+        timeout: 5000,
     }),
     methods: {
         // Get Section information by section_id
@@ -159,6 +159,15 @@ export default {
             var totalScore = 0;
             var correctAnswer = 0;
             this.questions.forEach(answer => {
+                // Add new Quiz Performance
+                let updatedApiWithEndpoint = this.apiLink + "/addnewquizperformance ";
+                let dataObj = { "quizAttemptId" : this.quizAttemptId, "questionId" : answer.quiz_question_id, "quizChoiceId" : answer["selectedAnswer"]}
+                console.log(updatedApiWithEndpoint, dataObj);
+                axios.post(updatedApiWithEndpoint, dataObj)
+                    .then((response) => {
+                        console.log("Added performance:", response.data.data)
+                    })
+
                 answer.question_choices.forEach(choice => {
                     if (choice.correct == 1){
                         correctAnswer = choice.quiz_choice_id;

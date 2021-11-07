@@ -145,11 +145,11 @@ export default {
         },
         // Get all Sections by conduct_id (Trainer)
         getCourseSections() {
-            let updatedApiWithEndpoint = this.apiLink + "/getsectionsbyconductid";
+            let updatedApiWithEndpoint = this.apiLambda + "/getsectionsbyconductid";
             let dataObj = { "conductId": this.conduct_id }
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
-                    let sectionArr = Object.values(response.data.data.reduce((result, { 
+                    let sectionArr = Object.values(response.data.reduce((result, { 
                         section_id, section_name, sequence, quiz_duration, passing_grade, pass_count, section_count, learner_count, 
                         material_id, file_name, link }) => {
                         // Create section section
@@ -208,7 +208,9 @@ export default {
         apiLink(){
             return this.$store.state.apiLink;
         },
-
+        apiLambda() {
+            return this.$store.state.apiLambda;
+        },
         s3Link(){
             return this.$store.state.s3Link;
         },

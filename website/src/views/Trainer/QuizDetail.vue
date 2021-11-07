@@ -355,7 +355,7 @@ export default {
                 })
         },
 
-        // Get Quiz's Question Performance by section_id
+        // Get Quiz's Question Performance by section_id and quiz_attempt_id
         getQuestionChoices() {
             let updatedApiWithEndpoint = this.apiLink + "/getquizquestionperformancebysection";
             let dataObj = { "sectionId": this.section_id  }
