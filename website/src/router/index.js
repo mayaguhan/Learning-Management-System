@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-// import store from '../store.js'
+import store from '../store.js'
 
 Vue.use(VueRouter)
 
@@ -120,21 +120,21 @@ const router = new VueRouter({
 })
 
 
-// router.beforeEach((to, from, next) => {
-//   if (to.matched.some(record => record.meta.requiresAuth)) {
-//     // this route requires auth, check if logged in
-//     // if not, redirect to login page.
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
 
-//     // console.log(store.getters.getLogin);
-//     if (!(store.getters.getLogin)) {
-//       console.log(store.getters.getLogin);
-//       next("/");
-//     } else {
-//       next() // go to wherever I'm going
-//     }
-//   } else {
-//     next() // does not require auth, make sure to always call next()!
-//   }
-// })
+    // console.log(store.getters.getLogin);
+    if (!(store.getters.getLogin)) {
+      console.log(store.getters.getLogin);
+      next("/");
+    } else {
+      next() // go to wherever I'm going
+    }
+  } else {
+    next() // does not require auth, make sure to always call next()!
+  }
+})
 
 export default router

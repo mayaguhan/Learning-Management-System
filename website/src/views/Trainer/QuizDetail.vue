@@ -265,7 +265,6 @@ export default {
         },
     },
     data: () => ({
-        currentUserId: 1, // To be replaced with user_id of logged in user
         currentDate: new Date(),
         toggleEditSection: false,
         courseDetail: {}, 
@@ -355,7 +354,7 @@ export default {
                 })
         },
 
-        // Get Quiz's Question Performance by section_id
+        // Get Quiz's Question Performance by section_id and quiz_attempt_id
         getQuestionChoices() {
             let updatedApiWithEndpoint = this.apiLink + "/getquizquestionperformancebysection";
             let dataObj = { "sectionId": this.section_id  }

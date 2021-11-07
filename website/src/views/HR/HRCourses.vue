@@ -36,8 +36,8 @@
                         <v-select v-model="newRequisite" :items="courses" :menu-props="{ top: true, offsetY: true }"
                           label="Courses" item-text="title" item-value="course_id"></v-select>
 
-                        <v-file-input v-model="newBadge" prepend-icon="mdi-camera" 
-                        accept="image/png, image/jpeg, image/bmp" label="Upload Badge Image" ></v-file-input>
+                        <!-- <v-file-input v-model="newBadge" prepend-icon="mdi-camera" 
+                        accept="image/png, image/jpeg, image/bmp" label="Upload Badge Image" ></v-file-input> -->
                       </v-form>
                     </v-card-text>
                     <v-card-actions>
@@ -247,8 +247,8 @@
 
                                   <v-switch v-model="row.item.active" inset ></v-switch>
 
-                                  <v-file-input v-model="editBadge" prepend-icon="mdi-camera" 
-                                  accept="image/png, image/jpeg, image/bmp" label="Upload Badge Image" ></v-file-input>
+                                  <!-- <v-file-input v-model="editBadge" prepend-icon="mdi-camera" 
+                                  accept="image/png, image/jpeg, image/bmp" label="Upload Badge Image" ></v-file-input> -->
                                 </v-form>
                               </v-card-text>
                               <v-card-actions>
@@ -388,8 +388,6 @@ export default {
     
     data () {
       return {
-        currentUserId: 1, // To be replaced with user_id of logged in user
-
         allcourses: true,
         allengineers: false,
         allrequest: false,
@@ -564,7 +562,6 @@ export default {
           let dataObj = { "course_id" : course_id, "trainer_id": trainer_id, "capacity": this.newCapacity, 
                           "start_date" : this.assignStartDate, "end_date":  this.assignEndDate, 
                           "start_register": this.assignStartRegister, "end_register" : this.assignEndRegister };
-          console.log(updatedApiWithEndpoint, dataObj)
           axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
                 console.log(response.data.data)
@@ -595,7 +592,6 @@ export default {
           console.log(request, action)
           let updatedApiWithEndpoint = this.apiLink + "/updateenrolment";
           let dataObj = { "learnerId" : request.learner_id, "conductId": request.conduct_id, "status" : action, "remarks": this.enrolmentRemarks };
-          console.log(updatedApiWithEndpoint, dataObj)
           axios.put(updatedApiWithEndpoint, dataObj)
           .then((response) => {
               console.log(response.data.data)
@@ -605,50 +601,16 @@ export default {
           this.enrolmentRemarks = '';
         },
 
-        uploadBadge(file, courseDataObj) {
-            console.log(file, courseDataObj)
-
-            // var nameWithExtension = file['name']
-            // var extensionArray = file['type'].split("/")
-            // var extension = extensionArray[1]
-
-            // var indexOfExtension = nameWithExtension.indexOf(extension);
-            // var name = nameWithExtension.slice(0, indexOfExtension-1)
-
-            // var content = "";
-            // var updatedApiWithEndpointM = this.apiLink + "/uploadfile";
-
-            // let reader = new FileReader();
-            // reader.readAsDataURL(file);
-            // reader.onload = function () {
-            //     content = reader.result.split(',')[1];
-            //     let dataObj = {"courseId": courseDataObj.course_id.toString(),"fileName": name, 
-            //                 "fileExtension": extension, "content": content };
-            //     console.log(updatedApiWithEndpointM, dataObj);
-            //     axios.post(updatedApiWithEndpointM, dataObj)
-            //         .then((response) => {
-            //             console.log(response.data)
-            //             // courseDataObj['badge'] = response.data
-            //             // this.updateCourse(courseDataObj)
-
-            //         })
-            // }
-            // this.newBadge = {};
-            this.editBadge = {};
-        },
-
         // Add a Course
         addNewCourse() {
           let updatedApiWithEndpoint = this.apiLink + "/addacourse";
           let courseDataObj = { "course_requisite_id": this.newRequisite, "course_code" : this.newCourseCode, "title": this.newTitle, 
                           "outline": this.newOutline, "badge" : "placeholder", "active":  1 };
-          console.log(updatedApiWithEndpoint, courseDataObj)
           axios.post(updatedApiWithEndpoint, courseDataObj)
             .then((response) => {
                 console.log(response.data.data);
                 if (this.newBadge.name != null) {
                   courseDataObj["course_id"] = response.data.data.course_id
-                  this.uploadBadge(this.newBadge, courseDataObj);
                 }
                 this.getCoursesDetail();
                 this.forceRerender();

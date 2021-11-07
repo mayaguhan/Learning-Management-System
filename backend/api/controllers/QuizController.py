@@ -197,7 +197,7 @@ def getQuizQuestionPerformanceBySectionId(data):
                 "data" : returnArray
                 }),201
 
-# Get Learner's Quiz Performance by quiz_attempt_id and section_id
+# Get Learner's Quiz Performance by section_id
 def getQuizPerformanceByQuizAtemptAndSectionId(data):
     if not all(key in data.keys() for
                 key in ('sectionId', "attemptId")):
