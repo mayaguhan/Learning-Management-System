@@ -47,6 +47,18 @@ class LMSQuizAttempt(db.Model):
         else:
             self.learner_id = newLearner
             return self.learner_id
+        
+    def getConductID(self):
+        return self.conduct_id
+    
+    def setConductID(self, newConduct):
+        if type(newConduct)!=int:
+            raise Exception("Invalid input")
+        elif newConduct<=0:
+            raise Exception("DB auto id should never be negative")
+        else:
+            self.learner_id = newConduct
+            return self.conduct_id
 
     def getAttemptDate(self):
         return self.attempt_date

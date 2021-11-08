@@ -169,7 +169,7 @@ def getQuizQuestionPerformanceBySectionId(data):
 
     # joinQuery = db.session.query(LMSQuizChoice,LMSQuizPerformance).join(LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id).filter(LMSQuizPerformance.quiz_attempt_id==quizAttemptId)#.all()
     # .filter(LMSQuizQuestion.quiz_question_id==LMSQuizChoice.quiz_question_id,LMSQuizPerformance.quiz_attempt_id==quizAttemptId,LMSQuizQuestion.section_id==sectionId)
-    quizPerformances = db.session.query(LMSQuizQuestion.quiz_question_id,LMSQuizQuestion.question_name,LMSQuizChoice.quiz_choice_id,LMSQuizChoice.choice,LMSQuizChoice.correct,func.count(LMSQuizPerformance.quiz_choice_id)).select_from(LMSQuizQuestion).join(
+    quizPerformances = db.session.query(LMSQuizQuestion, LMSQuizChoice, func.count(LMSQuizPerformance.quiz_choice_id)).select_from(LMSQuizQuestion).join(
         LMSQuizChoice,LMSQuizChoice.quiz_question_id==LMSQuizQuestion.quiz_question_id , isouter=True).join(
             LMSQuizPerformance,LMSQuizPerformance.quiz_choice_id==LMSQuizChoice.quiz_choice_id, isouter=True).filter(
                 LMSQuizQuestion.section_id==sectionId).group_by(
@@ -184,12 +184,14 @@ def getQuizQuestionPerformanceBySectionId(data):
         returnArray = []
         for quizPerformance in quizPerformances:
             individual = {}
-            individual["quiz_question_id"] = quizPerformance[0]
-            individual["question_name"] = quizPerformance[1]
-            individual["quiz_choice_id"] = quizPerformance[2]
-            individual["choice"] = quizPerformance[3]
-            individual["correct"] = quizPerformance[4]
-            individual["answer_count"] = quizPerformance[5]
+            question = quizPerformance[0]
+            choice = quizPerformance[1]
+            individual["quiz_question_id"] = question.getQuestionID()
+            individual["question_name"] = question.getQuestionName()
+            individual["quiz_choice_id"] = choice.getChoiceID()
+            individual["choice"] = choice.getChoice()
+            individual["correct"] = choice.getCorrect()
+            individual["answer_count"] = quizPerformance[2]
             returnArray.append(individual)
 
         return jsonify({
@@ -484,7 +486,7 @@ def deleteQuizChoiceByID(data):
 # Add new Quiz attempt
 def addQuizAttempt(data):
     if not all(key in data.keys() for
-                key in ('learnerId',"conductId", "sectionId")):
+                key in ('learnerId',"conductId", "sectionId", "attemptDate")):
                         return jsonify({
             "code" : 500,
             "message" : "Error, invalid input."
@@ -493,6 +495,7 @@ def addQuizAttempt(data):
     quizAttempt.learner_id = data["learnerId"]
     quizAttempt.conduct_id = data["conductId"]
     quizAttempt.section_id = data["sectionId"]
+    quizAttempt.attempt_date = data["attemptDate"]
     try:
         db.session.add(quizAttempt)
         db.session.commit()
