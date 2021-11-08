@@ -45,7 +45,6 @@ export default {
     },
     data() {
         return {
-            type: this.$route.params.type,
             email: '',
             emailRules: [
                 v => !!v || 'E-mail is required',
@@ -72,14 +71,9 @@ export default {
                         // Store required data in vuex store
                         this.$store.commit('setUserId', response.data.user_id);
                         this.$store.commit('setLogin', true);
-                        this.$store.commit('setType', this.type);
+                        this.$store.commit('setType', "admin");
+                        this.$router.push("/hrcourses");
 
-                        if (this.type == "learner"){
-                            this.$router.push("/learnercourses");
-                        }
-                        if (this.type == "trainer" && response.data.seniority_level == "Senior Engineer") {
-                            this.$router.push("/trainercourses");
-                        }
                     } else {
                         this.styleObj.display = "block";
                     }

@@ -31,6 +31,11 @@ const routes = [
     props: true
   },
   {
+    path: '/adminlogin',
+    name: 'AdminLogin',
+    component: () => import('../views/AdminLogin.vue')
+  },
+  {
     path: '/learnercourses',
     name: 'LearnerCourses',
     component: () =>import('../views/Learner/Courses.vue'),
