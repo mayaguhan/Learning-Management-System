@@ -559,9 +559,9 @@ export default {
         // Add new Course Conduct
         assignTrainer(course_id, trainer_id) {
           let updatedApiWithEndpoint = this.apiLink + "/addcourseconduct";
-          let dataObj = { "course_id" : course_id, "trainer_id": trainer_id, "capacity": this.newCapacity, 
-                          "start_date" : this.assignStartDate, "end_date":  this.assignEndDate, 
-                          "start_register": this.assignStartRegister, "end_register" : this.assignEndRegister };
+          let dataObj = { "courseId" : course_id, "trainerId": trainer_id, "capacity": this.newCapacity, 
+                          "startDate" : this.assignStartDate, "endDate":  this.assignEndDate, 
+                          "startRegister": this.assignStartRegister, "endRegister" : this.assignEndRegister };
           axios.post(updatedApiWithEndpoint, dataObj)
             .then((response) => {
                 console.log(response.data.data)
