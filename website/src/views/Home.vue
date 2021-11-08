@@ -19,12 +19,18 @@
               </router-link>
 
             </div>
+
           </div>
         </v-col>
         <v-spacer></v-spacer>
         <v-col cols="12" md="6" sm="12" width="50%" class="pr-0 pl-0">
           <div style="width: 100%">
             <img src="../assets/linkedin-sales-solutions-46bom4lObsA-unsplash.jpg" style="border-radius:50px; max-width: 100%" class="pl-5 pr-5" alt="">
+          </div>
+          <div style="text-align: center;">
+              <router-link to="/adminlogin">
+                  Sign In As Admin
+              </router-link>
           </div>
         </v-col>
       </v-row>
