@@ -4,6 +4,7 @@ import datetime
 from datetime import timedelta,datetime
 
 class testLMSConduct(unittest.TestCase):
+
     def setUp(self):
         self.currentDate = datetime.now()
         self.conduct = LMSConduct(course_id=1,trainer_id=1,capacity=73,start_date=self.currentDate+timedelta(days=10),end_date = self.currentDate+timedelta(days=13), start_register = self.currentDate+timedelta(days=3),end_register = self.currentDate+timedelta(days=7))

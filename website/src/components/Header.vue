@@ -28,6 +28,13 @@
           </router-link> 
         </template>
 
+        <!-- For Admin/HR -->
+        <template v-if="type == 'admin'">
+          <router-link to="/hrcourses" id="textRouterLink" style="text-decoration: none;">
+            <span class="text-2xl">Bidding Cats</span>
+          </router-link> 
+        </template>
+
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
