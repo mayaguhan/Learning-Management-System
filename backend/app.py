@@ -86,7 +86,6 @@ def addUser():
     return userController.addUser(request.get_json())
 
 
-
 # COURSE ENDPOINTS
 
 # Get all courses
@@ -179,6 +178,7 @@ def addNewEnrolment():
 @app.route("/updateenrolment", methods=["PUT"])
 def updateEnrolment():
     return enrolmentController.updateEnrolment(request.get_json())
+
 
 # Update Enrolment by learner_id and conduct_id
 @app.route("/updatecourseascomplete", methods=["PUT"])
