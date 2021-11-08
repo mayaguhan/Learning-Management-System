@@ -3,15 +3,14 @@
         <div class="loginBox pr-5 pl-5">
             <v-container>
                 <v-row class="pb-5 pt-4">
-                    <h4>User Login</h4>
+                    <h4>Admin Login</h4>
                 </v-row>
                 <v-row>
-                    Enter your company email
+                    Enter admin credentials
                 </v-row>
                 <v-row class="mt-0 pt-2">
                     <v-text-field
                         v-model="email"
-                        :rules="emailRules"
                         label="E-mail"
                         required
                     ></v-text-field>
@@ -26,7 +25,7 @@
         <div class="message" v-bind:style="styleObj">
             <div class="errorMsg mt-10">
             
-                <span style="color: red">Incorrect email entered. Please try again.</span>
+                <span style="color: red">Incorrect credentials entered. Please try again.</span>
             </div>
 
         </div>
