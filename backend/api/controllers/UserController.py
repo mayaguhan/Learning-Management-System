@@ -4,7 +4,7 @@ from ..data_access.lms_user import LMSUser
 from ..data_access.lms_conduct import LMSConduct
 from ..data_access.lms_enrolment import LMSEnrolment
 from ..data_access.lms_course import LMSCourse
-from ..data_access.classes import LMSUser, LMSConduct, LMSCourse, LMSQuizAttempt, LMSSection
+from ..data_access.classes import LMSQuizAttempt, LMSSection
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import func, or_

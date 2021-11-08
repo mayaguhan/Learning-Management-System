@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+import re
 
 db = SQLAlchemy()
 
@@ -30,11 +31,13 @@ class LMSUser(db.Model):
         return self.email
 
     def setEmail(self,new_email):
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         if type(new_email)!= str:
             raise Exception("Invalid input")
         elif new_email=="" or len(new_email)>50:
             raise Exception("Please input a valid email")
-            
+        elif not re.fullmatch(regex,new_email):
+            raise Exception("Invalid email")
         else:
             self.email = new_email
             return self.email
@@ -43,10 +46,13 @@ class LMSUser(db.Model):
         return self.seniority_level
 
     def setSeniorityLevel(self,new_seniority):
+        allowed = ["HR","Engineer", "Senior Engineer"]
         if type(new_seniority)!= str:
             raise Exception("Invalid input")
         elif new_seniority=="" or len(new_seniority)>20:
             raise Exception("Please input a valid seniority level")
+        elif new_seniority not in allowed:
+            raise Exception("No such seniority level. Check again.")
         else:
             self.seniority_level = new_seniority
             return self.seniority_level
