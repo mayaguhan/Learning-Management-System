@@ -1,6 +1,7 @@
 import unittest
 from api.data_access.lms_material import LMSMaterial
 
+# Author : Craig
 class testLMSMaterial(unittest.TestCase):
     def setUp(self):
         self.material = LMSMaterial(section_id = 1,file_name = "Fixing Xerox 101.pdf" , link = "https://www.aws.s3.fixing&xerox&101.com")

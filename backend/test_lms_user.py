@@ -1,6 +1,7 @@
 import unittest
 from api.data_access.lms_user import LMSUser
 
+# Author : Yu Quan
 class testLMSUser(unittest.TestCase):
     def setUp(self):
         self.user = LMSUser(name = "Craig", email = "craig@lms.com",seniority_level = "Engineer",contact = "81234567")
