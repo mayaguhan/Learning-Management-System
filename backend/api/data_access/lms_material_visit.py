@@ -16,6 +16,10 @@ class MaterialVisit(db.Model):
     
     def getLearnerID(self):
         return self.learner_id
+    
+    def getConductID(self):
+        return self.conduct_id
+    
     # 2 way translation
     def to_dict(self):
         """

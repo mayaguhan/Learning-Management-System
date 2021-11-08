@@ -16,9 +16,6 @@ class LMSQuizChoice(db.Model):
     def getChoiceID(self):
         return self.quiz_choice_id
     
-    def getCorrect(self):
-        return self.correct
-    
     def setChoiceID(self,newID):
         self.quiz_choice_id = newID
     
@@ -36,9 +33,6 @@ class LMSQuizChoice(db.Model):
             raise Exception("Choice invalid")
         else:
             self.choice = newChoice
-    
-    def getResult(self):
-        return self.correct
     # 2 way translation
     def to_dict(self):
         """

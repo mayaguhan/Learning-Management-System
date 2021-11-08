@@ -265,9 +265,6 @@ export default {
             let updatedS3WithEndpoint = this.s3Link + material_link;
             return updatedS3WithEndpoint;
         },
-        change() {
-            this.$refs.youtube.src = "https://www.youtube.com/watch?v=nqwQpXoSN7Q";
-        },
         // Get a Single Course Conducted information by conduct_id
         getCourseDetail() {
             let updatedApiWithEndpoint = this.apiLink + "/getcourseinfobyconductid";
@@ -276,15 +273,12 @@ export default {
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     this.courseDetail = response.data.data[0];
-                    // Enable this to toggle edit
-                    // this.courseDetail.start_date = "2021-11-31 12:00";
                 })
         },
         // Get all Sections by conduct_id (Trainer)
         getCourseSections() {
             let updatedApiWithEndpoint = this.apiLambda + "/getsectionsbyconductid";
             let dataObj = { "conductId": this.conduct_id }
-            console.log(updatedApiWithEndpoint, dataObj);
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     let sectionArr = Object.values(response.data.reduce((result, { 
@@ -397,7 +391,6 @@ export default {
                         // Delete Material by material_id
                         let updatedApiWithEndpoint = this.apiLink + "/deletematerialbyid";
                         let dataObj = { "materialId" : material.material_id };
-                        console.log(updatedApiWithEndpoint, dataObj)
                         axios.delete(updatedApiWithEndpoint, { data: dataObj })
                             .then((response) => {
                                 console.log(response);
@@ -524,7 +517,6 @@ export default {
                 content = reader.result.split(',')[1];
                 let dataObj = {"sectionNumber": str.toString(),"fileName": name, 
                             "fileExtension": extension, "content": content };
-                console.log("Uploading to S3", uploadS3Endpoint, dataObj);
                 axios.post(uploadS3Endpoint, dataObj)
                     .then((response) => {
                         // Saving filepath to DB
@@ -532,8 +524,6 @@ export default {
                         axios.post(updatedApiWithEndpoint, dataObj)
                             .then((response) => {
                                 console.log(response.data.data);
-                                // this.getCourseSections();
-                                // this.forceRerender();
                             })
                     })
             }
@@ -542,12 +532,9 @@ export default {
         addVideoMaterial(section_id) {
             var updatedApiWithEndpoint = this.apiLink + "/addnewcoursematerial";
             let dataObj = { "sectionId": section_id, "fileName": this.file_name, "link":  this.link }
-            console.log(updatedApiWithEndpoint, dataObj);
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
                     console.log(response.data.data);
-                    // this.getCourseSections();
-                    // this.forceRerender();
                 })
         },
         
