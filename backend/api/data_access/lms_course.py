@@ -63,9 +63,6 @@ class LMSCourse(db.Model):
             self.badge = new_badge
         else:
             raise Exception("Invalid input")
-
-    def getActive(self):
-        return self.active
     
     # 2 way translation
     def to_dict(self):

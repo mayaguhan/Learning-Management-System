@@ -122,7 +122,7 @@ export default {
         // Add new Quiz attempt
         addQuizAttempt() {
             let updatedApiWithEndpoint = this.apiLink + "/addnewquizattempt ";
-            let dataObj = { "sectionId": this.section_id, "learnerId": this.getUserId, "conductId": this.conductId }
+            let dataObj = { "sectionId": this.section_id, "learnerId": this.getUserId, "conductId": this.conductId, "attemptDate": this.formatDate(new Date()) }
             console.log(updatedApiWithEndpoint, dataObj);
             axios.post(updatedApiWithEndpoint, dataObj)
                 .then((response) => {
@@ -211,8 +211,10 @@ export default {
             // Show snackbar, once snackbar disappears (due to timeout set), redirect
             this.snackbar = true;
             setTimeout(() => { this.$router.replace(`/singlecourse/${this.conductId}`); }, this.timeout);
-        }
-        
+        },
+        formatDate(date) {  
+            return moment(date).format('yyyy-MM-DD hh:mm');
+        },
     },
     computed: {
         apiLink(){
@@ -224,7 +226,7 @@ export default {
         // Timer
         formatedCountdown() {
             return moment.duration(this.countdown, 'seconds').format('m:ss')
-        },
+        }
     },
     created() {
         // Calls method to retrieve section details

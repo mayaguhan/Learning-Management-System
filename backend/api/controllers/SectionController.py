@@ -145,7 +145,7 @@ def getSectionInformationBySectionId(data):
         }),500
     sectionId = data["sectionId"]
     subQuery = db.session.query(LMSSection.section_id,func.count(LMSEnrolment.learner_id).label("enrolments")).filter(LMSEnrolment.conduct_id==LMSConduct.conduct_id,LMSConduct.conduct_id==LMSSection.conduct_id,LMSSection.section_id==sectionId, or_(LMSEnrolment.status == "Progress", LMSEnrolment.status == "Complete")).subquery()
-    sections = db.session.query(LMSSection.conduct_id,LMSSection.sequence,LMSSection.section_name,LMSSection.quiz_duration,LMSSection.passing_grade,subQuery.c.enrolments).select_from(LMSSection).join(subQuery,subQuery.c.section_id==LMSSection.section_id).filter(LMSSection.section_id==sectionId)
+    sections = db.session.query(LMSSection.conduct_id,LMSSection.sequence,LMSSection.section_name,LMSSection.quiz_duration,LMSSection.passing_grade,subQuery.c.enrolments).select_from(LMSSection).join(subQuery,subQuery.c.section_id==LMSSection.section_id, isouter=True).filter(LMSSection.section_id==sectionId)
     if not sections:
         return jsonify({
             "code" : 404,

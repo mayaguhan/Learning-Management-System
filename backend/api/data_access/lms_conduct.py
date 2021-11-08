@@ -31,7 +31,7 @@ class LMSConduct(db.Model):
     def setCapacity(self,new_capacity):
         if type(new_capacity)!=int:
             raise Exception("Invalud data type")
-        elif new_capacity>0:
+        elif new_capacity>=0:
             self.capacity = new_capacity
             return self.capacity
         else:

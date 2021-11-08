@@ -42,7 +42,7 @@
             Quiz Questions
             <!-- Toggle: Edit Questions -->
             <v-btn icon @click="toggleEditQuestion=!toggleEditQuestion, editAction('edit')" 
-            v-show="toggleEditQuestion == false && formatDate(currentDate) < formatDate(courseDetail.start_date) && formatDate(currentDate) < formatDate(courseDetail.start_date)">
+            v-show="toggleEditQuestion == false && formatDate(currentDate) < formatDate(courseDetail.start_date)">
                 <v-icon>mdi-pencil</v-icon>
             </v-btn>
 
@@ -58,8 +58,7 @@
                 Cancel
             </v-btn>
 
-            <v-btn class="primary mr-3" v-show="toggleEditQuestion == true" 
-            @click="addQuestion()">
+            <v-btn class="primary mr-3" v-show="toggleEditQuestion == true" @click="addQuestion()">
                 Add Question
             </v-btn>
         </h2>

@@ -156,6 +156,9 @@ def getCourseConductInformation(data):
             course = result[0]
             conduct = result[1]
             courseRequisite = result[2]
+            enrolments = 0
+            if (result[3] is not None):
+                enrolments = result[3]
 
             returnObj = {}
             returnObj["course_id"] = course.getCourseId()
@@ -185,7 +188,7 @@ def getCourseConductInformation(data):
             returnObj["start_register"] = conduct.getStartRegister()
             returnObj["end_register"] = conduct.getEndRegister()
             returnObj["capacity"] = conduct.getCapacity()
-            returnObj["enrolments"] = result[3]
+            returnObj["enrolments"] = enrolments
             returnObj['section_count'] = sectionCount
             returnArray.append(returnObj)
 
@@ -384,6 +387,7 @@ def getAllCoursesUserHasNotEnrolledIn(data):
                 LMSCourse.active == 1).order_by(trainerSubquery.c.trainer_count.desc()).all()
 
     returnArray = []
+    print(len(courseList))
     if len(courseList) > 0:
         for result in courseList:
             course = result[0]
@@ -427,15 +431,6 @@ def getAllCoursesConductedByTrainer(data):
     userId = data["trainerId"]
     enrolmentsSubquery = db.session.query(LMSEnrolment.conduct_id, func.count(LMSEnrolment.learner_id).label('enrolments')).filter(
         or_(LMSEnrolment.status == "Progress", LMSEnrolment.status == "Complete")).group_by(LMSEnrolment.conduct_id).subquery()
-    # return jsonify(
-    #     {
-    #         "code" : 200,
-    #         "data": enrolmentsSubquery
-    #     }
-    # )
-    # resultList = db.session.query(LMSCourse, LMSConduct, enrolmentsSubquery.c.enrolments).join(
-    #     enrolmentsSubquery, enrolmentsSubquery.c.conduct_id == LMSConduct.conduct_id, isouter=True).filter(
-    #         LMSConduct.trainer_id == userId).all()
 
     resultList = db.session.query(LMSCourse, LMSConduct, enrolmentsSubquery.c.enrolments).select_from(LMSConduct).join(
         enrolmentsSubquery, enrolmentsSubquery.c.conduct_id == LMSConduct.conduct_id, isouter=True).filter(
@@ -448,6 +443,9 @@ def getAllCoursesConductedByTrainer(data):
         for result in resultList:
             course = result[0]
             conduct = result[1]
+            enrolments = 0
+            if (result[2] is not None):
+                enrolments = result[2]
 
             returnObj = {}
             returnObj["course_id"] = course.getCourseId()
@@ -463,7 +461,7 @@ def getAllCoursesConductedByTrainer(data):
             returnObj["end_date"] = conduct.getEndDate()
             returnObj["start_register"] = conduct.getStartRegister()
             returnObj["end_register"] = conduct.getEndRegister()
-            returnObj["enrolments"] = result[2]
+            returnObj["enrolments"] = enrolments
 
             returnArray.append(returnObj)
             
@@ -541,7 +539,13 @@ def updateCourse(data):
 
 # Add new Course Conduct
 def addCourseConduct(data):
-    course = LMSConduct(**data)
+    if not all(key in data.keys() for
+                key in ("courseId", "trainerId", "capacity", "startDate", "endDate", "startRegister", "endRegister")):
+                        return jsonify({
+            "code" : 500,
+            "message" : "Error, invalid input."
+        }),500
+    course = LMSConduct(course_id= data["courseId"],trainer_id=data["trainerId"],capacity=data["capacity"],start_date=data["startDate"],end_date=data["endDate"],start_register=data["startRegister"],end_register=data["endRegister"])
     try:
         db.session.add(course)
         db.session.commit()
