@@ -36,11 +36,11 @@
                                 <v-btn v-else v-bind:href="s3link(material.link)" target="_blank">
                                     {{ material.file_name }}
                                 </v-btn>
-                                <div v-if="material.vist == null">
-                                    <v-btn class="primary" @click="addMaterialVisit(material)" v-show="material.visit == 0">
-                                        Mark as Viewed
-                                    </v-btn>
-                                </div>
+
+                                <v-btn class="primary" @click="addMaterialVisit(material)" v-show="material.visit == 0">
+                                    Mark as Viewed
+                                </v-btn>
+
 
                             </li>
                         </ul>
