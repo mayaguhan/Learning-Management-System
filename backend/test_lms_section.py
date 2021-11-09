@@ -1,6 +1,6 @@
 import unittest
 from api.data_access.lms_section import LMSSection
-
+#  Author : Guhan
 class testLMSSection(unittest.TestCase):
     def setUp(self):
         self.section = LMSSection(conduct_id = 1,sequence = 2,section_name = "Xerox Learners G1",quiz_duration = 60,passing_grade = 50)
